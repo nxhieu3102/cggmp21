@@ -715,13 +715,12 @@ where
         )
         .map_err(|e| Bug::PiEnc(BugSource::psi0, e))?;
 
-        tracer.send_msg();
         outgoings
-            .send(Outgoing::p2p(j, Msg::Round1b(MsgRound1b { psi0 })))
+            .feed(Outgoing::p2p(j, Msg::Round1b(MsgRound1b { psi0 })))
             .await
             .map_err(IoError::send_message)?;
-        tracer.msg_sent();
     }
+    outgoings.flush().await.map_err(IoError::send_message)?;
 
     // Round 2
     tracer.round_begins();
@@ -950,9 +949,8 @@ where
         .map_err(|e| Bug::PiLog(BugSource::psi_prime, e))?;
         runtime.yield_now().await;
 
-        tracer.send_msg();
         outgoings
-            .send(Outgoing::p2p(
+            .feed(Outgoing::p2p(
                 j,
                 Msg::Round2(MsgRound2 {
                     Gamma: Gamma_i,
@@ -967,8 +965,8 @@ where
             ))
             .await
             .map_err(IoError::send_message)?;
-        tracer.msg_sent();
     }
+    outgoings.flush().await.map_err(IoError::send_message)?;
 
     // Round 3
     tracer.round_begins();
@@ -1124,9 +1122,8 @@ where
         )
         .map_err(|e| Bug::PiLog(BugSource::psi_prime_prime, e))?;
 
-        tracer.send_msg();
         outgoings
-            .send(Outgoing::p2p(
+            .feed(Outgoing::p2p(
                 j,
                 Msg::Round3(MsgRound3 {
                     delta: delta_i,
@@ -1136,8 +1133,8 @@ where
             ))
             .await
             .map_err(IoError::send_message)?;
-        tracer.msg_sent();
     }
+    outgoings.flush().await.map_err(IoError::send_message)?;
 
     // Output
     tracer.named_round_begins("Presig output");
