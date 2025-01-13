@@ -284,7 +284,7 @@ where
         Outgoing::p2p(j, Msg::Round2Uni(message))
     });
     outgoings
-        .send_all(&mut futures::stream::iter(messages.map(Ok)))
+        .send_all(&mut futures_util::stream::iter(messages.map(Ok)))
         .await
         .map_err(IoError::send_message)?;
     tracer.msg_sent();

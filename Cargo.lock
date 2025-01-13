@@ -328,7 +328,7 @@ version = "0.5.0"
 dependencies = [
  "digest",
  "displaydoc",
- "futures",
+ "futures-util",
  "generic-ec",
  "generic-ec-zkp",
  "hd-wallet",

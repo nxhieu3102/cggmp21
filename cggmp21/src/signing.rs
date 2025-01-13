@@ -715,12 +715,16 @@ where
         )
         .map_err(|e| Bug::PiEnc(BugSource::psi0, e))?;
 
+        tracer.send_msg();
         outgoings
             .feed(Outgoing::p2p(j, Msg::Round1b(MsgRound1b { psi0 })))
             .await
             .map_err(IoError::send_message)?;
+        tracer.msg_sent();
     }
+    tracer.send_msg();
     outgoings.flush().await.map_err(IoError::send_message)?;
+    tracer.msg_sent();
 
     // Round 2
     tracer.round_begins();
@@ -949,6 +953,7 @@ where
         .map_err(|e| Bug::PiLog(BugSource::psi_prime, e))?;
         runtime.yield_now().await;
 
+        tracer.send_msg();
         outgoings
             .feed(Outgoing::p2p(
                 j,
@@ -965,8 +970,11 @@ where
             ))
             .await
             .map_err(IoError::send_message)?;
+        tracer.msg_sent();
     }
+    tracer.send_msg();
     outgoings.flush().await.map_err(IoError::send_message)?;
+    tracer.msg_sent();
 
     // Round 3
     tracer.round_begins();
@@ -1122,6 +1130,7 @@ where
         )
         .map_err(|e| Bug::PiLog(BugSource::psi_prime_prime, e))?;
 
+        tracer.send_msg();
         outgoings
             .feed(Outgoing::p2p(
                 j,
@@ -1133,8 +1142,11 @@ where
             ))
             .await
             .map_err(IoError::send_message)?;
+        tracer.msg_sent();
     }
+    tracer.send_msg();
     outgoings.flush().await.map_err(IoError::send_message)?;
+    tracer.msg_sent();
 
     // Output
     tracer.named_round_begins("Presig output");
