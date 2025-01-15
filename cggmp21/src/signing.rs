@@ -687,7 +687,7 @@ where
 
     tracer.send_msg();
     outgoings
-        .send(Outgoing::broadcast(Msg::Round1a(MsgRound1a {
+        .feed(Outgoing::broadcast(Msg::Round1a(MsgRound1a {
             K: K_i.clone(),
             G: G_i.clone(),
         })))

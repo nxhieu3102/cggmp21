@@ -271,7 +271,7 @@ where
 
     tracer.send_msg();
     outgoings
-        .send(Outgoing::broadcast(Msg::Round2Broad(
+        .feed(Outgoing::broadcast(Msg::Round2Broad(
             my_decommitment.clone(),
         )))
         .await
