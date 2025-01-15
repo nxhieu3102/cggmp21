@@ -4,6 +4,81 @@ use generic_ec::Curve;
 use rand::RngCore;
 use serde_json::{Map, Value};
 
+#[pin_project::pin_project]
+pub struct BufferedSink<M, Inner> {
+    #[pin]
+    messages: Vec<M>,
+    #[pin]
+    inner: Inner,
+}
+type BufferedDelivery<M, D> = (
+    <D as round_based::Delivery<M>>::Receive,
+    BufferedSink<round_based::Outgoing<M>, <D as round_based::Delivery<M>>::Send>,
+);
+
+impl<M: Unpin, Inner: futures::Sink<M>> futures::Sink<M> for BufferedSink<M, Inner> {
+    type Error = Inner::Error;
+
+    fn poll_ready(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        std::task::Poll::Ready(Ok(()))
+    }
+
+    fn start_send(self: std::pin::Pin<&mut Self>, item: M) -> Result<(), Self::Error> {
+        self.project().messages.get_mut().push(item);
+        Ok(())
+    }
+
+    fn poll_flush(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        while !self.messages.is_empty() {
+            let mut projection = self.as_mut().project();
+            let mut inner = projection.inner;
+            match inner.as_mut().poll_ready(cx) {
+                std::task::Poll::Pending => return std::task::Poll::Pending,
+                std::task::Poll::Ready(Ok(())) => {
+                    if let Some(item) = projection.messages.pop() {
+                        inner.as_mut().start_send(item)?;
+                    }
+                }
+                err => return err,
+            }
+        }
+        self.project().inner.poll_flush(cx)
+    }
+
+    fn poll_close(
+        self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<(), Self::Error>> {
+        self.project().inner.poll_close(cx)
+    }
+}
+
+pub fn buffer_outgoing<M, D, R>(
+    party: round_based::MpcParty<M, D, R>,
+) -> round_based::MpcParty<M, BufferedDelivery<M, D>, R>
+where
+    M: Unpin,
+    D: round_based::Delivery<M>,
+    R: round_based::runtime::AsyncRuntime,
+{
+    let round_based::MpcParty {
+        delivery, runtime, ..
+    } = party;
+    let (incoming, outgoing) = delivery.split();
+    let buffered_outgoing = BufferedSink::<round_based::Outgoing<M>, D::Send> {
+        messages: Vec::new(),
+        inner: outgoing,
+    };
+    let buffered_delivery = (incoming, buffered_outgoing);
+    round_based::MpcParty::connected(buffered_delivery).set_runtime(runtime)
+}
+
 pub mod external_verifier;
 
 lazy_static::lazy_static! {
