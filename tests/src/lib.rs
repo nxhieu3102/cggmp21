@@ -4,10 +4,11 @@ use generic_ec::Curve;
 use rand::RngCore;
 use serde_json::{Map, Value};
 
+/// Wraps a sink to buffer the messages. Used in [`buffer_outgoing`]
 #[pin_project::pin_project]
 pub struct BufferedSink<M, Inner> {
     #[pin]
-    messages: Vec<M>,
+    messages: std::collections::VecDeque<M>,
     #[pin]
     inner: Inner,
 }
@@ -23,11 +24,12 @@ impl<M: Unpin, Inner: futures::Sink<M>> futures::Sink<M> for BufferedSink<M, Inn
         self: std::pin::Pin<&mut Self>,
         _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
+        // Always ready to buffer
         std::task::Poll::Ready(Ok(()))
     }
 
     fn start_send(self: std::pin::Pin<&mut Self>, item: M) -> Result<(), Self::Error> {
-        self.project().messages.get_mut().push(item);
+        self.project().messages.get_mut().push_back(item);
         Ok(())
     }
 
@@ -35,17 +37,16 @@ impl<M: Unpin, Inner: futures::Sink<M>> futures::Sink<M> for BufferedSink<M, Inn
         mut self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
+        // Feed all buffered messages one by one
         while !self.messages.is_empty() {
             let mut projection = self.as_mut().project();
             let mut inner = projection.inner;
-            match inner.as_mut().poll_ready(cx) {
-                std::task::Poll::Pending => return std::task::Poll::Pending,
-                std::task::Poll::Ready(Ok(())) => {
-                    if let Some(item) = projection.messages.pop() {
-                        inner.as_mut().start_send(item)?;
-                    }
-                }
-                err => return err,
+            // In case the inner sink wasn't ready, this method will be retried.
+            // We rely on this and don't modify any internal state before this
+            // point
+            std::task::ready!(inner.as_mut().poll_ready(cx))?;
+            if let Some(item) = projection.messages.pop_front() {
+                inner.as_mut().start_send(item)?;
             }
         }
         self.project().inner.poll_flush(cx)
@@ -59,6 +60,9 @@ impl<M: Unpin, Inner: futures::Sink<M>> futures::Sink<M> for BufferedSink<M, Inn
     }
 }
 
+/// Map a party to add explicit buffering to outgoing messages in case the
+/// underlying sink doesn't do buffering. This is useful to test that we don't
+/// forget to flush the sinks in our protocol implementations.
 pub fn buffer_outgoing<M, D, R>(
     party: round_based::MpcParty<M, D, R>,
 ) -> round_based::MpcParty<M, BufferedDelivery<M, D>, R>
@@ -72,7 +76,7 @@ where
     } = party;
     let (incoming, outgoing) = delivery.split();
     let buffered_outgoing = BufferedSink::<round_based::Outgoing<M>, D::Send> {
-        messages: Vec::new(),
+        messages: std::collections::VecDeque::new(),
         inner: outgoing,
     };
     let buffered_delivery = (incoming, buffered_outgoing);
