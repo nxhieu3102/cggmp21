@@ -8,6 +8,15 @@
     ```=
     cargo run --bin measure_perf > ./log/measure-perf-log.txt
     ```
+* Add some arguments (`cargo run --bin measure_perf -- <argument1> <argument2`)
+    * `-n=3,5,10` - number of parties, must be greater than 1
+    * `--no-bench-primes-gen`
+    * `--no-bench-non-threshold-keygen`
+    * `--no-bench-threshold-keygen`
+    * `--no-bench-aux-data-gen`
+    * `--no-bench-signing`
+    * `--optimize-multiexp`
+    * `--custom-sec-level`
 * Result (log): `./log/measure-perf-log.txt`
 
 ### 1.2. `precompute_shares`:
@@ -15,15 +24,14 @@
 * Run command:
     ```=
     // precompute shares
-    cargo run --bin precompute_shares --features="hd-wallet" -- shares > log.txt
+    cargo run --bin precompute_shares --features="hd-wallet" -- shares
 
     // precompute primes
-    cargo run --bin precompute_shares --features="hd-wallet" -- primes > log.txt
+    cargo run --bin precompute_shares --features="hd-wallet" -- primes
 
     // precompute old-shares
-    cargo run --bin precompute_shares --features="hd-wallet" -- old-shares > log.txt
+    cargo run --bin precompute_shares --features="hd-wallet" -- old-sharesold-shares.txt
     ```
-* Result (log): `./log/measure-perf-log.txt`
 
 ## 2. Benchmarks
 Can not redirect the output into a file (because of stderr), follow these steps:
