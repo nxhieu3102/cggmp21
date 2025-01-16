@@ -549,27 +549,30 @@ where
     }
 
     // Assemble x_i and \vec X
-    let (mut x_i, mut X) = if let Some(VssSetup { I, .. }) = &key_share.core.vss_setup {
-        // For t-out-of-n keys generated via VSS DKG scheme
-        let I = utils::subset(S, I).ok_or(Bug::Subset)?;
-        let X = utils::subset(S, &key_share.core.public_shares).ok_or(Bug::Subset)?;
+    let (mut x_i, mut X) = {
+        if let Some(VssSetup { I, .. }) = &key_share.core.vss_setup {
+            // For t-out-of-n keys generated via VSS DKG scheme
+            let I = utils::subset(S, I).ok_or(Bug::Subset)?;
+            let X = utils::subset(S, &key_share.core.public_shares).ok_or(Bug::Subset)?;
 
-        let lambda_i = lagrange_coefficient_at_zero(usize::from(i), &I).ok_or(Bug::LagrangeCoef)?;
-        let x_i = (lambda_i * &key_share.core.x).into_secret();
+            let lambda_i = lagrange_coefficient_at_zero(usize::from(i), &I).ok_or(Bug::LagrangeCoef)?;
+            let x_i = (lambda_i * &key_share.core.x).into_secret();
 
-        let lambda = (0..t).map(|j| lagrange_coefficient_at_zero(usize::from(j), &I));
-        let X = lambda
-            .zip(&X)
-            .map(|(lambda_j, X_j)| Some(lambda_j? * X_j))
-            .collect::<Option<Vec<_>>>()
-            .ok_or(Bug::LagrangeCoef)?;
+            let lambda = (0..t).map(|j| lagrange_coefficient_at_zero(usize::from(j), &I));
+            let X = lambda
+                .zip(&X)
+                .map(|(lambda_j, X_j)| Some(lambda_j? * X_j))
+                .collect::<Option<Vec<_>>>()
+                .ok_or(Bug::LagrangeCoef)?;
 
-        (x_i, X)
-    } else {
-        // For n-out-of-n keys generated using original CGGMP DKG
-        let X = utils::subset(S, &key_share.core.public_shares).ok_or(Bug::Subset)?;
-        (key_share.core.x.clone(), X)
+            (x_i, X)
+        } else {
+            // For n-out-of-n keys generated using original CGGMP DKG
+            let X = utils::subset(S, &key_share.core.public_shares).ok_or(Bug::Subset)?;
+            (key_share.core.x.clone(), X)
+        }
     };
+
     debug_assert_eq!(key_share.core.shared_public_key, X.iter().sum::<Point<E>>());
 
     // Apply additive shift
