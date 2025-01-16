@@ -1,0 +1,117 @@
+    Finished `bench` profile [optimized] target(s) in 3.94s
+     Running unittests src/lib.rs (target/release/deps/cggmp21-d3687c0f319a94e0)
+
+running 6 tests
+test signing::test::read_write_signature_secp256k1 ... ignored
+test signing::test::read_write_signature_secp256r1 ... ignored
+test signing::test::read_write_signature_stark ... ignored
+test utils::test::test_sqrt ... ignored
+test zk::ring_pedersen_parameters::test::failing ... ignored
+test zk::ring_pedersen_parameters::test::passing ... ignored
+
+test result: ok. 0 passed; 0 failed; 6 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/release/deps/cggmp21_keygen-7cfbf84014929c23)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/release/deps/cggmp21_tests-f15b028a6dc70fe5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/measure_perf.rs (target/release/deps/measure_perf-75fd6ca862eb12dc)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running benches/exp.rs (target/release/deps/exp-545ef4090d44205d)
+Gnuplot not found, using plotters backend
+RUST_TESTS_SEED=8efaeb34b3b5dad464d6a66381b0035056ba4805ad5d789f96ea18e16b8755bc
+Benchmarking scalar at point mult (secp256k1)
+Benchmarking scalar at point mult (secp256k1): Warming up for 3.0000 s
+Benchmarking scalar at point mult (secp256k1): Collecting 100 samples in estimated 5.0194 s (66k iterations)
+Benchmarking scalar at point mult (secp256k1): Analyzing
+scalar at point mult (secp256k1)
+                        time:   [37.784 µs 38.117 µs 38.488 µs]
+                        change: [-0.7599% +0.3447% +1.5747%] (p = 0.59 > 0.05)
+                        No change in performance detected.
+Found 7 outliers among 100 measurements (7.00%)
+  3 (3.00%) high mild
+  4 (4.00%) high severe
+
+Benchmarking x^e mod N, |e| = 256
+Benchmarking x^e mod N, |e| = 256: Warming up for 3.0000 s
+Benchmarking x^e mod N, |e| = 256: Collecting 100 samples in estimated 6.7860 s (10k iterations)
+Benchmarking x^e mod N, |e| = 256: Analyzing
+x^e mod N, |e| = 256    time:   [662.08 µs 668.61 µs 677.16 µs]
+                        change: [-0.0263% +1.1856% +2.5411%] (p = 0.10 > 0.05)
+                        No change in performance detected.
+Found 11 outliers among 100 measurements (11.00%)
+  3 (3.00%) high mild
+  8 (8.00%) high severe
+
+Benchmarking x^e mod N, |e| = 486
+Benchmarking x^e mod N, |e| = 486: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 6.6s, enable flat sampling, or reduce sample count to 60.
+Benchmarking x^e mod N, |e| = 486: Collecting 100 samples in estimated 6.5638 s (5050 iterations)
+Benchmarking x^e mod N, |e| = 486: Analyzing
+x^e mod N, |e| = 486    time:   [1.2476 ms 1.2630 ms 1.2828 ms]
+                        change: [+2.0947% +4.1902% +6.5594%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 15 outliers among 100 measurements (15.00%)
+  8 (8.00%) high mild
+  7 (7.00%) high severe
+
+Benchmarking x^e mod N, |e| = 1078
+Benchmarking x^e mod N, |e| = 1078: Warming up for 3.0000 s
+Benchmarking x^e mod N, |e| = 1078: Collecting 100 samples in estimated 5.0818 s (1900 iterations)
+Benchmarking x^e mod N, |e| = 1078: Analyzing
+x^e mod N, |e| = 1078   time:   [2.6645 ms 2.6795 ms 2.6965 ms]
+                        change: [-2.8903% -1.2641% +0.1395%] (p = 0.11 > 0.05)
+                        No change in performance detected.
+Found 7 outliers among 100 measurements (7.00%)
+  4 (4.00%) high mild
+  3 (3.00%) high severe
+
+Benchmarking x^e mod N^2, |e| = 256
+Benchmarking x^e mod N^2, |e| = 256: Warming up for 3.0000 s
+Benchmarking x^e mod N^2, |e| = 256: Collecting 100 samples in estimated 5.0723 s (2100 iterations)
+Benchmarking x^e mod N^2, |e| = 256: Analyzing
+x^e mod N^2, |e| = 256  time:   [2.3839 ms 2.3949 ms 2.4080 ms]
+                        change: [-1.2948% -0.2608% +0.6892%] (p = 0.63 > 0.05)
+                        No change in performance detected.
+Found 4 outliers among 100 measurements (4.00%)
+  3 (3.00%) high mild
+  1 (1.00%) high severe
+
+Benchmarking x^e mod N^2, |e| = 486
+Benchmarking x^e mod N^2, |e| = 486: Warming up for 3.0000 s
+Benchmarking x^e mod N^2, |e| = 486: Collecting 100 samples in estimated 5.3399 s (1200 iterations)
+Benchmarking x^e mod N^2, |e| = 486: Analyzing
+x^e mod N^2, |e| = 486  time:   [4.4373 ms 4.4526 ms 4.4683 ms]
+                        change: [-3.2960% -2.1900% -1.2163%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+
+Benchmarking x^e mod N^2, |e| = 3072
+Benchmarking x^e mod N^2, |e| = 3072: Warming up for 3.0000 s
+Benchmarking x^e mod N^2, |e| = 3072: Collecting 100 samples in estimated 5.4233 s (200 iterations)
+Benchmarking x^e mod N^2, |e| = 3072: Analyzing
+x^e mod N^2, |e| = 3072 time:   [26.782 ms 26.885 ms 27.000 ms]
+Found 4 outliers among 100 measurements (4.00%)
+  3 (3.00%) high mild
+  1 (1.00%) high severe
+
+     Running unittests src/lib.rs (target/release/deps/key_share-0fc2661aa4d9a557)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
