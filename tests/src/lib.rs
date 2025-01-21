@@ -60,9 +60,14 @@ impl<M: Unpin, Inner: futures::Sink<M>> futures::Sink<M> for BufferedSink<M, Inn
     }
 }
 
-/// Map a party to add explicit buffering to outgoing messages in case the
-/// underlying sink doesn't do buffering. This is useful to test that we don't
-/// forget to flush the sinks in our protocol implementations.
+/// Modified 'Delivery' of the party to buffer outgoing messages. The messages
+/// fed to the 'Delivery' sink will be buffered indefinitely until `flush` is
+/// called
+///
+/// This is useful since the delivery used in round-based simulation doesn't do
+/// buffering at all, however we want to verify that we don't forget to flush
+/// the messages in our protocols. When this function is used, forgetting to
+/// flush will cause the test to get stuck.
 pub fn buffer_outgoing<M, D, R>(
     party: round_based::MpcParty<M, D, R>,
 ) -> round_based::MpcParty<M, BufferedDelivery<M, D>, R>
