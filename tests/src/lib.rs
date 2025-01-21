@@ -71,16 +71,14 @@ where
     D: round_based::Delivery<M>,
     R: round_based::runtime::AsyncRuntime,
 {
-    let round_based::MpcParty {
-        delivery, runtime, ..
-    } = party;
-    let (incoming, outgoing) = delivery.split();
-    let buffered_outgoing = BufferedSink::<round_based::Outgoing<M>, D::Send> {
-        messages: std::collections::VecDeque::new(),
-        inner: outgoing,
-    };
-    let buffered_delivery = (incoming, buffered_outgoing);
-    round_based::MpcParty::connected(buffered_delivery).set_runtime(runtime)
+    party.map_delivery(|delivery| {
+        let (incoming, outgoing) = delivery.split();
+        let buffered_outgoing = BufferedSink::<round_based::Outgoing<M>, D::Send> {
+            messages: std::collections::VecDeque::new(),
+            inner: outgoing,
+        };
+        (incoming, buffered_outgoing)
+    })
 }
 
 pub mod external_verifier;

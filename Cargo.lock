@@ -2049,9 +2049,9 @@ dependencies = [
 
 [[package]]
 name = "round-based"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "079e623c882b5ec9c1a4140cb077179ea89f5352f85a7ebd879428c33ce66399"
+checksum = "da76edf50de0a9d6911fc79261bb04cc9f3f3a375e0201799f5edf58499af341"
 dependencies = [
  "futures-util",
  "phantom-type 0.3.1",
