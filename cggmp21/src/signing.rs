@@ -70,7 +70,7 @@ impl<E: Curve> DataToSign<E> {
 /// Presignature, can be used to issue a [partial signature](PartialSignature) without interacting with other signers
 ///
 /// [Threshold](crate::key_share::AnyKeyShare::min_signers) amount of partial signatures (from different signers) can be [combined](PartialSignature::combine) into regular signature
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(bound = "")]
 pub struct Presignature<E: Curve> {
     /// $R$ component of presignature
@@ -550,12 +550,14 @@ where
 
     // Assemble x_i and \vec X
     let (mut x_i, mut X) = {
+        // I is indexes of parties (the x value in a point (x,y))
         if let Some(VssSetup { I, .. }) = &key_share.core.vss_setup {
             // For t-out-of-n keys generated via VSS DKG scheme
             let I = utils::subset(S, I).ok_or(Bug::Subset)?;
             let X = utils::subset(S, &key_share.core.public_shares).ok_or(Bug::Subset)?;
 
-            let lambda_i = lagrange_coefficient_at_zero(usize::from(i), &I).ok_or(Bug::LagrangeCoef)?;
+            let lambda_i =
+                lagrange_coefficient_at_zero(usize::from(i), &I).ok_or(Bug::LagrangeCoef)?;
             let x_i = (lambda_i * &key_share.core.x).into_secret();
 
             let lambda = (0..t).map(|j| lagrange_coefficient_at_zero(usize::from(j), &I));

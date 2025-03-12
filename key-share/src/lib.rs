@@ -115,7 +115,7 @@ use serde_with::As;
 ///
 /// If you need the smallest size of serialized key share, we advise implementing serialization manually (all fields of
 /// the key share are public!).
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DirtyCoreKeyShare<E: Curve> {
     /// Index of local party in key generation protocol
     pub i: u16,

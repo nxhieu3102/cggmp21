@@ -55,6 +55,9 @@ required-features = ["hd-wallet"]
 [[bin]]
 name = "measure_perf"
 
+[[bin]]
+name = "basic_flow"
+
 [[bench]]
 name = "exp"
 harness = false
