@@ -37,6 +37,12 @@ hex = { workspace = true, default-features = false, features = ["serde"] }
 
 hd-wallet = { workspace = true, optional = true }
 
+num-bigint = "0.4"
+num-traits = "0.2"
+num-integer = "0.1"
+pretty_assertions = "1.3" 
+itertools = "0.12"
+
 [dev-dependencies]
 round-based = { workspace = true, features = ["derive", "sim"] }
 
