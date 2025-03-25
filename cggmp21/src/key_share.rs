@@ -30,7 +30,7 @@ pub type KeyShare<E, L = crate::default_choice::SecurityLevel> = Valid<DirtyKeyS
 pub type AuxInfo<L = crate::default_choice::SecurityLevel> = Valid<DirtyAuxInfo<L>>;
 
 /// Dirty aux info
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(bound = "")]
 pub struct DirtyAuxInfo<L: SecurityLevel = crate::default_choice::SecurityLevel> {
     /// Secret prime $p$
@@ -49,7 +49,7 @@ pub struct DirtyAuxInfo<L: SecurityLevel = crate::default_choice::SecurityLevel>
 /// Dirty (unvalidated) key share
 ///
 #[doc = include_str!("../docs/key_share.md")]
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(bound = "")]
 pub struct DirtyKeyShare<E: Curve, L: SecurityLevel = crate::default_choice::SecurityLevel> {
     /// Core key share

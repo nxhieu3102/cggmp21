@@ -4,8 +4,7 @@ members = [
     "cggmp21",
     "cggmp21-keygen",
     "key-share",
-    "tests",
-]
+    "tests"]
 exclude = [
     "wasm/no_std",
 ]
