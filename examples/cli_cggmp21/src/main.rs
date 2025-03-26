@@ -10,11 +10,14 @@
 
 use anyhow::Result;
 use futures::{AsyncReadExt, AsyncWriteExt, StreamExt};
-use libp2p::{multiaddr::Protocol, Multiaddr, PeerId, Stream, StreamProtocol};
+use libp2p::{Multiaddr, PeerId, Stream, StreamProtocol, multiaddr::Protocol};
 use libp2p_stream as stream;
 use rand::RngCore;
 use std::time::Duration;
-use tokio::{io, io::AsyncBufReadExt, select};
+use tokio::{
+    io::{self, AsyncBufReadExt},
+    select,
+};
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::EnvFilter;
 
@@ -39,7 +42,7 @@ async fn main() -> Result<()> {
 
     swarm.listen_on("/ip4/127.0.0.1/udp/0/quic-v1".parse()?)?;
 
-    let mut incoming_streams = swarm
+    let mut incoming_streams: libp2p_stream::IncomingStreams = swarm
         .behaviour()
         .new_control()
         .accept(ECHO_PROTOCOL)
@@ -169,3 +172,98 @@ async fn send(mut stream: Stream) -> io::Result<()> {
 
     Ok(())
 }
+
+/*
+// SET UP INCOMING STREAM AND OUTGOING SINK
+pub struct VyIncomingStreams<M> {
+    local_party_idx: PartyIndex,
+    incoming_streams: libp2p_stream::IncomingStreams,
+}
+
+impl<M> futures::Stream for VyIncomingStreams<M>
+where
+    M: Clone + Send + 'static,
+{
+    type Item = Result<Incoming<M>, BroadcastStreamRecvError>;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        loop {
+            let msg = match ready!(Pin::new(&mut self.incoming_streams).poll_next(cx)) {
+                Some((peer_id, stream)) => {
+                    let mut buf = Vec::new();
+                    stream.read_to_end(&mut buf).await?;
+                    let msg = bincode::deserialize(&buf)?;
+                    Incoming {
+                        id: msg.id,
+                        sender: msg.sender,
+                        msg_type: msg.msg_type,
+                        msg,
+                    }
+                }
+                None => return Poll::Ready(None),
+            };
+            return Poll::Ready(Some(Ok(msg)));
+        }
+    }
+}
+
+pub struct VyOutgoingSinks<M> {
+    local_party_idx: PartyIndex,
+    // sender: mpsc::Sender<(PeerId, Stream)>,
+    sender: broadcast::Sender<Outgoing<Incoming<M>>>,
+    next_msg_id: Arc<NextMessageId>,
+}
+
+impl<M> futures::Sink<Outgoing<M>> for VyOutgoingSinks<M> {
+    type Error = broadcast::error::SendError<()>;
+
+    fn poll_ready(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<std::result::Result<(), Self::Error>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn start_send(
+        self: std::pin::Pin<&mut Self>,
+        msg: Outgoing<M>,
+    ) -> std::result::Result<(), Self::Error> {
+        let msg_type = match msg.recipient {
+            MessageDestination::AllParties => MessageType::Broadcast,
+            MessageDestination::OneParty(_) => MessageType::P2P,
+        };
+        self.sender
+            .send(msg.map(|m| Incoming {
+                id: self.next_msg_id.next(),
+                sender: self.local_party_idx,
+                msg_type,
+                msg: m,
+            }))
+            .map_err(|_| broadcast::error::SendError(()))?;
+        Ok(())
+    }
+
+    fn poll_flush(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<std::result::Result<(), Self::Error>> {
+        Poll::Ready(Ok(()))
+    }
+
+    fn poll_close(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<std::result::Result<(), Self::Error>> {
+        Poll::Ready(Ok(()))
+    }
+}
+
+#[derive(Default)]
+struct NextMessageId(AtomicU64);
+
+impl NextMessageId {
+    pub fn next(&self) -> MsgId {
+        self.0.fetch_add(1, core::sync::atomic::Ordering::Relaxed)
+    }
+}
+*/

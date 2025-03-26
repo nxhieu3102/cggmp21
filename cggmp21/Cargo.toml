@@ -45,15 +45,6 @@ rand_dev = { workspace = true }
 
 generic-tests = { workspace = true }
 
-# For cli_cggmp21 example
-anyhow = "1"
-futures = "0.3.30"
-libp2p = { version = "0.55", features = [ "tokio", "quic"] }
-libp2p-stream = { version = "0.3.0-alpha" }
-tokio = { version = "1.38", features = ["full"] }
-tracing = "0.1.41"
-tracing-subscriber = {version = "0.3.19", features = ["env-filter"] }
-
 [features]
 all-curves = ["curve-secp256k1", "curve-secp256r1", "curve-stark"]
 curve-secp256k1 = ["generic-ec/curve-secp256k1"]
