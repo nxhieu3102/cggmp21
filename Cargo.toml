@@ -32,6 +32,7 @@ rand_dev = "0.1"
 
 futures = { version = "0.3", default-features = false }
 futures-util = { version = "0.3", default-features = false }
+futures-channel = { version = "0.3", features = ["std"] }
 
 anyhow = "1"
 thiserror = "1"
