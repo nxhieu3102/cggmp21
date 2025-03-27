@@ -308,15 +308,9 @@ pub use {
     round_based,
 };
 
-#[doc(inline)]
 pub use cggmp21_keygen::{keygen, progress, ExecutionId};
 
-use generic_ec::{coords::HasAffineX, Curve, Point};
-use key_share::AnyKeyShare;
-use round_based::PartyIndex;
-use security_level::SecurityLevel;
-use signing::SigningBuilder;
-
+mod birkhoff;
 mod errors;
 pub mod key_refresh;
 pub mod key_share;
@@ -328,6 +322,13 @@ mod zk;
 
 #[cfg(feature = "spof")]
 pub mod trusted_dealer;
+
+pub use birkhoff::*;
+use generic_ec::{coords::HasAffineX, Curve, Point};
+use key_share::AnyKeyShare;
+use round_based::PartyIndex;
+use security_level::SecurityLevel;
+use signing::SigningBuilder;
 
 /// Defines default choice for digest and security level used across the crate
 mod default_choice {
