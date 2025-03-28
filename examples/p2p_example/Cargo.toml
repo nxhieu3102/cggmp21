@@ -1,0 +1,14 @@
+[package]
+name = "p2p_example"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+futures = { workspace = true }
+futures-channel = { workspace = true }
+tokio = { version = "1.0", features = ["full"] }
+anyhow = { workspace = true }
+
+# yaml format
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"

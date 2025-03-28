@@ -1,0 +1,8 @@
+node:
+  id: 1
+  address: '127.0.0.1:8081'
+peers:
+  - id: 2
+    address: '127.0.0.1:8082'
+  - id: 3
+    address: '127.0.0.1:8083'
