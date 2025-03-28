@@ -12,3 +12,11 @@ anyhow = { workspace = true }
 # yaml format
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
+bincode = "1.3"
+
+# CGGMP21
+round-based ={ workspace = true}
+cggmp21 = {workspace = true}
+generic-ec = { workspace = true, features = ["serde", "all-curves"] }
+sha2 = { workspace = true}
+rand = { workspace = true}
