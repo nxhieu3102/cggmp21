@@ -1,12 +1,23 @@
+// Example of a P2P DKG using cggmp21
+// Run: cargo run --bin p2p_example <config file>
+// Node 1: cargo run --bin p2p_example test-data/p2p_example/dkg/node1.yaml
+// Node 2: cargo run --bin p2p_example test-data/p2p_example/dkg/node2.yaml
+// Node 3: cargo run --bin p2p_example test-data/p2p_example/dkg/node3.yaml
+
 mod config;
 mod handlers;
 mod node;
 
 use anyhow::Result;
+use cggmp21::keygen::msg::threshold::Msg;
+use cggmp21::keygen::msg::threshold::MsgRound1;
 use config::load_config;
+use futures::SinkExt;
 use futures::StreamExt;
 use node::Node;
 use rand::rngs::OsRng;
+use round_based::Outgoing;
+use sha2::digest::generic_array::GenericArray;
 
 type E = generic_ec::curves::Secp256k1;
 type D = sha2::Sha256;
@@ -25,9 +36,10 @@ async fn main() -> Result<()> {
 
     // set up network
     let (node, mut incoming, mut outgoing) =
-        Node::<cggmp21::keygen::msg::threshold::Msg<E, L, D>>::new(config.node.address).await?;
+        Node::<cggmp21::keygen::msg::threshold::Msg<E, L, D>>::new(&config.node.address, &config)
+            .await?;
 
-    for peer in config.peers {
+    for peer in config.peers.iter() {
         if peer.id < config.node.id {
             if let Err(e) = node.connect(peer.address).await {
                 eprintln!("Error connecting to peer: {}", e);
@@ -36,6 +48,13 @@ async fn main() -> Result<()> {
             }
         }
     }
+
+    let my_commitment = MsgRound1 {
+        commitment: GenericArray::default(),
+    };
+    outgoing
+        .send(Outgoing::broadcast(Msg::Round1(my_commitment.clone())))
+        .await?;
 
     // sleep for 10 seconds to allow all nodes to start
     tokio::time::sleep(std::time::Duration::from_secs(10)).await;
