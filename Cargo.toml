@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "cggmp21",
-    "cggmp21-keygen",
+    "cggmp21-keygen", "examples/birkhoff-vss",
     "key-share",
     "tests",
 ]
