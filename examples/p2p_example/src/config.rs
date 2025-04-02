@@ -2,19 +2,19 @@ use anyhow::Result;
 use serde::Deserialize;
 use std::{fs, net::SocketAddr};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Config {
     pub node: NodeConfig,
     pub peers: Vec<PeerConfig>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct NodeConfig {
     pub id: usize,
     pub address: SocketAddr,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct PeerConfig {
     pub id: usize,
     pub address: SocketAddr,

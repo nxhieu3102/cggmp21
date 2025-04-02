@@ -8,65 +8,90 @@ mod config;
 mod handlers;
 mod node;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use cggmp21::keygen::msg::threshold::Msg;
-use cggmp21::keygen::msg::threshold::MsgRound1;
 use config::load_config;
 use futures::SinkExt;
 use node::Node;
-use rand::rngs::OsRng;
 use round_based::Outgoing;
-use sha2::digest::generic_array::GenericArray;
+use std::time::Duration;
 
+// Define types for the cryptographic primitives
 type E = generic_ec::curves::Secp256k1;
 type D = sha2::Sha256;
 type L = cggmp21::security_level::SecurityLevel128;
 
+/// Wait for the specified duration asynchronously with informative messages
+async fn sleep_with_message(duration: Duration, message: &str) {
+    println!("{}", message);
+    tokio::time::sleep(duration).await;
+    println!("Waking up...");
+}
+
+/// Display the node's connection information for debugging
+async fn display_node_info<M>(node: &Node<M>) {
+    println!("=========================");
+    println!("Node address: {}", node.address);
+    
+    println!("Peer id mapping:");
+    for (id, addr) in node.peers_id.read().await.iter() {
+        println!("  Peer id: {} -> address: {}", id, addr);
+    }
+
+    println!("Connected peers:");
+    for (addr, _) in node.peers.read().await.iter() {
+        println!("  Peer address: {}", addr);
+    }
+    println!("=========================");
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
-    // get config
+    // Parse command line arguments
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
         eprintln!("Usage: cargo run --bin p2p_example <config file>");
         return Ok(());
     }
 
-    let config = load_config(&args[1])?;
+    // Load the node configuration
+    let config = load_config(&args[1])
+        .context(format!("Failed to load config from {}", &args[1]))?;
 
-    // set up network
-    let (node, mut incoming, mut outgoing) =
-        Node::<cggmp21::keygen::msg::threshold::Msg<E, L, D>>::new(config).await?;
+    // Set up the P2P network
+    println!("Initializing P2P network node...");
+    let (node, _incoming, mut outgoing) =
+        Node::<Msg<E, L, D>>::new(config).await?;
 
-    // sleep for 10 seconds to allow all nodes to start
-    println!("Sleeping for 10 seconds to allow all nodes to start...");
-    tokio::time::sleep(std::time::Duration::from_secs(10)).await;
-    println!("Waking up...");
+    // Wait for all nodes to start and connect
+    sleep_with_message(
+        Duration::from_secs(10),
+        "Sleeping for 10 seconds to allow all nodes to start...",
+    ).await;
 
-    println!("=========================");
-    println!("Node address: {}", node.address);
-    println!("Peer id:");
-    for key in node.peers_id.read().await.iter() {
-        println!("Peer id: {} -> address: {}", key.0, key.1);
-    }
+    // Display node information for debugging
+    display_node_info(&node).await;
 
-    println!("Peers sender:");
-    for key in node.peers.read().await.iter() {
-        println!("Peer address: {} -> sender: {:?}", key.0, key.1);
-    }
-    println!("=========================");
-
-    let my_commitment = MsgRound1 {
-        commitment: GenericArray::default(),
+    // Send a test message to all peers
+    let test_message = cggmp21::keygen::msg::threshold::MsgRound1 {
+        commitment: sha2::digest::generic_array::GenericArray::default(),
     };
+    
+    println!("Sending test message to all peers...");
     outgoing
-        .send(Outgoing::broadcast(Msg::Round1(my_commitment.clone())))
-        .await?;
+        .send(Outgoing::broadcast(Msg::Round1(test_message)))
+        .await
+        .context("Failed to send broadcast message")?;
 
-    println!("Sleeping for 10 seconds to recieve mesage...");
-    tokio::time::sleep(std::time::Duration::from_secs(10)).await;
-    println!("Waking up...");
+    // Wait to receive messages from other peers
+    sleep_with_message(
+        Duration::from_secs(10),
+        "Sleeping for 10 seconds to receive messages...",
+    ).await;
+
+    // Uncomment to enable the actual DKG protocol
     /*
-    // set up MPC
+    // Set up MPC
     let delivery = (
         incoming.map(|msg| msg.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))),
         outgoing,
@@ -89,5 +114,7 @@ async fn main() -> Result<()> {
 
     tokio::signal::ctrl_c().await?;
     */
+    
+    println!("P2P example completed successfully");
     Ok(())
 }
