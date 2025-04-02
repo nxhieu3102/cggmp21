@@ -13,7 +13,6 @@ use cggmp21::keygen::msg::threshold::Msg;
 use cggmp21::keygen::msg::threshold::MsgRound1;
 use config::load_config;
 use futures::SinkExt;
-use futures::StreamExt;
 use node::Node;
 use rand::rngs::OsRng;
 use round_based::Outgoing;
@@ -36,18 +35,25 @@ async fn main() -> Result<()> {
 
     // set up network
     let (node, mut incoming, mut outgoing) =
-        Node::<cggmp21::keygen::msg::threshold::Msg<E, L, D>>::new(&config.node.address, &config)
-            .await?;
+        Node::<cggmp21::keygen::msg::threshold::Msg<E, L, D>>::new(config).await?;
 
-    for peer in config.peers.iter() {
-        if peer.id < config.node.id {
-            if let Err(e) = node.connect(peer.address).await {
-                eprintln!("Error connecting to peer: {}", e);
-            } else {
-                println!("Connected to peer: {}", peer.address);
-            }
-        }
+    // sleep for 10 seconds to allow all nodes to start
+    println!("Sleeping for 10 seconds to allow all nodes to start...");
+    tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+    println!("Waking up...");
+
+    println!("=========================");
+    println!("Node address: {}", node.address);
+    println!("Peer id:");
+    for key in node.peers_id.read().await.iter() {
+        println!("Peer id: {} -> address: {}", key.0, key.1);
     }
+
+    println!("Peers sender:");
+    for key in node.peers.read().await.iter() {
+        println!("Peer address: {} -> sender: {:?}", key.0, key.1);
+    }
+    println!("=========================");
 
     let my_commitment = MsgRound1 {
         commitment: GenericArray::default(),
@@ -56,9 +62,10 @@ async fn main() -> Result<()> {
         .send(Outgoing::broadcast(Msg::Round1(my_commitment.clone())))
         .await?;
 
-    // sleep for 10 seconds to allow all nodes to start
+    println!("Sleeping for 10 seconds to recieve mesage...");
     tokio::time::sleep(std::time::Duration::from_secs(10)).await;
-
+    println!("Waking up...");
+    /*
     // set up MPC
     let delivery = (
         incoming.map(|msg| msg.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))),
@@ -81,5 +88,6 @@ async fn main() -> Result<()> {
             .await?;
 
     tokio::signal::ctrl_c().await?;
+    */
     Ok(())
 }

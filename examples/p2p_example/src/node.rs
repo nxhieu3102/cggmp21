@@ -7,17 +7,16 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::{
-    io::AsyncWriteExt,
-    net::{TcpListener, TcpStream},
+    net::TcpListener,
     sync::{RwLock, mpsc as tokio_mpsc},
 };
 
-use crate::config;
+use crate::{config, handlers::connect};
 
 pub struct Node<M> {
-    address: SocketAddr,
-    peers: Arc<RwLock<HashMap<SocketAddr, tokio_mpsc::Sender<M>>>>,
-    peers_id: Arc<RwLock<HashMap<u16, SocketAddr>>>,
+    pub address: SocketAddr,
+    pub peers: Arc<RwLock<HashMap<SocketAddr, tokio_mpsc::Sender<M>>>>,
+    pub peers_id: Arc<RwLock<HashMap<u16, SocketAddr>>>,
 }
 
 impl<M> Node<M>
@@ -25,18 +24,19 @@ where
     M: Send + Sync + Clone + 'static + Serialize + for<'de> serde::de::Deserialize<'de>,
 {
     pub async fn new(
-        address: &SocketAddr,
-        config: &config::Config,
+        config: config::Config,
     ) -> Result<(
         Self,
         impl Stream<Item = Result<Incoming<M>>>,
         impl Sink<Outgoing<M>, Error = mpsc::SendError>,
     )> {
-        let peers = Arc::new(RwLock::new(HashMap::new()));
         let (incoming_tx, incoming_rx) = mpsc::channel(32);
         let (outgoing_tx, mut outgoing_rx) = mpsc::channel(32);
 
+        let peers = Arc::new(RwLock::new(HashMap::new()));
         let peers_id = Arc::new(RwLock::new(HashMap::new()));
+
+        // Build map: <peer_id, address>
         peers_id
             .write()
             .await
@@ -49,32 +49,62 @@ where
         }
 
         let node = Node {
-            address: address.clone(),
+            address: config.node.address,
             peers: peers.clone(),
             peers_id: peers_id.clone(),
         };
 
-        let listener = TcpListener::bind(address).await?;
+        let listener = TcpListener::bind(node.address).await?;
+
+        // Accept incoming connections from other peers
         let peers_clone = peers.clone();
         let peers_id_clone = peers_id.clone();
-
-        tokio::spawn(async move {
-            while let Ok((stream, address)) = listener.accept().await {
-                println!("Incoming connection from: {}", address);
-                super::handlers::handle_connection(
-                    stream,
-                    address,
-                    incoming_tx.clone(),
-                    peers_clone.clone(),
-                    peers_id_clone.clone(),
-                )
-                .await;
+        let incoming_tx_clone = incoming_tx.clone();
+        tokio::spawn({
+            let peers_clone = peers_clone.clone();
+            let peers_id_clone = peers_id_clone.clone();
+            let incoming_tx_clone = incoming_tx_clone.clone();
+            async move {
+                while let Ok((stream, address)) = listener.accept().await {
+                    println!("Incoming connection from: {}", address);
+                    let peers_clone = peers_clone.clone();
+                    let peers_id_clone = peers_id_clone.clone();
+                    let incoming_tx_clone = incoming_tx_clone.clone();
+                    tokio::spawn(async move {
+                        super::handlers::handle_connection(
+                            stream,
+                            address,
+                            incoming_tx_clone,
+                            peers_clone,
+                            peers_id_clone,
+                        )
+                        .await;
+                    });
+                }
             }
         });
 
+        // Connect to peers
+        tokio::spawn(async move {
+            for peer in config.peers.iter() {
+                let peers_clone = peers_clone.clone();
+                let peers_id_clone = peers_id_clone.clone();
+                let incoming_tx_clone = incoming_tx_clone.clone();
+                if peer.id < config.node.id {
+                    if let Err(e) =
+                        connect(peer.address, incoming_tx_clone, peers_clone, peers_id_clone).await
+                    {
+                        eprintln!("Error connecting to peer: {}", e);
+                    } else {
+                        println!("Connected to peer: {}", peer.address);
+                    }
+                }
+            }
+        });
+
+        // Handle outgoing messages
         tokio::spawn(async move {
             while let Some(msg) = outgoing_rx.next().await {
-                println!("Sending some messages");
                 if let Err(e) = super::handlers::handle_outgoing(msg, &peers, &peers_id).await {
                     eprintln!("Error sending message: {}", e);
                 }
@@ -82,27 +112,5 @@ where
         });
 
         Ok((node, incoming_rx.map(Ok), outgoing_tx))
-    }
-
-    pub async fn connect(&self, address: SocketAddr) -> Result<()> {
-        let stream = TcpStream::connect(address).await?;
-        let (tx, mut rx) = tokio_mpsc::channel(32);
-        self.peers.write().await.insert(address, tx);
-
-        let (mut reader, mut writer) = tokio::io::split(stream);
-
-        tokio::spawn(async move {
-            while let Some(msg) = rx.recv().await {
-                let encoded_msg = bincode::serialize(&msg).expect("Failed to serialize message");
-                if writer.write_all(&encoded_msg).await.is_err() {
-                    break;
-                }
-                if writer.flush().await.is_err() {
-                    break;
-                }
-            }
-        });
-
-        Ok(())
     }
 }
