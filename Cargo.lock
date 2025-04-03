@@ -207,7 +207,7 @@ version = "0.1.0"
 dependencies = [
  "generic-ec",
  "generic-ec-zkp",
- "rand_dev",
+ "rand_core",
 ]
 
 [[package]]
