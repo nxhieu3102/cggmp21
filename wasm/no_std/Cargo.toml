@@ -1,7 +1,7 @@
 [package]
 name = "crates-compile-in-nostd-wasm"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 publish = false
 
 # Only the crates below have wasm/no_std support

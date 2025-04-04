@@ -20,6 +20,9 @@ use crate::{
 
 use super::{Bug, KeygenAborted, KeygenError};
 
+// Import println macro
+use std::println;
+
 macro_rules! prefixed {
     ($name:tt) => {
         concat!("dfns.cggmp21.keygen.non_threshold.", $name)
@@ -139,6 +142,7 @@ where
     tracer.protocol_begins();
 
     tracer.stage("Setup networking");
+    println!("[DEBUG] Stage: Setup networking");
     let MpcParty { delivery, .. } = party.into_party();
     let (incomings, mut outgoings) = delivery.split();
 
@@ -153,6 +157,7 @@ where
     tracer.round_begins();
 
     tracer.stage("Sample x_i, rid_i, chain_code");
+    println!("[DEBUG] Stage: Sample x_i, rid_i, chain_code");
     let x_i = NonZero::<SecretScalar<E>>::random(rng);
     let X_i = Point::generator() * &x_i;
 
@@ -169,9 +174,11 @@ where
     };
 
     tracer.stage("Sample schnorr commitment");
+    println!("[DEBUG] Stage: Sample schnorr commitment");
     let (sch_secret, sch_commit) = schnorr_pok::prover_commits_ephemeral_secret::<E, _>(rng);
 
     tracer.stage("Commit to public data");
+    println!("[DEBUG] Stage: Commit to public data");
     let my_decommitment = MsgRound2 {
         rid,
         X: X_i,
@@ -204,15 +211,18 @@ where
     tracer.round_begins();
 
     tracer.receive_msgs();
+    println!("[DEBUG] About to complete round1 in non-threshold keygen");
     let commitments = rounds
         .complete(round1)
         .await
         .map_err(IoError::receive_message)?;
+    println!("[DEBUG] Completed round1 - received commitments");
     tracer.msgs_received();
 
     // Optional reliability check
     if reliable_broadcast_enforced {
         tracer.stage("Hash received msgs (reliability check)");
+        println!("[DEBUG] Stage: Hash received msgs (reliability check)");
         let h_i = udigest::hash_iter::<D>(
             commitments
                 .iter_including_me(&my_commitment)
@@ -231,13 +241,16 @@ where
         tracer.round_begins();
 
         tracer.receive_msgs();
+        println!("[DEBUG] About to complete round1_sync in non-threshold keygen");
         let round1_hashes = rounds
             .complete(round1_sync)
             .await
             .map_err(IoError::receive_message)?;
+        println!("[DEBUG] Completed round1_sync - received hashes");
         tracer.msgs_received();
 
         tracer.stage("Assert other parties hashed messages (reliability check)");
+        println!("[DEBUG] Stage: Assert other parties hashed messages (reliability check)");
         let parties_have_different_hashes = round1_hashes
             .into_iter_indexed()
             .filter(|(_j, _msg_id, hash_j)| hash_j.0 != h_i)
@@ -259,13 +272,16 @@ where
     tracer.round_begins();
 
     tracer.receive_msgs();
+    println!("[DEBUG] About to complete round2 in non-threshold keygen");
     let decommitments = rounds
         .complete(round2)
         .await
         .map_err(IoError::receive_message)?;
+    println!("[DEBUG] Completed round2 - received decommitments");
     tracer.msgs_received();
 
     tracer.stage("Validate decommitments");
+    println!("[DEBUG] Stage: Validate decommitments");
     let blame = utils::collect_blame(&commitments, &decommitments, |j, com, decom| {
         let com_expected = udigest::hash::<D>(&unambiguous::HashCom {
             sid,
@@ -281,6 +297,7 @@ where
     #[cfg(feature = "hd-wallet")]
     let chain_code = if hd_enabled {
         tracer.stage("Calculate chain_code");
+        println!("[DEBUG] Stage: Calculate chain_code");
         let blame = utils::collect_simple_blame(&decommitments, |decom| decom.chain_code.is_none());
         if !blame.is_empty() {
             return Err(KeygenAborted::MissingChainCode(blame).into());
@@ -299,6 +316,7 @@ where
     };
 
     tracer.stage("Calculate challege rid");
+    println!("[DEBUG] Stage: Calculate challege rid");
     let rid = decommitments
         .iter_including_me(&my_decommitment)
         .map(|d| &d.rid)
@@ -311,6 +329,7 @@ where
     let challenge = schnorr_pok::Challenge { nonce: challenge };
 
     tracer.stage("Prove knowledge of `x_i`");
+    println!("[DEBUG] Stage: Prove knowledge of `x_i`");
     let sch_proof = schnorr_pok::prove(&sch_secret, &challenge, &x_i);
 
     tracer.send_msg();
@@ -325,13 +344,16 @@ where
     tracer.round_begins();
 
     tracer.receive_msgs();
+    println!("[DEBUG] About to complete round3 in non-threshold keygen");
     let sch_proofs = rounds
         .complete(round3)
         .await
         .map_err(IoError::receive_message)?;
+    println!("[DEBUG] Completed round3 - received schnorr proofs");
     tracer.msgs_received();
 
     tracer.stage("Validate schnorr proofs");
+    println!("[DEBUG] Stage: Validate schnorr proofs");
     let blame = utils::collect_blame(&decommitments, &sch_proofs, |j, decom, sch_proof| {
         let challenge = Scalar::from_hash::<D>(&unambiguous::SchnorrPok {
             sid,

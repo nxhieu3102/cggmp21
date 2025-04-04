@@ -1,5 +1,5 @@
 use alloc::vec::Vec;
-
+use std::println;
 use digest::Digest;
 use generic_ec::{Curve, NonZero, Point, Scalar, SecretScalar};
 use generic_ec_zkp::{polynomial::Polynomial, schnorr_pok};
@@ -151,8 +151,8 @@ where
     M: Mpc<ProtocolMessage = Msg<E, L, D>>,
 {
     tracer.protocol_begins();
-
     tracer.stage("Setup networking");
+    println!("[DEBUG] Stage: Setup networking");
     let MpcParty { delivery, .. } = party.into_party();
     let (incomings, mut outgoings) = delivery.split();
 
@@ -168,6 +168,7 @@ where
     tracer.round_begins();
 
     tracer.stage("Sample rid_i, schnorr commitment, polynomial, chain_code");
+    println!("[DEBUG] Stage: Sample rid_i, schnorr commitment, polynomial, chain_code");
     let mut rid = L::Rid::default();
     rng.fill_bytes(rid.as_mut());
 
@@ -193,6 +194,7 @@ where
     };
 
     tracer.stage("Commit to public data");
+    println!("[DEBUG] Stage: Commit to public data");
     let my_decommitment = MsgRound2Broad {
         rid,
         F: F.clone(),
@@ -210,7 +212,7 @@ where
         party_index: i,
         decommitment: &my_decommitment,
     });
-
+    println!("Send commitment");
     tracer.send_msg();
     let my_commitment = MsgRound1 {
         commitment: hash_commit,
@@ -225,15 +227,18 @@ where
     tracer.round_begins();
 
     tracer.receive_msgs();
+    println!("[DEBUG] About to complete round1 in threshold keygen");
     let commitments = rounds
         .complete(round1)
         .await
         .map_err(IoError::receive_message)?;
+    println!("[DEBUG] Completed round1 - received commitments");
     tracer.msgs_received();
 
     // Optional reliability check
     if reliable_broadcast_enforced {
         tracer.stage("Hash received msgs (reliability check)");
+        println!("[DEBUG] Stage: Hash received msgs (reliability check)");
         let h_i = udigest::hash_iter::<D>(
             commitments
                 .iter_including_me(&my_commitment)
@@ -252,13 +257,16 @@ where
         tracer.round_begins();
 
         tracer.receive_msgs();
+        println!("[DEBUG] About to complete round1_sync in threshold keygen");
         let hashes = rounds
             .complete(round1_sync)
             .await
             .map_err(IoError::receive_message)?;
+        println!("[DEBUG] Completed round1_sync - received hashes");
         tracer.msgs_received();
 
         tracer.stage("Assert other parties hashed messages (reliability check)");
+        println!("[DEBUG] Stage: Assert other parties hashed messages (reliability check)");
         let parties_have_different_hashes = hashes
             .into_iter_indexed()
             .filter(|(_j, _msg_id, h_j)| h_i != h_j.0)
@@ -293,17 +301,21 @@ where
     tracer.round_begins();
 
     tracer.receive_msgs();
+    println!("[DEBUG] About to complete round2_broad in threshold keygen");
     let decommitments = rounds
         .complete(round2_broad)
         .await
         .map_err(IoError::receive_message)?;
+    println!("[DEBUG] Completed round2_broad - received decommitments");
     let sigmas_msg = rounds
         .complete(round2_uni)
         .await
         .map_err(IoError::receive_message)?;
+    println!("[DEBUG] Completed round2_uni - received sigmas");
     tracer.msgs_received();
 
     tracer.stage("Validate decommitments");
+    println!("[DEBUG] Stage: Validate decommitments");
     let blame = utils::collect_blame(&commitments, &decommitments, |j, com, decom| {
         let com_expected = udigest::hash::<D>(&unambiguous::HashCom {
             sid,
@@ -317,6 +329,7 @@ where
     }
 
     tracer.stage("Validate data size");
+    println!("[DEBUG] Stage: Validate data size");
     let blame = decommitments
         .iter_indexed()
         .filter(|(_, _, d)| d.F.degree() + 1 != usize::from(t))
@@ -327,6 +340,7 @@ where
     }
 
     tracer.stage("Validate Feldmann VSS");
+    println!("[DEBUG] Stage: Validate Feldmann VSS");
     let blame = decommitments
         .iter_indexed()
         .zip(sigmas_msg.iter())
@@ -340,6 +354,7 @@ where
     }
 
     tracer.stage("Compute rid");
+    println!("[DEBUG] Stage: Compute rid");
     let rid = decommitments
         .iter_including_me(&my_decommitment)
         .map(|d| &d.rid)
@@ -347,6 +362,7 @@ where
     #[cfg(feature = "hd-wallet")]
     let chain_code = if hd_enabled {
         tracer.stage("Compute chain_code");
+        println!("[DEBUG] Stage: Compute chain_code");
         let blame = utils::collect_simple_blame(&decommitments, |decom| decom.chain_code.is_none());
         if !blame.is_empty() {
             return Err(KeygenAborted::MissingChainCode(blame).into());
@@ -364,6 +380,7 @@ where
         None
     };
     tracer.stage("Compute Ys");
+    println!("[DEBUG] Stage: Compute Ys");
     let polynomial_sum = decommitments
         .iter_including_me(&my_decommitment)
         .map(|d| &d.F)
@@ -373,12 +390,14 @@ where
         .map(|y_j: Point<E>| NonZero::from_point(y_j).ok_or(Bug::ZeroShare))
         .collect::<Result<Vec<_>, _>>()?;
     tracer.stage("Compute sigma");
+    println!("[DEBUG] Stage: Compute sigma");
     let sigma: Scalar<E> = sigmas_msg.iter().map(|msg| msg.sigma).sum();
     let mut sigma = sigma + sigmas[usize::from(i)];
     let sigma = NonZero::from_secret_scalar(SecretScalar::new(&mut sigma)).ok_or(Bug::ZeroShare)?;
     debug_assert_eq!(Point::generator() * &sigma, ys[usize::from(i)]);
 
     tracer.stage("Calculate challenge");
+    println!("[DEBUG] Stage: Calculate challenge");
     let challenge = Scalar::from_hash::<D>(&unambiguous::SchnorrPok {
         sid,
         prover: i,
@@ -389,6 +408,7 @@ where
     let challenge = schnorr_pok::Challenge { nonce: challenge };
 
     tracer.stage("Prove knowledge of `sigma_i`");
+    println!("[DEBUG] Stage: Prove knowledge of `sigma_i`");
     let z = schnorr_pok::prove(&r, &challenge, &sigma);
 
     tracer.send_msg();
@@ -403,13 +423,16 @@ where
     tracer.round_begins();
 
     tracer.receive_msgs();
+    println!("[DEBUG] About to complete round3 in threshold keygen");
     let sch_proofs = rounds
         .complete(round3)
         .await
         .map_err(IoError::receive_message)?;
+    println!("[DEBUG] Completed round3 - received schnorr proofs");
     tracer.msgs_received();
 
     tracer.stage("Validate schnorr proofs");
+    println!("[DEBUG] Stage: Validate schnorr proofs");
     let blame = utils::collect_blame(&decommitments, &sch_proofs, |j, decom, sch_proof| {
         let challenge = Scalar::from_hash::<D>(&unambiguous::SchnorrPok {
             sid,
@@ -429,6 +452,7 @@ where
     }
 
     tracer.stage("Derive resulting public key and other data");
+    println!("[DEBUG] Stage: Derive resulting public key and other data");
     let y: Point<E> = decommitments
         .iter_including_me(&my_decommitment)
         .map(|d| d.F.coefs()[0])

@@ -11,9 +11,10 @@ mod node;
 use anyhow::{Context, Result};
 use cggmp21::keygen::msg::threshold::Msg;
 use config::load_config;
-use futures::SinkExt;
+use futures::{SinkExt, StreamExt};
 use node::Node;
-use round_based::Outgoing;
+use rand_core::OsRng;
+use round_based::{Incoming, Outgoing};
 use std::time::Duration;
 
 // Define types for the cryptographic primitives
@@ -33,13 +34,32 @@ async fn display_node_info<M>(node: &Node<M>) {
     println!("=========================");
     println!("Node address: {}", node.address);
     
+    // Get node ID from peer mapping
+    let self_id = node.peers_id.read().await.iter()
+        .find(|(_, addr)| **addr == node.address)
+        .map(|(id, _)| *id)
+        .unwrap_or(0);
+    println!("Node ID: {}", self_id);
+    
     println!("Peer id mapping:");
     for (id, addr) in node.peers_id.read().await.iter() {
-        println!("  Peer id: {} -> address: {}", id, addr);
+        if *id != self_id {
+            let connection_direction = if *id < self_id {
+                "→ should initiate connection to"
+            } else {
+                "← should receive connection from"
+            };
+            println!("  Peer id: {} {} address: {}", id, connection_direction, addr);
+        }
     }
 
     println!("Connected peers:");
     for (addr, _) in node.peers.read().await.iter() {
+        println!("  Peer address: {}", addr);
+    }
+    
+    println!("Target peers:");
+    for addr in node.target_peers.read().await.iter() {
         println!("  Peer address: {}", addr);
     }
     println!("=========================");
@@ -57,50 +77,61 @@ async fn main() -> Result<()> {
     // Load the node configuration
     let config = load_config(&args[1])
         .context(format!("Failed to load config from {}", &args[1]))?;
+    
+    // Extract the node id before config is moved
+    let i = config.node.id - 1;
 
     // Set up the P2P network
     println!("Initializing P2P network node...");
-    let (node, _incoming, mut outgoing) =
+    let (node, incoming, outgoing) =
         Node::<Msg<E, L, D>>::new(config).await?;
 
     // Wait for all nodes to start and connect
     sleep_with_message(
-        Duration::from_secs(10),
-        "Sleeping for 10 seconds to allow all nodes to start...",
+        Duration::from_secs(15),  // Increased wait time to allow for connections
+        "Sleeping for 15 seconds to allow all nodes to start...",
     ).await;
 
     // Display node information for debugging
     display_node_info(&node).await;
 
-    // Send a test message to all peers
-    let test_message = cggmp21::keygen::msg::threshold::MsgRound1 {
-        commitment: sha2::digest::generic_array::GenericArray::default(),
-    };
+    // Get self ID
+    let self_id = node.peers_id.read().await.iter()
+        .find(|(_, addr)| **addr == node.address)
+        .map(|(id, _)| *id)
+        .unwrap_or(0);
     
-    println!("Sending test message to all peers...");
-    outgoing
-        .send(Outgoing::broadcast(Msg::Round1(test_message)))
-        .await
-        .context("Failed to send broadcast message")?;
+    // Check connection status
+    let peers_id_read = node.peers_id.read().await;
+    let peers_read = node.peers.read().await;
+    
+    let expected_connections = peers_id_read.iter()
+        .count();
+    
+    let actual_connections = peers_read.len();
+    
+    println!("Connection status: {}/{} expected connections established", 
+             actual_connections, expected_connections);
+    
+    if actual_connections < expected_connections {
+        println!("Warning: Not all expected connections are established.");
+        println!("The reconnection mechanism will try to establish missing connections.");
+        println!("Missing connections will be automatically established as peers come online.");
+    }
+    
+    drop(peers_id_read);
+    drop(peers_read);
 
-    // Wait to receive messages from other peers
-    sleep_with_message(
-        Duration::from_secs(10),
-        "Sleeping for 10 seconds to receive messages...",
-    ).await;
-
-    // Uncomment to enable the actual DKG protocol
-    /*
     // Set up MPC
     let delivery = (
-        incoming.map(|msg| msg.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))),
+        // Map anyhow::Error to std::io::Error which implements StdError
+        incoming.map(|msg| msg.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))),
         outgoing,
     );
     let party = round_based::MpcParty::connected(delivery);
 
     // DKG
     let eid = cggmp21::ExecutionId::new(b"execution id, unique per protocol execution");
-    let i = config.node.id - 1;
     let n = 3;
     let t = 2;
 
@@ -113,7 +144,6 @@ async fn main() -> Result<()> {
             .await?;
 
     tokio::signal::ctrl_c().await?;
-    */
     
     println!("P2P example completed successfully");
     Ok(())

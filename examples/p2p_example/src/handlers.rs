@@ -48,12 +48,15 @@ async fn handle_messages<M>(
 where
     M: Send + 'static + for<'de> serde::de::Deserialize<'de>,
 {
-    let mut buffer = [0u8; 1024];
+    let mut buffer = [0u8; 8192];
     let mut incoming_tx = incoming_tx;
 
     loop {
         match reader.read(&mut buffer).await {
-            Ok(0) => break,
+            Ok(0) => {
+                println!("Connection closed by peer: {}", address);
+                break;
+            },
             Ok(n) => {
                 if let Ok(msg) = bincode::deserialize::<M>(&buffer[..n]) {
                     println!("+++++ Received message from {:?}", address);
@@ -66,13 +69,21 @@ where
                         msg,
                     };
                     if incoming_tx.send(incoming_msg).await.is_err() {
+                        println!("Failed to forward message from {}, channel closed", address);
                         break;
                     }
+                } else {
+                    println!("Warning: Received malformed message from {}", address);
                 }
             }
-            Err(_) => break,
+            Err(e) => {
+                println!("Error reading from connection {}: {}", address, e);
+                break;
+            }
         }
     }
+    
+    println!("Connection handler for {} has terminated", address);
 }
 
 /// Find peer ID corresponding to an address
@@ -162,3 +173,5 @@ where
 
     Ok(())
 }
+
+

@@ -1712,6 +1712,7 @@ dependencies = [
  "futures-channel",
  "generic-ec",
  "rand",
+ "rand_core",
  "round-based",
  "serde",
  "serde_yaml",
