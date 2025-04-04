@@ -105,3 +105,91 @@ impl<C> Derivative<C> for Polynomial<C> {
             .fold(O::zero(), |acc, coef| acc * point + coef)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use generic_ec::{Point, Scalar, curves};
+    
+    #[test]
+    fn test_polynomial_derivatives() {
+        // Setup: Create a polynomial and its corresponding point polynomial
+        let coefs = vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)];
+        let x = Scalar::from(4);
+        let f = Polynomial::<Scalar<curves::Secp256k1>>::from_coefs(coefs);
+        let F: Polynomial<Point<curves::Secp256k1>> = &f * &Point::generator();
+        
+        // Test polynomial evaluation
+        assert_eq!(
+            f.value::<_, Scalar<_>>(&x) * Point::generator(),
+            F.value::<_, Point<_>>(&x),
+            "Polynomial evaluation at x should be the same for both types"
+        );
+        
+        // Test first derivative
+        assert_eq!(
+            f.nth_derivative_at::<_, Scalar<_>>(&x, 1) * Point::generator(),
+            F.nth_derivative_at::<_, Point<_>>(&x, 1),
+            "First derivative evaluation at x should be the same for both types"
+        );
+        
+        // Test second derivative
+        assert_eq!(
+            f.nth_derivative_at::<_, Scalar<_>>(&x, 2) * Point::generator(),
+            F.nth_derivative_at::<_, Point<_>>(&x, 2),
+            "Second derivative evaluation at x should be the same for both types"
+        );
+        
+        // Test third derivative
+        assert_eq!(
+            f.nth_derivative_at::<_, Scalar<_>>(&x, 3) * Point::generator(),
+            F.nth_derivative_at::<_, Point<_>>(&x, 3),
+            "Third derivative evaluation at x should be the same for both types"
+        );
+        
+        // Test higher derivative (should be zero for degree 2 polynomial)
+        assert_eq!(
+            f.nth_derivative_at::<_, Scalar<_>>(&x, 4),
+            Scalar::<curves::Secp256k1>::zero(),
+            "Fourth derivative of a degree 2 polynomial should be zero"
+        );
+    }
+    
+    #[test]
+    fn test_linearity_of_derivatives() {
+        // For a polynomial f(x) = x^2, f'(x) = 2x, f''(x) = 2, f'''(x) = 0
+        let quadratic = vec![
+            Scalar::<curves::Secp256k1>::zero(),
+            Scalar::<curves::Secp256k1>::zero(),
+            Scalar::<curves::Secp256k1>::from(1),
+        ];
+        let f = Polynomial::<Scalar<curves::Secp256k1>>::from_coefs(quadratic);
+        
+        let x = Scalar::from(5);
+        
+        // Check values of derivatives
+        assert_eq!(
+            f.nth_derivative_at::<_, Scalar<_>>(&x, 0),
+            Scalar::from(25),  // x^2 = 5^2 = 25
+            "f(x) = x^2 evaluated at x=5 should be 25"
+        );
+        
+        assert_eq!(
+            f.nth_derivative_at::<_, Scalar<_>>(&x, 1),
+            Scalar::from(10),  // f'(x) = 2x at x=5 is 10
+            "f'(x) = 2x evaluated at x=5 should be 10"
+        );
+        
+        assert_eq!(
+            f.nth_derivative_at::<_, Scalar<_>>(&x, 2),
+            Scalar::from(2),   // f''(x) = 2
+            "f''(x) should be constant 2"
+        );
+        
+        assert_eq!(
+            f.nth_derivative_at::<_, Scalar<_>>(&x, 3),
+            Scalar::<curves::Secp256k1>::zero(),  // f'''(x) = 0
+            "f'''(x) should be zero for a quadratic polynomial"
+        );
+    }
+}

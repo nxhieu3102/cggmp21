@@ -1,9 +1,0 @@
-[package]
-name = "birkhoff-vss"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-rand_core ={ workspace = true}
-generic-ec = { workspace = true, features = ["curve-secp256k1", "serde", "udigest", "hash-to-scalar"] }
-generic-ec-zkp = { workspace = true, features = ["serde", "udigest"] }
