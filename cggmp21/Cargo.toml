@@ -71,6 +71,3 @@ state-machine = ["cggmp21-keygen/state-machine"]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs", "--html-in-header", "katex-header.html"]
 
-[[example]]
-name = "p2p_example"
-path = "examples/p2p_example.rs"

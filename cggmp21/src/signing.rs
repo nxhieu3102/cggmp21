@@ -1,5 +1,4 @@
 //! Signing protocol
-//! 
 #![allow(unused_extern_crates)]
 
 use tokio as _;
