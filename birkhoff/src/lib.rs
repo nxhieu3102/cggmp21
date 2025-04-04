@@ -14,12 +14,12 @@
 
 mod birkhoff_interpolation;
 mod ec_point;
-mod matrix;
 mod error;
+mod matrix;
 pub mod polynomial;
 
 pub use birkhoff_interpolation::*;
-pub use ec_point::ECPoint;
 pub use ec_point::CurveParams;
+pub use ec_point::ECPoint;
+pub use error::Error;
 pub use matrix::Matrix;
-pub use error::Error; 

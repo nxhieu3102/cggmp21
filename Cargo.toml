@@ -1,8 +1,10 @@
 [workspace]
 resolver = "2"
-members = [
+members = [ 
+    "birkhoff",
     "cggmp21",
-    "cggmp21-keygen", "examples/p2p_example",
+    "cggmp21-keygen", 
+    "examples/p2p_example",
     "key-share",
     "tests",
 ]

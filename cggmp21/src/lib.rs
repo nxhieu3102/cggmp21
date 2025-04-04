@@ -314,7 +314,6 @@ pub use {
 
 pub use cggmp21_keygen::{keygen, progress, ExecutionId};
 
-mod birkhoff;
 mod errors;
 pub mod key_refresh;
 pub mod key_share;
@@ -327,7 +326,6 @@ mod zk;
 #[cfg(feature = "spof")]
 pub mod trusted_dealer;
 
-pub use birkhoff::*;
 use generic_ec::{coords::HasAffineX, Curve, Point};
 use key_share::AnyKeyShare;
 use round_based::PartyIndex;

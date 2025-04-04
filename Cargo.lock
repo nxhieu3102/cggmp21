@@ -211,6 +211,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "birkhoff"
+version = "0.1.0"
+dependencies = [
+ "generic-ec",
+ "generic-ec-zkp",
+ "itertools 0.12.1",
+ "num-bigint 0.4.3",
+ "num-integer",
+ "num-traits",
+ "pretty_assertions",
+ "rand_core",
+ "thiserror 1.0.48",
+]
+
+[[package]]
 name = "bitcoin_hashes"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -325,13 +340,8 @@ dependencies = [
  "generic-tests",
  "hd-wallet",
  "hex",
- "itertools 0.12.1",
  "key-share",
- "num-bigint 0.4.3",
- "num-integer",
- "num-traits",
  "paillier-zk",
- "pretty_assertions",
  "rand",
  "rand_core",
  "rand_dev",
@@ -349,6 +359,7 @@ dependencies = [
 name = "cggmp21-keygen"
 version = "0.5.0"
 dependencies = [
+ "birkhoff",
  "digest",
  "displaydoc",
  "futures-util",

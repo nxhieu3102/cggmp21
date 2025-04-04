@@ -31,6 +31,7 @@ use digest::Digest;
 use generic_ec::Curve;
 use rand_core::{CryptoRng, RngCore};
 use round_based::{Mpc, MsgId, PartyIndex};
+use std::vec;
 
 #[doc(inline)]
 pub use key_share;
@@ -94,6 +95,7 @@ pub struct GenericKeygenBuilder<'a, E: Curve, M, L: SecurityLevel, D: Digest> {
     optional_t: M,
     execution_id: ExecutionId<'a>,
     tracer: Option<&'a mut dyn Tracer>,
+    ranks: Vec<u16>,
     #[cfg(feature = "hd-wallet")]
     hd_enabled: bool,
     _params: core::marker::PhantomData<(E, L, D)>,
@@ -121,6 +123,7 @@ where
             reliable_broadcast_enforced: true,
             execution_id: eid,
             tracer: None,
+            ranks: vec![0; n as usize],
             #[cfg(feature = "hd-wallet")]
             hd_enabled: true,
             _params: core::marker::PhantomData,
@@ -143,11 +146,29 @@ where
             reliable_broadcast_enforced: self.reliable_broadcast_enforced,
             execution_id: self.execution_id,
             tracer: self.tracer,
+            ranks: self.ranks,
             #[cfg(feature = "hd-wallet")]
             hd_enabled: self.hd_enabled,
             _params: core::marker::PhantomData,
         }
     }
+
+    /// Specifies to generate key shares for a HTSS scheme
+    pub fn set_ranks(self, ranks: Vec<u16>) -> GenericKeygenBuilder<'a, E, M, L, D> {
+        GenericKeygenBuilder {
+            i: self.i,
+            n: self.n,
+            optional_t: self.optional_t,
+            reliable_broadcast_enforced: self.reliable_broadcast_enforced,
+            execution_id: self.execution_id,
+            tracer: self.tracer,
+            ranks: ranks,
+            #[cfg(feature = "hd-wallet")]
+            hd_enabled: self.hd_enabled,
+            _params: core::marker::PhantomData,
+        }
+    }
+
     /// Specifies another hash function to use
     pub fn set_digest<D2>(self) -> GenericKeygenBuilder<'a, E, M, L, D2>
     where
@@ -160,6 +181,7 @@ where
             reliable_broadcast_enforced: self.reliable_broadcast_enforced,
             execution_id: self.execution_id,
             tracer: self.tracer,
+            ranks: self.ranks,
             #[cfg(feature = "hd-wallet")]
             hd_enabled: self.hd_enabled,
             _params: core::marker::PhantomData,
@@ -178,6 +200,7 @@ where
             reliable_broadcast_enforced: self.reliable_broadcast_enforced,
             execution_id: self.execution_id,
             tracer: self.tracer,
+            ranks: self.ranks,
             #[cfg(feature = "hd-wallet")]
             hd_enabled: self.hd_enabled,
             _params: core::marker::PhantomData,
@@ -271,6 +294,7 @@ where
             self.execution_id,
             rng,
             party,
+            self.ranks,
             #[cfg(feature = "hd-wallet")]
             self.hd_enabled,
         )

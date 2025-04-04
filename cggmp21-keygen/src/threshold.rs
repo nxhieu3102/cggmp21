@@ -20,6 +20,7 @@ use crate::{
 };
 
 use super::{Bug, KeygenAborted, KeygenError};
+use birkhoff::polynomial::Derivative;
 
 macro_rules! prefixed {
     ($name:tt) => {
@@ -141,6 +142,7 @@ pub async fn run_threshold_keygen<E, R, M, L, D>(
     sid: ExecutionId<'_>,
     rng: &mut R,
     party: M,
+    ranks: Vec<u16>, // ranks of the parties, which may be exchanged when set up networking
     #[cfg(feature = "hd-wallet")] hd_enabled: bool,
 ) -> Result<CoreKeyShare<E>, KeygenError>
 where
@@ -175,11 +177,19 @@ where
 
     let f = Polynomial::<SecretScalar<E>>::sample(rng, usize::from(t) - 1);
     let F = &f * &Point::generator();
-    let sigmas = (0..n)
-        .map(|j| {
+    // let sigmas = (0..n)
+    //     .map(|j| {
+    //         let x = Scalar::from(j + 1);
+    //         // TODO: replace with f.nth_derivative_at(&x, rank_j);
+    //         f.value(&x)
+    //     })
+    //     .collect::<Vec<_>>();
+    let sigmas = ranks
+        .iter()
+        .enumerate()
+        .map(|(j, rank)| {
             let x = Scalar::from(j + 1);
-            // TODO: replace with f.nth_derivative_at(&x, rank_j);
-            f.value(&x)
+            f.nth_derivative_at(&x, *rank)
         })
         .collect::<Vec<_>>();
     debug_assert_eq!(sigmas.len(), usize::from(n));
@@ -328,12 +338,22 @@ where
     }
 
     tracer.stage("Validate Feldmann VSS");
+    // let blame = decommitments
+    //     .iter_indexed()
+    //     .zip(sigmas_msg.iter())
+    //     .filter(|((_, _, d), s)| {
+    //         // TODO: replace with d.F.nth_derivative_at(&Scalar::from(i + 1), rank_j) != Point::generator() * s.sigma
+    //         d.F.value::<_, Point<_>>(&Scalar::from(i + 1)) != Point::generator() * s.sigma
+    //     })
+    //     .map(|t| t.0 .0)
+    //     .collect::<Vec<_>>();
     let blame = decommitments
         .iter_indexed()
         .zip(sigmas_msg.iter())
         .filter(|((_, _, d), s)| {
-            // TODO: replace with d.F.nth_derivative_at(&Scalar::from(i + 1), rank_j) != Point::generator() * s.sigma
-            d.F.value::<_, Point<_>>(&Scalar::from(i + 1)) != Point::generator() * s.sigma
+            let x = Scalar::from(i + 1);
+            let rank = ranks[usize::from(i)];
+            d.F.nth_derivative_at(&x, rank) != Point::generator() * s.sigma
         })
         .map(|t| t.0 .0)
         .collect::<Vec<_>>();

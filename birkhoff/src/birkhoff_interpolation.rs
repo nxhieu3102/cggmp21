@@ -1,17 +1,17 @@
+use itertools::Itertools;
 use num_bigint::{BigInt, ToBigInt};
-use num_traits::{One, Zero};
 use num_integer::Integer;
+use num_traits::{One, Zero};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt;
-use itertools::Itertools;
 
+use super::ec_point::ECPoint;
 use super::error::Error;
 use super::matrix::Matrix;
-use super::ec_point::ECPoint;
 
 /// Represents a single Birkhoff parameter with an x-coordinate and rank.
-/// 
+///
 /// The x-coordinate is used for interpolation and the rank determines the order
 /// of the derivative at that point.
 #[derive(Clone, Debug)]
@@ -23,7 +23,7 @@ pub struct BkParameter {
 }
 
 /// A serializable message format for BkParameter.
-/// 
+///
 /// Used for network transmission and storage of BkParameter values.
 #[derive(Clone, Debug)]
 pub struct BkParameterMessage {
@@ -35,7 +35,7 @@ pub struct BkParameterMessage {
 
 impl BkParameter {
     /// Creates a new BkParameter with the given x-coordinate and rank.
-    /// 
+    ///
     /// # Arguments
     /// * `x` - The x-coordinate for interpolation
     /// * `rank` - The rank/order of the derivative at this point
@@ -54,14 +54,18 @@ impl BkParameter {
     }
 
     /// Computes the linear equation coefficients for this parameter.
-    /// 
+    ///
     /// # Arguments
     /// * `field_order` - The order of the finite field
     /// * `degree_poly` - The degree of the polynomial
-    /// 
+    ///
     /// # Returns
     /// A vector of coefficients for the linear equation system
-    pub fn get_linear_equation_coefficient(&self, field_order: &BigInt, degree_poly: u32) -> Vec<BigInt> {
+    pub fn get_linear_equation_coefficient(
+        &self,
+        field_order: &BigInt,
+        degree_poly: u32,
+    ) -> Vec<BigInt> {
         let mut result = Vec::with_capacity((degree_poly + 1) as usize);
         for i in 0..=degree_poly {
             result.push(self.get_diff_monomial_coeff(field_order, i));
@@ -70,7 +74,7 @@ impl BkParameter {
     }
 
     /// Converts this BkParameter into a serializable message format.
-    /// 
+    ///
     /// # Returns
     /// A BkParameterMessage containing the serialized data
     pub fn to_message(&self) -> BkParameterMessage {
@@ -89,19 +93,19 @@ impl BkParameter {
         if degree == 0 {
             return BigInt::one();
         }
-        
+
         // Get extra coefficient
         let mut temp_value = 1u32;
         for j in 0..self.rank {
             temp_value *= degree - j;
         }
         let extra_value = temp_value.to_bigint().unwrap();
-        
+
         // x^{degree-diffTimes}
         let power = (degree - self.rank).to_bigint().unwrap();
         let mut result = self.x.modpow(&power, field_order);
         result = (result * extra_value).mod_floor(field_order);
-        
+
         result
     }
 }
@@ -113,7 +117,7 @@ impl fmt::Display for BkParameter {
 }
 
 /// A collection of BkParameters used for interpolation.
-/// 
+///
 /// This struct manages multiple BkParameters and provides methods for
 /// validation, coefficient computation, and share management.
 #[derive(Clone)]
@@ -121,7 +125,7 @@ pub struct BkParameters(Vec<BkParameter>);
 
 impl BkParameters {
     /// Creates a new BkParameters collection from a vector of BkParameter.
-    /// 
+    ///
     /// # Arguments
     /// * `params` - Vector of BkParameter values
     pub fn new(params: Vec<BkParameter>) -> Self {
@@ -139,10 +143,10 @@ impl BkParameters {
     }
 
     /// Returns a reference to the BkParameter at the given index.
-    /// 
+    ///
     /// # Arguments
     /// * `index` - The index of the parameter to retrieve
-    /// 
+    ///
     /// # Returns
     /// An Option containing a reference to the BkParameter if the index is valid
     pub fn get(&self, index: usize) -> Option<&BkParameter> {
@@ -150,11 +154,11 @@ impl BkParameters {
     }
 
     /// Checks if there exists a valid combination of parameters that can recover the secret key.
-    /// 
+    ///
     /// # Arguments
     /// * `threshold` - The minimum number of parameters needed
     /// * `_field_order` - The order of the finite field
-    /// 
+    ///
     /// # Returns
     /// Ok(()) if valid parameters exist, Error otherwise
     pub fn check_valid(&self, threshold: u32, _field_order: &BigInt) -> Result<(), Error> {
@@ -174,39 +178,45 @@ impl BkParameters {
 
         // Deep copy and sort the bk slice
         let mut sorted_bks = self.0.clone();
-        sorted_bks.sort_by(|a, b| {
-            match a.rank.cmp(&b.rank) {
-                Ordering::Equal => a.x.cmp(&b.x),
-                other => other,
-            }
+        sorted_bks.sort_by(|a, b| match a.rank.cmp(&b.rank) {
+            Ordering::Equal => a.x.cmp(&b.x),
+            other => other,
         });
 
         // Get all combinations of C(threshold, len(bks))
         for combination in (0..sorted_bks.len()).combinations(threshold as usize) {
             let temp_bks = BkParameters(
-                combination.iter().map(|&idx| sorted_bks[idx].clone()).collect()
+                combination
+                    .iter()
+                    .map(|&idx| sorted_bks[idx].clone())
+                    .collect(),
             );
-            
-            let birkhoff_matrix = temp_bks.get_linear_equation_coefficient_matrix(threshold, _field_order)?;
+
+            let birkhoff_matrix =
+                temp_bks.get_linear_equation_coefficient_matrix(threshold, _field_order)?;
             let rank_birkhoff_matrix = birkhoff_matrix.get_matrix_rank(_field_order)?;
-            
+
             if rank_birkhoff_matrix >= threshold as u64 {
                 return Ok(());
             }
         }
-        
+
         Err(Error::NoValidBks)
     }
 
     /// Computes the Birkhoff coefficients from the parameters.
-    /// 
+    ///
     /// # Arguments
     /// * `threshold` - The minimum number of parameters needed
     /// * `field_order` - The order of the finite field
-    /// 
+    ///
     /// # Returns
     /// A vector of coefficients if successful, Error otherwise
-    pub fn compute_bk_coefficient(&self, threshold: u32, field_order: &BigInt) -> Result<Vec<BigInt>, Error> {
+    pub fn compute_bk_coefficient(
+        &self,
+        threshold: u32,
+        field_order: &BigInt,
+    ) -> Result<Vec<BigInt>, Error> {
         self.ensure_rank_and_order(threshold, field_order)?;
         self.compute_bk_coefficient_internal(threshold, field_order)
     }
@@ -216,17 +226,22 @@ impl BkParameters {
         if field_order <= &BigInt::from(2) {
             return Err(Error::InvalidFieldOrder);
         }
-        
+
         if (self.len() as u32) < threshold {
             return Err(Error::EqualOrLargerThreshold);
         }
-        
+
         Ok(())
     }
 
-    fn compute_bk_coefficient_internal(&self, threshold: u32, field_order: &BigInt) -> Result<Vec<BigInt>, Error> {
+    fn compute_bk_coefficient_internal(
+        &self,
+        threshold: u32,
+        field_order: &BigInt,
+    ) -> Result<Vec<BigInt>, Error> {
         println!("Start computing Bk");
-        let birkhoff_matrix = self.get_linear_equation_coefficient_matrix(threshold, field_order)?;
+        let birkhoff_matrix =
+            self.get_linear_equation_coefficient_matrix(threshold, field_order)?;
 
         // let matrix = birkhoff_matrix.data;
         // for i in 0..matrix.len() {
@@ -240,39 +255,44 @@ impl BkParameters {
     }
 
     // Establish the coefficient of linear system of Birkhoff systems
-    fn get_linear_equation_coefficient_matrix(&self, threshold: u32, field_order: &BigInt) -> Result<Matrix, Error> {
+    fn get_linear_equation_coefficient_matrix(
+        &self,
+        threshold: u32,
+        field_order: &BigInt,
+    ) -> Result<Matrix, Error> {
         let lens = self.len();
         let mut result = Vec::with_capacity(lens);
         let degree = threshold - 1;
-        
+
         for i in 0..lens {
             if let Some(bk) = self.get(i) {
                 result.push(bk.get_linear_equation_coefficient(field_order, degree));
             }
         }
-        
+
         Matrix::new(field_order.clone(), result)
     }
 
     /// Computes coefficients for adding a new share to the system.
-    /// 
+    ///
     /// # Arguments
     /// * `own_bk` - The parameter of the current participant
     /// * `new_bk` - The parameter of the new participant
     /// * `field_order` - The order of the finite field
     /// * `threshold` - The minimum number of parameters needed
-    /// 
+    ///
     /// # Returns
     /// The computed coefficient if successful, Error otherwise
     pub fn get_add_share_coefficient(
-        &self, 
-        own_bk: &BkParameter, 
-        new_bk: &BkParameter, 
-        field_order: &BigInt, 
-        threshold: u32
+        &self,
+        own_bk: &BkParameter,
+        new_bk: &BkParameter,
+        field_order: &BigInt,
+        threshold: u32,
     ) -> Result<BigInt, Error> {
-        let birkhoff_matrix = self.get_linear_equation_coefficient_matrix(threshold, field_order)?;
-        
+        let birkhoff_matrix =
+            self.get_linear_equation_coefficient_matrix(threshold, field_order)?;
+
         let birkhoff_matrix = birkhoff_matrix.pseudoinverse()?;
 
         let matrix = birkhoff_matrix.get_matrix();
@@ -295,18 +315,18 @@ impl BkParameters {
         }
 
         println!("new_rank_factorial: {}", new_rank_factorial);
-        
+
         for i in new_rank..threshold as u64 {
             // Calculate binomial coefficient and factorial coefficient
             let factorial_coe = binomial(i as i64, (i - new_rank) as i64) * &new_rank_factorial;
-            
+
             // Get bki
             let temp_bki = birkhoff_matrix.get(i, own_index as u64);
-            
+
             // Calculate result
             let temp_result = (&factorial_coe * &x_power * &temp_bki).mod_floor(field_order);
             result = (result + temp_result).mod_floor(field_order);
-            
+
             // Update x_power
             x_power = (x_power * new_bk.get_x()).mod_floor(field_order);
             println!("factorial_coe: {}", factorial_coe);
@@ -314,7 +334,7 @@ impl BkParameters {
             println!("temp_bki: {}", temp_bki);
             println!("result: {}", result);
         }
-        
+
         Ok(result)
     }
 
@@ -331,30 +351,30 @@ impl BkParameters {
     }
 
     /// Validates a public key against the current parameters.
-    /// 
+    ///
     /// # Arguments
     /// * `sgs` - The share points
     /// * `threshold` - The minimum number of parameters needed
     /// * `pubkey` - The public key to validate
-    /// 
+    ///
     /// # Returns
     /// Ok(()) if the public key is valid, Error otherwise
     pub fn validate_public_key(
-        &self, 
-        sgs: &[ECPoint], 
-        threshold: u32, 
-        pubkey: &ECPoint
+        &self,
+        sgs: &[ECPoint],
+        threshold: u32,
+        pubkey: &ECPoint,
     ) -> Result<(), Error> {
         let params = pubkey.get_curve().params();
         let field_order = params.n();
         let scalars = self.compute_bk_coefficient(threshold, field_order)?;
-        
+
         let got_pub = ECPoint::compute_linear_combination_point(&scalars, sgs)?;
-        
+
         if !pubkey.equal(&got_pub) {
             return Err(Error::InconsistentPubKey);
         }
-        
+
         Ok(())
     }
 }
@@ -367,32 +387,32 @@ fn binomial(n: i64, k: i64) -> BigInt {
     if k == 0 || k == n {
         return BigInt::one();
     }
-    
+
     let mut res = BigInt::one();
     for i in 0..k {
         res *= n - i;
         res /= i + 1;
     }
-    
+
     res
 }
 
 impl BkParameterMessage {
     /// Converts this message back into a BkParameter.
-    /// 
+    ///
     /// # Arguments
     /// * `field_order` - The order of the finite field
-    /// 
+    ///
     /// # Returns
     /// A BkParameter if successful, Error otherwise
     pub fn to_bk(&self, field_order: &BigInt) -> Result<BkParameter, Error> {
         let x = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.x);
-        
+
         // Check if x is in the range (0, field_order)
         if x <= BigInt::zero() || x >= *field_order {
             return Err(Error::InvalidFieldOrder);
         }
-        
+
         Ok(BkParameter::new(x, self.rank))
     }
 }
@@ -400,12 +420,15 @@ impl BkParameterMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str::FromStr;
-    use pretty_assertions::assert_eq;
     use crate::CurveParams;
+    use pretty_assertions::assert_eq;
+    use std::str::FromStr;
 
     fn get_large_prime() -> BigInt {
-        BigInt::from_str("115792089237316195423570985008687907852837564279074904382605163141518161494337").unwrap()
+        BigInt::from_str(
+            "115792089237316195423570985008687907852837564279074904382605163141518161494337",
+        )
+        .unwrap()
     }
 
     #[test]
@@ -413,7 +436,7 @@ mod tests {
         let x = BigInt::from(1);
         let rank = 0;
         let bk = BkParameter::new(x.clone(), rank);
-        
+
         assert_eq!(*bk.get_x(), x);
         assert_eq!(bk.get_rank(), rank);
         assert_eq!(bk.to_string(), "(x, rank) = (1, 0)");
@@ -422,21 +445,21 @@ mod tests {
     #[test]
     fn test_to_bk_message() {
         let field_order = BigInt::from(100);
-        
+
         // Test valid case
         let x = BigInt::from(1);
         let rank = 10u32;
         let bk = BkParameter::new(x, rank);
         let msg = bk.to_message();
-        
+
         // Recreate BkParameter from message with validation
         let result = msg.to_bk(&field_order);
         assert!(result.is_ok());
-        
+
         let recreated_bk = result.unwrap();
         assert_eq!(*recreated_bk.get_x(), BigInt::from(1));
         assert_eq!(recreated_bk.get_rank(), 10u32);
-        
+
         // Test invalid x = 0
         let invalid_x_zero = BkParameterMessage {
             x: BigInt::zero().to_bytes_be().1,
@@ -445,7 +468,7 @@ mod tests {
         let result = invalid_x_zero.to_bk(&field_order);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), Error::InvalidFieldOrder);
-        
+
         // Test invalid x = field_order
         let invalid_x_field_order = BkParameterMessage {
             x: field_order.to_bytes_be().1,
@@ -460,29 +483,54 @@ mod tests {
     fn test_get_linear_equation_coefficient_matrix() {
         let field_order = get_large_prime();
         let threshold = 4;
-        
+
         let mut params = Vec::new();
         params.push(BkParameter::new(BigInt::from(1), 0));
         params.push(BkParameter::new(BigInt::from(2), 1));
         params.push(BkParameter::new(BigInt::from(3), 2));
         params.push(BkParameter::new(BigInt::from(4), 3));
         params.push(BkParameter::new(BigInt::from(5), 4));
-        
+
         let bks = BkParameters::new(params);
-        
+
         let matrix_result = bks.get_linear_equation_coefficient_matrix(threshold, &field_order);
         assert!(matrix_result.is_ok());
-        
+
         let matrix = matrix_result.unwrap();
-        
+
         // Create expected matrix
         let mut expected_rows = Vec::new();
-        expected_rows.push(vec![BigInt::from(1), BigInt::from(1), BigInt::from(1), BigInt::from(1)]);
-        expected_rows.push(vec![BigInt::from(0), BigInt::from(1), BigInt::from(4), BigInt::from(12)]);
-        expected_rows.push(vec![BigInt::from(0), BigInt::from(0), BigInt::from(2), BigInt::from(18)]);
-        expected_rows.push(vec![BigInt::from(0), BigInt::from(0), BigInt::from(0), BigInt::from(6)]);
-        expected_rows.push(vec![BigInt::from(0), BigInt::from(0), BigInt::from(0), BigInt::from(0)]);
-        
+        expected_rows.push(vec![
+            BigInt::from(1),
+            BigInt::from(1),
+            BigInt::from(1),
+            BigInt::from(1),
+        ]);
+        expected_rows.push(vec![
+            BigInt::from(0),
+            BigInt::from(1),
+            BigInt::from(4),
+            BigInt::from(12),
+        ]);
+        expected_rows.push(vec![
+            BigInt::from(0),
+            BigInt::from(0),
+            BigInt::from(2),
+            BigInt::from(18),
+        ]);
+        expected_rows.push(vec![
+            BigInt::from(0),
+            BigInt::from(0),
+            BigInt::from(0),
+            BigInt::from(6),
+        ]);
+        expected_rows.push(vec![
+            BigInt::from(0),
+            BigInt::from(0),
+            BigInt::from(0),
+            BigInt::from(0),
+        ]);
+
         // Check that matrix values match expected values
         for i in 0..5 {
             for j in 0..4 {
@@ -496,7 +544,7 @@ mod tests {
     fn test_check_valid_with_valid_bks() {
         let field_order = get_large_prime();
         let threshold = 3u32;
-        
+
         // Test case: BK:(x,rank):(1,0),(2,0),(3,0),(5,0),(4,0)
         {
             let mut params = Vec::new();
@@ -505,12 +553,12 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(3), 0));
             params.push(BkParameter::new(BigInt::from(5), 0));
             params.push(BkParameter::new(BigInt::from(4), 0));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.check_valid(threshold, &field_order);
             assert!(result.is_ok());
         }
-        
+
         // Test case: BK:(x,rank):(1,1),(2,0),(3,2),(5,0),(4,0)
         {
             let mut params = Vec::new();
@@ -519,12 +567,12 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(3), 2));
             params.push(BkParameter::new(BigInt::from(5), 0));
             params.push(BkParameter::new(BigInt::from(4), 0));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.check_valid(threshold, &field_order);
             assert!(result.is_ok());
         }
-        
+
         // Test case: BK:(x,rank):(1,0),(2,1),(3,2),(5,4),(4,3)
         {
             let mut params = Vec::new();
@@ -533,12 +581,12 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(3), 2));
             params.push(BkParameter::new(BigInt::from(5), 4));
             params.push(BkParameter::new(BigInt::from(4), 3));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.check_valid(threshold, &field_order);
             assert!(result.is_ok());
         }
-        
+
         // Test case: BK:(x,rank):(1,0),(2,3),(3,0),(5,0),(4,0)
         {
             let mut params = Vec::new();
@@ -547,12 +595,12 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(3), 0));
             params.push(BkParameter::new(BigInt::from(5), 0));
             params.push(BkParameter::new(BigInt::from(4), 0));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.check_valid(threshold, &field_order);
             assert!(result.is_ok());
         }
-        
+
         // Test case: BK:(x,rank):(1,1),(2,1),(3,1),(5,0),(4,0)
         {
             let mut params = Vec::new();
@@ -561,12 +609,12 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(3), 1));
             params.push(BkParameter::new(BigInt::from(5), 0));
             params.push(BkParameter::new(BigInt::from(4), 0));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.check_valid(threshold, &field_order);
             assert!(result.is_ok());
         }
-        
+
         // Test case: BK:(x,rank):(1,1),(2,1),(3,1),(5,1),(4,0)
         {
             let mut params = Vec::new();
@@ -575,7 +623,7 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(3), 1));
             params.push(BkParameter::new(BigInt::from(5), 1));
             params.push(BkParameter::new(BigInt::from(4), 0));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.check_valid(threshold, &field_order);
             assert!(result.is_ok());
@@ -586,7 +634,7 @@ mod tests {
     fn test_check_valid_with_invalid_bks() {
         let field_order = get_large_prime();
         let threshold = 3u32;
-        
+
         // Test case: duplicate Bk
         {
             let mut params = Vec::new();
@@ -595,13 +643,13 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(3), 2));
             params.push(BkParameter::new(BigInt::from(1), 0)); // Duplicate
             params.push(BkParameter::new(BigInt::from(5), 4));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.check_valid(threshold, &field_order);
             assert!(result.is_err());
             assert_eq!(result.unwrap_err(), Error::InvalidBks);
         }
-        
+
         // Test case: No valid bks - (1,2), (2,2), (3,2), (4,2), (5,2)
         {
             let mut params = Vec::new();
@@ -610,21 +658,21 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(3), 2));
             params.push(BkParameter::new(BigInt::from(4), 2));
             params.push(BkParameter::new(BigInt::from(5), 2));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.check_valid(threshold, &field_order);
             println!("result: {:?}", result);
             assert!(result.is_err());
             assert_eq!(result.unwrap_err(), Error::NoValidBks);
         }
-        
+
         // Test case: Enough Rank but not have - (1,0), (2,1), (3,0)
         {
             let mut params = Vec::new();
             params.push(BkParameter::new(BigInt::from(1), 0));
             params.push(BkParameter::new(BigInt::from(2), 1));
             params.push(BkParameter::new(BigInt::from(3), 0));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.check_valid(threshold, &field_order);
             assert!(result.is_err());
@@ -635,7 +683,7 @@ mod tests {
     #[test]
     fn test_compute_bk_coefficient() {
         let field_order = get_large_prime();
-        
+
         // Valid case
         {
             let mut params = Vec::new();
@@ -643,11 +691,11 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(2), 1));
             params.push(BkParameter::new(BigInt::from(3), 2));
             params.push(BkParameter::new(BigInt::from(4), 3));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.compute_bk_coefficient(3, &field_order);
             assert!(result.is_ok());
-            
+
             let coefficients = result.unwrap();
             let expected_values = vec![
                 BigInt::from(1),
@@ -655,13 +703,13 @@ mod tests {
                 BigInt::from_str("57896044618658097711785492504343953926418782139537452191302581570759080747170").unwrap(),
                 BigInt::from(0),
             ];
-            
+
             assert_eq!(coefficients.len(), expected_values.len());
             for i in 0..coefficients.len() {
                 assert_eq!(coefficients[i], expected_values[i]);
             }
         }
-        
+
         // Invalid field order
         {
             let mut params = Vec::new();
@@ -669,25 +717,25 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(2), 1));
             params.push(BkParameter::new(BigInt::from(3), 2));
             params.push(BkParameter::new(BigInt::from(4), 3));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.compute_bk_coefficient(3, &BigInt::from(2));
             assert!(result.is_err());
             assert_eq!(result.unwrap_err(), Error::InvalidFieldOrder);
         }
-        
+
         // Larger threshold
         {
             let mut params = Vec::new();
             params.push(BkParameter::new(BigInt::from(1), 0));
             params.push(BkParameter::new(BigInt::from(2), 1));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.compute_bk_coefficient(3, &field_order);
             assert!(result.is_err());
             assert_eq!(result.unwrap_err(), Error::EqualOrLargerThreshold);
         }
-        
+
         // not invertible matrix #0
         {
             let mut params = Vec::new();
@@ -695,7 +743,7 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(2), 2));
             params.push(BkParameter::new(BigInt::from(3), 3));
             params.push(BkParameter::new(BigInt::from(4), 0));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.compute_bk_coefficient(3, &field_order);
             assert!(result.is_err());
@@ -708,7 +756,7 @@ mod tests {
                 panic!("Expected MatrixError");
             }
         }
-        
+
         // not invertible matrix #1
         {
             let mut params = Vec::new();
@@ -717,7 +765,7 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(3), 3));
             params.push(BkParameter::new(BigInt::from(4), 1));
             params.push(BkParameter::new(BigInt::from(5), 4));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.compute_bk_coefficient(3, &field_order);
             assert!(result.is_err());
@@ -728,7 +776,7 @@ mod tests {
                 panic!("Expected MatrixError");
             }
         }
-        
+
         // not invertible matrix #2 - two the same X
         {
             let mut params = Vec::new();
@@ -737,7 +785,7 @@ mod tests {
             params.push(BkParameter::new(BigInt::from(3), 3));
             params.push(BkParameter::new(BigInt::from(1), 1)); // Duplicate x value
             params.push(BkParameter::new(BigInt::from(5), 3));
-            
+
             let bks = BkParameters::new(params);
             let result = bks.compute_bk_coefficient(3, &field_order);
             assert!(result.is_err());
@@ -754,21 +802,21 @@ mod tests {
     fn test_get_add_share_coefficient() {
         let field_order = get_large_prime();
         let threshold = 3;
-        
+
         let mut params = Vec::new();
         params.push(BkParameter::new(BigInt::from(1), 0));
         params.push(BkParameter::new(BigInt::from(2), 1));
         params.push(BkParameter::new(BigInt::from(5), 0));
-        
+
         let bks = BkParameters::new(params);
-        
+
         // Test cases
         let test_cases = vec![
             // (new_bk (x, rank), expected result, own_index)
             (
                 BkParameter::new(BigInt::from(6), 0),
                 "101318078082651670995624611882601919371232868744190541334779517748828391307544",
-                0
+                0,
             ),
             // (
             //     BkParameter::new(BigInt::from(6), 0),
@@ -811,12 +859,12 @@ mod tests {
             //     2
             // ),
         ];
-        
+
         for (new_bk, expected_str, own_index) in test_cases {
             let own_bk = bks.get(own_index).unwrap();
             let result = bks.get_add_share_coefficient(own_bk, &new_bk, &field_order, threshold);
             assert!(result.is_ok());
-            
+
             let expected = BigInt::from_str(expected_str).unwrap();
             assert_eq!(result.unwrap(), expected);
         }
@@ -828,12 +876,12 @@ mod tests {
         params.push(BkParameter::new(BigInt::from(1), 0));
         params.push(BkParameter::new(BigInt::from(2), 1));
         params.push(BkParameter::new(BigInt::from(5), 0));
-        
+
         let bks = BkParameters::new(params);
-        
+
         // Looking for a BK that doesn't exist
         let find = BkParameter::new(BigInt::from(5), 4);
-        
+
         let result = bks.get_index_of_bk(&find);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err(), Error::NoExistBk);
@@ -846,53 +894,53 @@ mod tests {
     fn test_validate_public_key() {
         let field_order = get_large_prime();
         let threshold = 3u32;
-        
+
         // Create curve parameters
         let curve_params = CurveParams::new(field_order.clone());
-        
+
         // Create public key point (mock)
         let pubkey = ECPoint::new(
-            BigInt::from(123),  // Example x value
-            BigInt::from(456),  // Example y value
-            curve_params.clone()
+            BigInt::from(123), // Example x value
+            BigInt::from(456), // Example y value
+            curve_params.clone(),
         );
-        
+
         // Create valid BK parameters
         let mut params = Vec::with_capacity(threshold as usize);
         let xs = [BigInt::from(4), BigInt::from(7), BigInt::from(8)];
         let ranks = [0u32, 0u32, 0u32];
-        
+
         for i in 0..threshold as usize {
             params.push(BkParameter::new(xs[i].clone(), ranks[i]));
         }
-        
+
         let bks = BkParameters::new(params);
-        
+
         // Case 1: Should be ok
         {
             // Create corresponding EC points (simulating shares)
             let mut sgs = Vec::with_capacity(threshold as usize);
-            
+
             // In the Go implementation, these points are calculated from a polynomial
             // Here we're mocking those points
             for i in 0..threshold as usize {
                 sgs.push(ECPoint::new(
-                    BigInt::from(i+1),  // Mock x value
-                    BigInt::from(i+100),  // Mock y value
-                    curve_params.clone()
+                    BigInt::from(i + 1),   // Mock x value
+                    BigInt::from(i + 100), // Mock y value
+                    curve_params.clone(),
                 ));
             }
-            
+
             // Mock the ECPoint::compute_linear_combination_point implementation
             // In a real implementation, we'd properly override this for testing
-            // This test will pass because our mock implementation of compute_linear_combination_point 
+            // This test will pass because our mock implementation of compute_linear_combination_point
             // returns the first point, and we'll make sure the pubkey equals that point
             let mock_pubkey = sgs[0].clone();
-            
+
             let result = bks.validate_public_key(&sgs, threshold, &mock_pubkey);
             assert!(result.is_ok(), "Valid public key validation failed");
         }
-        
+
         // Case 2: Failed to compute bk coefficient (duplicate BK)
         {
             // Create BK parameters with a duplicate
@@ -900,58 +948,58 @@ mod tests {
             params_duplicate.push(BkParameter::new(BigInt::from(4), 0));
             params_duplicate.push(BkParameter::new(BigInt::from(7), 0));
             params_duplicate.push(BkParameter::new(BigInt::from(7), 0)); // Duplicate
-            
+
             let bks_duplicate = BkParameters::new(params_duplicate);
-            
+
             // Create corresponding EC points
             let mut sgs = Vec::with_capacity(threshold as usize);
             for i in 0..threshold as usize {
                 sgs.push(ECPoint::new(
-                    BigInt::from(i+1),
-                    BigInt::from(i+100),
-                    curve_params.clone()
+                    BigInt::from(i + 1),
+                    BigInt::from(i + 100),
+                    curve_params.clone(),
                 ));
             }
-            
+
             let result = bks_duplicate.validate_public_key(&sgs, threshold, &pubkey);
             assert!(result.is_err(), "Should fail with duplicate BK parameters");
         }
-        
+
         // Case 3: Failed to compute public key due to length mismatch
         {
             // Create different length sgs
-            let mut sgs = Vec::with_capacity((threshold+1) as usize);
-            for i in 0..(threshold+1) as usize {
+            let mut sgs = Vec::with_capacity((threshold + 1) as usize);
+            for i in 0..(threshold + 1) as usize {
                 sgs.push(ECPoint::new(
-                    BigInt::from(i+1),
-                    BigInt::from(i+100),
-                    curve_params.clone()
+                    BigInt::from(i + 1),
+                    BigInt::from(i + 100),
+                    curve_params.clone(),
                 ));
             }
-            
+
             let result = bks.validate_public_key(&sgs, threshold, &pubkey);
             assert!(result.is_err(), "Should fail with length mismatch");
         }
-        
+
         // Case 4: Inconsistent public key
         {
             // Create valid share points
             let mut sgs = Vec::with_capacity(threshold as usize);
             for i in 0..threshold as usize {
                 sgs.push(ECPoint::new(
-                    BigInt::from(i+1),
-                    BigInt::from(i+100),
-                    curve_params.clone()
+                    BigInt::from(i + 1),
+                    BigInt::from(i + 100),
+                    curve_params.clone(),
                 ));
             }
-            
+
             // Use a different public key than what would be computed
             let inconsistent_pubkey = ECPoint::new(
-                BigInt::from(999),  // Different value
-                BigInt::from(999),  // Different value
-                curve_params.clone()
+                BigInt::from(999), // Different value
+                BigInt::from(999), // Different value
+                curve_params.clone(),
             );
-            
+
             let result = bks.validate_public_key(&sgs, threshold, &inconsistent_pubkey);
             assert!(result.is_err(), "Should fail with inconsistent public key");
             assert_eq!(result.unwrap_err(), Error::InconsistentPubKey);
@@ -961,7 +1009,7 @@ mod tests {
     #[test]
     fn test_diff_monomial_coeff() {
         let field_order = get_large_prime();
-        
+
         // Test rank 0
         {
             let bk = BkParameter::new(BigInt::from(3), 0);
@@ -969,7 +1017,7 @@ mod tests {
             assert_eq!(bk.get_diff_monomial_coeff(&field_order, 1), BigInt::from(3));
             assert_eq!(bk.get_diff_monomial_coeff(&field_order, 2), BigInt::from(9));
         }
-        
+
         // Test rank 1
         {
             let bk = BkParameter::new(BigInt::from(3), 1);
@@ -977,7 +1025,7 @@ mod tests {
             assert_eq!(bk.get_diff_monomial_coeff(&field_order, 1), BigInt::from(1));
             assert_eq!(bk.get_diff_monomial_coeff(&field_order, 2), BigInt::from(6));
         }
-        
+
         // Test rank 2
         {
             let bk = BkParameter::new(BigInt::from(3), 2);
@@ -986,4 +1034,4 @@ mod tests {
             assert_eq!(bk.get_diff_monomial_coeff(&field_order, 2), BigInt::from(2));
         }
     }
-} 
+}
