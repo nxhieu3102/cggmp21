@@ -1,5 +1,6 @@
-.idea/
-.vscode/
+/.idea
+/.vscode
+
 /target
 /wasm/no_std/target
 
