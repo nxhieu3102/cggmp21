@@ -1,3 +1,8 @@
+.idea/
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+
 /target
 /wasm/no_std/target
 
