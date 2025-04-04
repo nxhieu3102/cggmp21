@@ -31,16 +31,8 @@ use std::ops;
 use generic_ec::traits::Zero;
 use generic_ec_zkp::polynomial::Polynomial;
 
-pub trait Derivative {
-    pub fn nth_derivative_at<P, O>(&self, point: &P, d: u64) -> O
-    where
-        O: Zero,
-        for<'a> O: ops::Mul<&'a P, Output = O> + ops::Add<O, Output = O>,
-        for<'a> &'a C: ops::Mul<P, Output = O>,
-        P: From<u64> + ops::Mul<Output = P>;
-}
-
-impl<C> Derivative for Polynomial<C> {
+/// Evaluates nth derivative of polynomial at given point: $f^{(d)}(\text{point})$
+pub trait Derivative<C> {
     /// Evaluates nth derivative of polynomial at given point: $f^{(d)}(\text{point})$
     ///
     /// Polynomial coefficients, point, and output can all be differently typed.
@@ -71,15 +63,23 @@ impl<C> Derivative for Polynomial<C> {
     /// let d = 2;
     /// let result = f.nth_derivative_at(&x, d);
     /// ```
+    fn nth_derivative_at<P, O>(&self, point: &P, d: u64) -> O
+    where
+        O: Zero,
+        for<'a> O: ops::Mul<&'a P, Output = O> + ops::Add<O, Output = O>,
+        for<'a> &'a C: ops::Mul<P, Output = O>,
+        P: From<u64> + ops::Mul<Output = P>;
+}
 
-    pub fn nth_derivative_at<P, O>(&self, point: &P, d: u64) -> O
+impl<C> Derivative<C> for Polynomial<C> {
+    fn nth_derivative_at<P, O>(&self, point: &P, d: u64) -> O
     where
         O: Zero,
         for<'a> O: ops::Mul<&'a P, Output = O> + ops::Add<O, Output = O>,
         for<'a> &'a C: ops::Mul<P, Output = O>,
         P: From<u64> + ops::Mul<Output = P>,
     {
-        if d >= <usize as TryInto<T>>::try_into(self.coefs().len()).unwrap() {
+        if d >= self.coefs().len() as u64 {
             return O::zero();
         }
 
