@@ -16,6 +16,7 @@ mod birkhoff_interpolation;
 mod ec_point;
 mod matrix;
 mod error;
+pub mod polynomial;
 
 pub use birkhoff_interpolation::*;
 pub use ec_point::ECPoint;

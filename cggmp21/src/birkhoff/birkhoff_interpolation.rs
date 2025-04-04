@@ -8,7 +8,7 @@ use itertools::Itertools;
 
 use super::error::Error;
 use super::matrix::Matrix;
-use super::ec_point::{ECPoint, CurveParams};
+use super::ec_point::ECPoint;
 
 /// Represents a single Birkhoff parameter with an x-coordinate and rank.
 /// 
@@ -275,11 +275,10 @@ impl BkParameters {
         
         let birkhoff_matrix = birkhoff_matrix.pseudoinverse()?;
 
-
         let matrix = birkhoff_matrix.get_matrix();
-        for i in 0..matrix.len() {
-            for j in 0..matrix[i].len() {
-                print!("{} ", matrix[i][j]);
+        for line in matrix {
+            for cell in line {
+                print!("{} ", cell);
             }
             println!();
         }
@@ -371,8 +370,8 @@ fn binomial(n: i64, k: i64) -> BigInt {
     
     let mut res = BigInt::one();
     for i in 0..k {
-        res = res * (n - i);
-        res = res / (i + 1);
+        res *= n - i;
+        res /= i + 1;
     }
     
     res
@@ -401,9 +400,9 @@ impl BkParameterMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use num_bigint::ToBigInt;
     use std::str::FromStr;
     use pretty_assertions::assert_eq;
+    use crate::CurveParams;
 
     fn get_large_prime() -> BigInt {
         BigInt::from_str("115792089237316195423570985008687907852837564279074904382605163141518161494337").unwrap()

@@ -71,7 +71,7 @@ impl Matrix {
     
     /// Calculates the rank of the matrix over the specified field.
     /// Returns an error if matrix operations fail.
-    pub fn get_matrix_rank(&self, field_order: &BigInt) -> Result<u64, Error> {
+    pub fn get_matrix_rank(&self, _field_order: &BigInt) -> Result<u64, Error> {
         // Create a copy of self for the rank calculation
         let mut upper = self.clone();
         
@@ -86,7 +86,7 @@ impl Matrix {
         // Process each column
         for i in 0..upper.cols {
             // Find a non-zero element in column i starting from row 'rank'
-            let change_index = match upper.get_non_zero_coefficient_by_row(rank as usize, i as usize)? {
+            let change_index = match upper.get_non_zero_coefficient_by_row(rank as usize, i)? {
                 Some(idx) => idx,
                 // If the column is all zeros (from row 'rank' downwards), skip this column
                 None => continue,
@@ -98,7 +98,7 @@ impl Matrix {
             }
             
             // Get the inverse of the diagonal element for elimination
-            let inverse = upper.mod_inverse(upper.get_raw(rank as usize, i as usize))?;
+            let inverse = upper.mod_inverse(upper.get_raw(rank as usize, i))?;
             
             // Get the current pivot row
             let row_i = upper.get_row(rank as usize)?;
@@ -106,7 +106,7 @@ impl Matrix {
             // Eliminate elements below the pivot
             for j in (rank + 1)..upper.rows as u64 {
                 // Calculate the coefficient for elimination
-                let temp_value = upper.get_raw(j as usize, i as usize) * &inverse;
+                let temp_value = upper.get_raw(j as usize, i) * &inverse;
                 let inverse_diagonal_component = BigInt::from(0) - &temp_value;
                 
                 // Get the row to be modified
@@ -156,9 +156,9 @@ impl Matrix {
     pub fn transpose(&self) -> Result<Self, Error> {
         let mut transpose_matrix = vec![vec![BigInt::from(0); self.rows]; self.cols];
         
-        for i in 0..self.cols {
-            for j in 0..self.rows {
-                transpose_matrix[i][j] = self.matrix[j][i].clone();
+        for (i, row) in transpose_matrix.iter_mut().enumerate().take(self.cols) {
+            for (j, val) in row.iter_mut().enumerate().take(self.rows) {
+                *val = self.matrix[j][i].clone();
             }
         }
         
@@ -175,11 +175,11 @@ impl Matrix {
 
         let mut result = vec![vec![BigInt::from(0); other.cols]; self.rows];
 
-        for i in 0..self.rows {
-            for j in 0..other.cols {
+        for (i, row) in result.iter_mut().enumerate().take(self.rows) {
+            for (j, val) in row.iter_mut().enumerate().take(other.cols) {
                 for k in 0..self.cols {
                     let temp = self.matrix[i][k].clone() * &other.matrix[k][j];
-                    result[i][j] += temp;
+                    *val += temp;
                 }
             }
         }
@@ -229,13 +229,13 @@ impl Matrix {
         // Create a new matrix with elements modulo field_order
         let mut result = self.clone();
         
-        for i in 0..self.rows {
-            for j in 0..self.cols {
-                result.matrix[i][j] = &result.matrix[i][j] % &self._field_order;
+        for row in result.matrix.iter_mut() {
+            for val in row.iter_mut() {
+                *val = val.clone() % &self._field_order;
                 
                 // Ensure positive modulus
-                if result.matrix[i][j] < BigInt::from(0) {
-                    result.matrix[i][j] += &self._field_order;
+                if *val < BigInt::from(0) {
+                    *val += &self._field_order;
                 }
             }
         }
@@ -315,8 +315,8 @@ impl Matrix {
     fn identity_matrix(&self) -> Result<Self, Error> {
         let mut matrix = vec![vec![BigInt::from(0); self.rows]; self.rows];
         
-        for i in 0..self.rows {
-            matrix[i][i] = BigInt::from(1);
+        for (i, row) in matrix.iter_mut().enumerate() {
+            row[i] = BigInt::from(1);
         }
         
         Matrix::new(self._field_order.clone(), matrix)
@@ -324,7 +324,7 @@ impl Matrix {
     
     // Find non-zero coefficient by row
     fn get_non_zero_coefficient_by_row(&self, from_row_index: usize, column_idx: usize) -> Result<Option<usize>, Error> {
-        for i in from_row_index..self.rows {
+        for (i, _) in self.matrix.iter().enumerate().skip(from_row_index) {
             if self.get_raw(i, column_idx) != &BigInt::from(0) {
                 return Ok(Some(i));
             }
@@ -343,7 +343,8 @@ impl Matrix {
             return Ok(());
         }
         
-        for i in 0..self.cols {
+        // Swap each pair of elements in the two rows using enumerate
+        for (i, _) in (0..self.cols).enumerate() {
             let temp = self.matrix[index_row1][i].clone();
             self.matrix[index_row1][i] = self.matrix[index_row2][i].clone();
             self.matrix[index_row2][i] = temp;
@@ -431,11 +432,11 @@ impl Matrix {
     fn multi_inverse_diagonal(&self, diagonal: &Self) -> Result<Self, Error> {
         let mut result = self.clone();
         
-        for i in 0..self.rows {
+        for (i, row) in result.matrix.iter_mut().enumerate() {
             let inverse = self.mod_inverse(diagonal.get_raw(i, i))?;
             
-            for j in 0..self.rows {
-                result.matrix[i][j] = &result.matrix[i][j] * &inverse;
+            for val in row.iter_mut() {
+                *val = val.clone() * &inverse;
             }
         }
         

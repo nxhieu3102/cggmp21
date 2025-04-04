@@ -1,7 +1,7 @@
 //! Signing protocol
-//!
 #![allow(unused_extern_crates)]
 
+use tokio as _;
 use digest::Digest;
 use futures::SinkExt;
 use generic_ec::{coords::AlwaysHasAffineX, Curve, NonZero, Point, Scalar, SecretScalar};
