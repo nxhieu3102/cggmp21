@@ -11,15 +11,30 @@ mod node;
 use anyhow::{Context, Result};
 use cggmp21::keygen::msg::threshold::Msg;
 use config::load_config;
-use futures::SinkExt;
+use futures::{SinkExt, StreamExt};
 use node::Node;
-use round_based::Outgoing;
+use rand::rngs::OsRng;
+use round_based::{Incoming, Outgoing};
 use std::time::Duration;
+use std::error::Error as StdError;
+use std::fmt;
 
 // Define types for the cryptographic primitives
 type E = generic_ec::curves::Secp256k1;
 type D = sha2::Sha256;
 type L = cggmp21::security_level::SecurityLevel128;
+
+// Custom error type that implements StdError
+#[derive(Debug)]
+struct CustomError(String);
+
+impl fmt::Display for CustomError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl StdError for CustomError {}
 
 /// Wait for the specified duration asynchronously with informative messages
 async fn sleep_with_message(duration: Duration, message: &str) {
@@ -57,10 +72,13 @@ async fn main() -> Result<()> {
     // Load the node configuration
     let config = load_config(&args[1])
         .context(format!("Failed to load config from {}", &args[1]))?;
+    
+    // Extract the node id before config is moved
+    let i = config.node.id - 1;
 
     // Set up the P2P network
     println!("Initializing P2P network node...");
-    let (node, _incoming, mut outgoing) =
+    let (node, incoming, mut outgoing) =
         Node::<Msg<E, L, D>>::new(config).await?;
 
     // Wait for all nodes to start and connect
@@ -90,17 +108,15 @@ async fn main() -> Result<()> {
     ).await;
 
     // Uncomment to enable the actual DKG protocol
-    /*
     // Set up MPC
     let delivery = (
-        incoming.map(|msg| msg.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))),
+        incoming.map(|msg| msg.map_err(|e| CustomError(e.to_string()))),
         outgoing,
     );
     let party = round_based::MpcParty::connected(delivery);
 
     // DKG
     let eid = cggmp21::ExecutionId::new(b"execution id, unique per protocol execution");
-    let i = config.node.id - 1;
     let n = 3;
     let t = 2;
 
@@ -113,7 +129,7 @@ async fn main() -> Result<()> {
             .await?;
 
     tokio::signal::ctrl_c().await?;
-    */
+
     
     println!("P2P example completed successfully");
     Ok(())
