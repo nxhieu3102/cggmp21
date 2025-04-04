@@ -21,6 +21,7 @@ use round_based::{
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use tokio as _;
 
 use crate::errors::IoError;
 use crate::key_share::{KeyShare, PartyAux, VssSetup};

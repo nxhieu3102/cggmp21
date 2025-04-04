@@ -64,7 +64,7 @@
 //! # let incoming = futures::stream::pending::<Result<round_based::Incoming<Msg>, std::convert::Infallible>>();
 //! # let outgoing = futures::sink::drain::<round_based::Outgoing<Msg>>();
 //! let delivery = (incoming, outgoing);
-//! let party = round_based::MpcParty::connected(delivery);
+// ! let party = round_based::MpcParty::connected(delivery);
 //! ```
 //!
 //! The concrete networking implementation to use will depend heavily on the specific application.
@@ -312,7 +312,6 @@ pub use {
     round_based,
 };
 
-#[doc(inline)]
 pub use cggmp21_keygen::{keygen, progress, ExecutionId};
 
 mod birkhoff;
