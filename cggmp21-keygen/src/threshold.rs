@@ -179,6 +179,7 @@ where
     let sigmas = (0..n)
         .map(|j| {
             let x = Scalar::from(j + 1);
+            // TODO: replace with f.nth_derivative_at(&x, rank_j);
             f.value(&x)
         })
         .collect::<Vec<_>>();
@@ -345,6 +346,7 @@ where
         .iter_indexed()
         .zip(sigmas_msg.iter())
         .filter(|((_, _, d), s)| {
+            // TODO: replace with d.F.nth_derivative_at(&Scalar::from(i + 1), rank_j) != Point::generator() * s.sigma
             d.F.value::<_, Point<_>>(&Scalar::from(i + 1)) != Point::generator() * s.sigma
         })
         .map(|t| t.0 .0)
