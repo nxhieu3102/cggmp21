@@ -20,3 +20,7 @@ cggmp21 = {workspace = true}
 generic-ec = { workspace = true, features = ["serde", "all-curves"] }
 sha2 = { workspace = true}
 rand = { workspace = true}
+
+# Added for message signing
+ed25519-dalek = "1.0.1"
+hex = "0.4.3"

@@ -12,6 +12,8 @@ pub struct Config {
 pub struct NodeConfig {
     pub id: usize,
     pub address: SocketAddr,
+    pub private_key: Option<String>,
+    pub public_key: Option<String>,
 }
 
 #[derive(Deserialize, Clone)]

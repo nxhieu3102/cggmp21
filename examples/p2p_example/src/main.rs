@@ -74,11 +74,11 @@ async fn main() -> Result<()> {
         .context(format!("Failed to load config from {}", &args[1]))?;
     
     // Extract the node id before config is moved
-    let i = config.node.id - 1;
+    let i = config.node.id;
 
     // Set up the P2P network
     println!("Initializing P2P network node...");
-    let (node, incoming, mut outgoing) =
+    let (node, incoming, outgoing) =
         Node::<Msg<E, L, D>>::new(config).await?;
 
     // Wait for all nodes to start and connect
@@ -88,23 +88,23 @@ async fn main() -> Result<()> {
     ).await;
 
     // Display node information for debugging
-    display_node_info(&node).await;
+    // display_node_info(&node).await;
 
-    // Send a test message to all peers
-    let test_message = cggmp21::keygen::msg::threshold::MsgRound1 {
-        commitment: sha2::digest::generic_array::GenericArray::default(),
-    };
+    // // Send a test message to all peers
+    // let test_message = cggmp21::keygen::msg::threshold::MsgRound1 {
+    //     commitment: sha2::digest::generic_array::GenericArray::default(),
+    // };
     
-    println!("Sending test message to all peers...");
-    outgoing
-        .send(Outgoing::broadcast(Msg::Round1(test_message)))
-        .await
-        .context("Failed to send broadcast message")?;
+    // println!("Sending test message to all peers...");
+    // outgoing
+    //     .send(Outgoing::broadcast(Msg::Round1(test_message)))
+    //     .await
+    //     .context("Failed to send broadcast message")?;
 
     // Wait to receive messages from other peers
     sleep_with_message(
-        Duration::from_secs(10),
-        "Sleeping for 10 seconds to receive messages...",
+        Duration::from_secs(3),
+        "Sleeping for 3 seconds to receive messages...",
     ).await;
 
     // Uncomment to enable the actual DKG protocol
@@ -117,7 +117,7 @@ async fn main() -> Result<()> {
 
     // DKG
     let eid = cggmp21::ExecutionId::new(b"execution id, unique per protocol execution");
-    let n = 3;
+    let n = 2;
     let t = 2;
 
     println!("Starting DKG with id: {}, n: {}, t: {}", i, n, t);

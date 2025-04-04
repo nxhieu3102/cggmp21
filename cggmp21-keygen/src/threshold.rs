@@ -10,7 +10,7 @@ use round_based::{
 };
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-
+use std::println;
 use crate::progress::Tracer;
 use crate::{
     errors::IoError,
@@ -93,7 +93,7 @@ pub struct MsgRound3<E: Curve> {
     pub sch_proof: schnorr_pok::Proof<E>,
 }
 /// Message parties exchange to ensure reliability of broadcast channel
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(bound = "")]
 pub struct MsgReliabilityCheck<D: Digest>(pub digest::Output<D>);
 
@@ -153,6 +153,7 @@ where
     tracer.protocol_begins();
 
     tracer.stage("Setup networking");
+    println!("[DEBUG] Setup networking");
     let MpcParty { delivery, .. } = party.into_party();
     let (incomings, mut outgoings) = delivery.split();
 
@@ -194,6 +195,7 @@ where
     };
 
     tracer.stage("Commit to public data");
+    println!("[DEBUG] Commit to public data");
     let my_decommitment = MsgRound2Broad {
         rid,
         F: F.clone(),
@@ -216,10 +218,14 @@ where
     let my_commitment = MsgRound1 {
         commitment: hash_commit,
     };
+
+    println!("[DEBUG] Send commitment");
     outgoings
         .send(Outgoing::broadcast(Msg::Round1(my_commitment.clone())))
         .await
         .map_err(IoError::send_message)?;
+
+    println!("[DEBUG] sent commitment to all parties");
     tracer.msg_sent();
 
     // Round 2
@@ -230,9 +236,11 @@ where
         .complete(round1)
         .await
         .map_err(IoError::receive_message)?;
+    println!("[DEBUG] received commitments from all parties");
     tracer.msgs_received();
 
     // Optional reliability check
+    println!("[DEBUG] Optional reliability check: {}", reliable_broadcast_enforced);
     if reliable_broadcast_enforced {
         tracer.stage("Hash received msgs (reliability check)");
         let h_i = udigest::hash_iter::<D>(
@@ -242,12 +250,14 @@ where
         );
 
         tracer.send_msg();
+
         outgoings
             .send(Outgoing::broadcast(Msg::ReliabilityCheck(
                 MsgReliabilityCheck(h_i.clone()),
             )))
             .await
             .map_err(IoError::send_message)?;
+        println!("[DEBUG] sent reliability check");
         tracer.msg_sent();
 
         tracer.round_begins();
@@ -257,6 +267,8 @@ where
             .complete(round1_sync)
             .await
             .map_err(IoError::receive_message)?;
+        
+        println!("[DEBUG] Received hashes from other parties");
         tracer.msgs_received();
 
         tracer.stage("Assert other parties hashed messages (reliability check)");
@@ -271,6 +283,8 @@ where
     }
 
     tracer.send_msg();
+
+    println!("[DEBUG] Send round 2 broadcast");
     outgoings
         .feed(Outgoing::broadcast(Msg::Round2Broad(
             my_decommitment.clone(),
@@ -282,8 +296,11 @@ where
         let message = MsgRound2Uni {
             sigma: sigmas[usize::from(j)],
         };
+        println!("[DEBUG] Send round 2 uni to {}", j);
         Outgoing::p2p(j, Msg::Round2Uni(message))
     });
+
+    println!("[DEBUG] Send round 2 uni to all parties");
     outgoings
         .send_all(&mut futures_util::stream::iter(messages.map(Ok)))
         .await
