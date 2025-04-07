@@ -13,6 +13,7 @@ keywords = ["mpc", "dkg", "threshold-signatures", "tss"]
 [dependencies]
 key-share = { workspace = true, features = ["serde"] }
 hd-wallet = { workspace = true, optional = true }
+tokio = { version = "1.0", features = ["full"] }
 
 generic-ec = { workspace = true, features = ["serde", "udigest", "hash-to-scalar"] }
 generic-ec-zkp = { workspace = true, features = ["serde", "udigest"] }

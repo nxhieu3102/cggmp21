@@ -110,7 +110,19 @@ async fn main() -> Result<()> {
     // Uncomment to enable the actual DKG protocol
     // Set up MPC
     let delivery = (
-        incoming.map(|msg| msg.map_err(|e| CustomError(e.to_string()))),
+        incoming.map(|msg| {
+            // Debug: Print sender ID information for each incoming message
+            match &msg {
+                Ok(incoming_msg) => {
+                    println!("[DEBUG INCOMING] Message from sender: {}, type: {:?}, id: {}", 
+                        incoming_msg.sender, incoming_msg.msg_type, incoming_msg.id);
+                }
+                Err(e) => {
+                    println!("[DEBUG INCOMING] Error message: {}", e);
+                }
+            }
+            msg.map_err(|e| CustomError(e.to_string()))
+        }),
         outgoing,
     );
     let party = round_based::MpcParty::connected(delivery);

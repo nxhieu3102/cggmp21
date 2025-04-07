@@ -11,6 +11,7 @@ use tokio::{
 };
 use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature, Signer, Verifier};
 use hex;
+use rand::Rng;
 
 // Define our internal message type for key exchange
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -19,12 +20,39 @@ pub enum InternalMessage<M> {
     KeyExchange { node_id: u16, public_key_hex: String },
 }
 
+// Define our own message type enum that can be serialized/deserialized
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum MessageType {
+    Broadcast,
+    P2P,
+}
+
+impl MessageType {
+    // Convert to round_based::MessageType
+    fn to_round_based(&self) -> round_based::MessageType {
+        match self {
+            MessageType::Broadcast => round_based::MessageType::Broadcast,
+            MessageType::P2P => round_based::MessageType::P2P,
+        }
+    }
+    
+    // Convert from round_based::MessageType
+    fn from_round_based(msg_type: round_based::MessageType) -> Self {
+        match msg_type {
+            round_based::MessageType::Broadcast => MessageType::Broadcast,
+            round_based::MessageType::P2P => MessageType::P2P,
+            _ => MessageType::Broadcast, // Default for unknown types
+        }
+    }
+}
+
 // Define a structure to hold the signed message
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SignedMessage<M> {
     pub sender_id: u16,
     pub message: InternalMessage<M>,
     pub signature: Vec<u8>,
+    pub msg_type: MessageType,
 }
 
 // Key management struct to hold all peers' public keys and our keypair
@@ -160,6 +188,7 @@ where
         sender_id: node_id,
         message: key_exchange,
         signature,
+        msg_type: MessageType::Broadcast,
     };
     
     // Send the signed message
@@ -189,10 +218,12 @@ where
         match reader.read(&mut buffer).await {
             Ok(0) => break,
             Ok(n) => {
+                println!("[DEBUG] Received {} bytes from {}", n, address);
+                
                 // Try to deserialize as a SignedMessage with our InternalMessage
                 if let Ok(signed_msg) = bincode::deserialize::<SignedMessage<M>>(&buffer[..n]) {
-                    println!("+++++ Received signed message from {:?}, claimed sender: {}", 
-                             address, signed_msg.sender_id);
+                    println!("[RECEIVED] Received signed message from {:?}, claimed sender: {}, msg_type: {:?}", 
+                             address, signed_msg.sender_id, signed_msg.msg_type);
                     
                     // First handle key exchange messages
                     if let InternalMessage::KeyExchange { node_id, public_key_hex } = &signed_msg.message {
@@ -238,20 +269,24 @@ where
                     let key_manager_read = key_manager.read().await;
                     match key_manager_read.verify_signature(signed_msg.sender_id, &signed_msg.message, &signed_msg.signature) {
                         Ok(true) => {
-                            println!("Signature verified for sender: {}", signed_msg.sender_id);
-                            
                             // Process the actual protocol message
                             if let InternalMessage::ProtocolMessage(actual_msg) = signed_msg.message {
+                                println!("[DEBUG] Forwarding protocol message from sender: {}, type: {:?}", 
+                                       signed_msg.sender_id, signed_msg.msg_type);
+                                
                                 // Create incoming message with verified sender_id
                                 let incoming_msg = Incoming {
-                                    id: 0,
+                                    id: rand::thread_rng().gen::<u64>(),
                                     sender: signed_msg.sender_id,
-                                    msg_type: round_based::MessageType::Broadcast,
+                                    msg_type: signed_msg.msg_type.to_round_based(),
                                     msg: actual_msg,
                                 };
                                 
                                 if incoming_tx.send(incoming_msg).await.is_err() {
+                                    println!("[ERROR] Failed to forward message to MPC protocol");
                                     break;
+                                } else {
+                                    println!("[DEBUG] Successfully forwarded message to MPC protocol");
                                 }
                             }
                         },
@@ -263,26 +298,35 @@ where
                         }
                     }
                 } else {
+                    println!("[DEBUG] Failed to deserialize as SignedMessage, trying legacy format");
                     // Fallback for legacy messages or incompatible format
                     if let Ok(msg) = bincode::deserialize::<M>(&buffer[..n]) {
-                        println!("+++++ Received unsigned message from {:?}", address);
+                        println!("[RECEIVED] Received unsigned message from {:?}", address);
                         
                         // Try to find the peer ID
                         let peer_id = find_peer_id(&peers_id, address).await;
                         
                         let incoming_msg = Incoming {
-                            id: 0,
+                            id: rand::thread_rng().gen::<u64>(),
                             sender: peer_id,
                             msg_type: round_based::MessageType::Broadcast,
                             msg,
                         };
                         if incoming_tx.send(incoming_msg).await.is_err() {
+                            println!("[ERROR] Failed to forward legacy message to MPC protocol");
                             break;
+                        } else {
+                            println!("[DEBUG] Successfully forwarded legacy message to MPC protocol");
                         }
+                    } else {
+                        println!("[ERROR] Could not deserialize message in any format");
                     }
                 }
             }
-            Err(_) => break,
+            Err(e) => {
+                println!("[ERROR] Error reading from socket: {}", e);
+                break;
+            }
         }
     }
 }
@@ -365,7 +409,7 @@ pub async fn handle_outgoing<M>(
 where
     M: Send + Sync + Clone + 'static + Serialize,
 {
-    println!("----- Sending message to: {:?}", outgoing.recipient);
+    println!("[SEND] Sending message to: {:?}", outgoing.recipient);
 
     // Create a signed message
     let key_manager_read = key_manager.read().await;
@@ -383,10 +427,17 @@ where
         }
     };
     
+    // Determine the message type based on the recipient
+    let msg_type = match outgoing.recipient {
+        MessageDestination::AllParties => MessageType::Broadcast,
+        MessageDestination::OneParty(_) => MessageType::P2P,
+    };
+    
     let signed_message = SignedMessage {
         sender_id: node_id,
         message: internal_msg,
         signature,
+        msg_type,
     };
 
     let receivers = match outgoing.recipient {
@@ -404,6 +455,7 @@ where
     };
 
     for receiver in receivers {
+        println!("[SEND] Sending message with sender_id: {} and msg_type: {:?}", signed_message.sender_id, signed_message.msg_type);
         if let Err(e) = receiver.send(signed_message.clone()).await {
             eprintln!("Failed to send message: {}", e);
         }

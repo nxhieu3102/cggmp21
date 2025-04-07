@@ -190,11 +190,25 @@ where
                     let peers_id_clone = peers_id.clone();
                     let incoming_tx_clone = incoming_tx.clone();
                     let key_manager_clone = key_manager.clone();
+                    let peer_address = peer.address;
                     
-                    match handlers::connect(peer.address, incoming_tx_clone, peers_clone, peers_id_clone, key_manager_clone).await {
-                        Ok(_) => println!("Connected to peer: {}", peer.address),
-                        Err(e) => eprintln!("Error connecting to peer {}: {}", peer.address, e),
-                    }
+                    tokio::spawn(async move {
+                        let mut connected = false;
+                        while !connected {
+                            match handlers::connect(peer_address, incoming_tx_clone.clone(), 
+                                      peers_clone.clone(), peers_id_clone.clone(), 
+                                      key_manager_clone.clone()).await {
+                                Ok(_) => {
+                                    println!("Connected to peer: {}", peer_address);
+                                    connected = true;
+                                },
+                                Err(e) => {
+                                    eprintln!("Error connecting to peer {}: {}. Retrying in 1 second...", peer_address, e);
+                                    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+                                }
+                            }
+                        }
+                    });
                 }
             }
         });
