@@ -10,6 +10,7 @@ use tokio::{
     net::TcpListener,
     sync::{RwLock, mpsc as tokio_mpsc},
 };
+use tracing::{debug, error, info};
 
 use crate::{config, handlers};
 use crate::handlers::{KeyManager, SignedMessage};
@@ -148,7 +149,7 @@ where
     ) {
         tokio::spawn(async move {
             while let Ok((stream, address)) = listener.accept().await {
-                println!("Incoming connection from: {}", address);
+                info!("Incoming connection from: {}", address);
                 let peers_clone = peers.clone();
                 let peers_id_clone = peers_id.clone();
                 let incoming_tx_clone = incoming_tx.clone();
@@ -199,11 +200,11 @@ where
                                       peers_clone.clone(), peers_id_clone.clone(), 
                                       key_manager_clone.clone()).await {
                                 Ok(_) => {
-                                    println!("Connected to peer: {}", peer_address);
+                                    info!("Connected to peer: {}", peer_address);
                                     connected = true;
                                 },
                                 Err(e) => {
-                                    eprintln!("Error connecting to peer {}: {}. Retrying in 1 second...", peer_address, e);
+                                    error!("Error connecting to peer {}: {}. Retrying in 1 second...", peer_address, e);
                                     tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
                                 }
                             }
@@ -224,7 +225,7 @@ where
         tokio::spawn(async move {
             while let Some(msg) = outgoing_rx.next().await {
                 if let Err(e) = handlers::handle_outgoing(msg, &peers, &peers_id, &key_manager).await {
-                    eprintln!("Error sending message: {}", e);
+                    error!("Error sending message: {}", e);
                 }
             }
         });

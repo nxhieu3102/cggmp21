@@ -18,6 +18,8 @@ use round_based::{Incoming, Outgoing};
 use std::time::Duration;
 use std::error::Error as StdError;
 use std::fmt;
+use tracing::{debug, error, info, trace, warn};
+use tracing_subscriber;
 
 // Define types for the cryptographic primitives
 type E = generic_ec::curves::Secp256k1;
@@ -62,26 +64,38 @@ async fn display_node_info<M>(node: &Node<M>) {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Initialize tracing subscriber for logging
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::TRACE)
+        .init();
+        
+    // Log setup information
+    info!("Starting P2P example application");
+    
     // Parse command line arguments
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 2 {
+        error!("Missing config file argument");
         eprintln!("Usage: cargo run --bin p2p_example <config file>");
         return Ok(());
     }
 
     // Load the node configuration
+    debug!("Loading configuration from {}", &args[1]);
     let config = load_config(&args[1])
         .context(format!("Failed to load config from {}", &args[1]))?;
     
     // Extract the node id before config is moved
     let i = config.node.id;
+    trace!("Node ID: {}", i);
 
     // Set up the P2P network
-    println!("Initializing P2P network node...");
+    info!("Initializing P2P network node...");
     let (node, incoming, outgoing) =
         Node::<Msg<E, L, D>>::new(config).await?;
 
     // Wait for all nodes to start and connect
+    debug!("Waiting for other nodes to start up");
     sleep_with_message(
         Duration::from_secs(10),
         "Sleeping for 10 seconds to allow all nodes to start...",

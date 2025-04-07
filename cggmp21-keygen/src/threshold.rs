@@ -18,7 +18,7 @@ use crate::{
     security_level::SecurityLevel,
     utils, ExecutionId,
 };
-
+use tracing::{debug, error, info, trace, warn};
 use super::{Bug, KeygenAborted, KeygenError};
 
 macro_rules! prefixed {
@@ -28,7 +28,7 @@ macro_rules! prefixed {
 }
 
 /// Message of key generation protocol
-#[derive(ProtocolMessage, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(bound = "")]
 pub enum Msg<E: Curve, L: SecurityLevel, D: Digest> {
     /// Round 1 message
@@ -43,12 +43,32 @@ pub enum Msg<E: Curve, L: SecurityLevel, D: Digest> {
     ReliabilityCheck(MsgReliabilityCheck<D>),
 }
 
+// Constants for round numbers
+pub const THRESHOLD_ROUND_1: u16 = 1;
+pub const THRESHOLD_ROUND_2_BROAD: u16 = 2;
+pub const THRESHOLD_ROUND_2_UNI: u16 = 3;
+pub const THRESHOLD_ROUND_3: u16 = 4;
+pub const THRESHOLD_ROUND_RELIABILITY: u16 = 5;
+
+impl<E: Curve, L: SecurityLevel, D: Digest> ProtocolMessage for Msg<E, L, D> {
+    fn round(&self) -> u16 {
+        match self {
+            Self::Round1(_) => THRESHOLD_ROUND_1,
+            Self::Round2Broad(_) => THRESHOLD_ROUND_2_BROAD,
+            Self::Round2Uni(_) => THRESHOLD_ROUND_2_UNI,
+            Self::Round3(_) => THRESHOLD_ROUND_3,
+            Self::ReliabilityCheck(_) => THRESHOLD_ROUND_RELIABILITY,
+        }
+    }
+}
+
 /// Message from round 1
 #[derive(Clone, Serialize, Deserialize, udigest::Digestable)]
 #[serde(bound = "")]
 #[udigest(bound = "")]
 #[udigest(tag = prefixed!("round1"))]
 pub struct MsgRound1<D: Digest> {
+    
     /// $V_i$
     #[udigest(as_bytes)]
     pub commitment: digest::Output<D>,
@@ -153,7 +173,6 @@ where
     tracer.protocol_begins();
 
     tracer.stage("Setup networking");
-    println!("[DEBUG] Setup networking");
     let MpcParty { delivery, .. } = party.into_party();
     let (incomings, mut outgoings) = delivery.split();
 
@@ -195,7 +214,6 @@ where
     };
 
     tracer.stage("Commit to public data");
-    println!("[DEBUG] Commit to public data");
     let my_decommitment = MsgRound2Broad {
         rid,
         F: F.clone(),
@@ -219,13 +237,12 @@ where
         commitment: hash_commit,
     };
 
-    println!("[DEBUG] Send commitment");
+    debug!("Sending commitment to all parties");
     outgoings
         .send(Outgoing::broadcast(Msg::Round1(my_commitment.clone())))
         .await
         .map_err(IoError::send_message)?;
 
-    println!("[DEBUG] sent commitment to all parties");
     tracer.msg_sent();
 
     // Round 2
@@ -236,11 +253,9 @@ where
         .complete(round1)
         .await
         .map_err(IoError::receive_message)?;
-    println!("[DEBUG] received commitments from all parties");
     tracer.msgs_received();
 
     // Optional reliability check
-    println!("[DEBUG] Optional reliability check: {}", reliable_broadcast_enforced);
     if reliable_broadcast_enforced {
         tracer.stage("Hash received msgs (reliability check)");
         let h_i = udigest::hash_iter::<D>(
@@ -251,55 +266,55 @@ where
 
         tracer.send_msg();
 
-        // outgoings
-        //     .send(Outgoing::broadcast(Msg::ReliabilityCheck(
-        //         MsgReliabilityCheck(h_i.clone()),
-        //     )))
-        //     .await
-        //     .map_err(|e| {
-        //         println!("[ERROR] Failed when sending reliability check: {:?}", e);
-        //         IoError::send_message(e)
-        //     })?;
-        // println!("[DEBUG] sent reliability check");
-        // tracer.msg_sent();
+        tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
 
-        // tracer.round_begins();
+        outgoings
+            .send(Outgoing::broadcast(Msg::ReliabilityCheck(
+                MsgReliabilityCheck(h_i.clone()),
+            )))
+            .await
+            .map_err(|e| {
+                println!("[ERROR] Failed when sending reliability check: {:?}", e);
+                IoError::send_message(e)
+            })?;
+        debug!("Sent reliability check to all parties");
+        tracer.msg_sent();
 
-        // tracer.receive_msgs();
-        // println!("[DEBUG] Waiting for round1_sync completion...");
-        // tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-        // let hashes = rounds
-        // .complete(round1_sync)
-        // .await
-        // .map_err(|e| {
-        //     println!("[ERROR] Failed in round1_sync: {:?}", e);
-        //     IoError::receive_message(e)
-        // })?;
+        tracer.round_begins();
+
+        tracer.receive_msgs();
+        let hashes = rounds
+        .complete(round1_sync)
+        .await
+        .map_err(|e| {
+            println!("[ERROR] Failed in round1_sync: {:?}", e);
+            IoError::receive_message(e)
+        })?;
         
-        // println!("[DEBUG] Received hashes from other parties");
-        // tracer.msgs_received();
+        println!("[DEBUG] Received hashes from other parties");
+        tracer.msgs_received();
 
-        // tracer.stage("Assert other parties hashed messages (reliability check)");
-        // let parties_have_different_hashes = hashes
-        //     .into_iter_indexed()
-        //     .filter(|(_j, _msg_id, h_j)| h_i != h_j.0)
-        //     .map(|(j, msg_id, _)| (j, msg_id))
-        //     .collect::<Vec<_>>();
-        // if !parties_have_different_hashes.is_empty() {
-        //     return Err(KeygenAborted::Round1NotReliable(parties_have_different_hashes).into());
-        // }
+        tracer.stage("Assert other parties hashed messages (reliability check)");
+        let parties_have_different_hashes = hashes
+            .into_iter_indexed()
+            .filter(|(_j, _msg_id, h_j)| h_i != h_j.0)
+            .map(|(j, msg_id, _)| (j, msg_id))
+            .collect::<Vec<_>>();
+        if !parties_have_different_hashes.is_empty() {
+            return Err(KeygenAborted::Round1NotReliable(parties_have_different_hashes).into());
+        }
     }
 
     tracer.send_msg();
 
-    println!("[DEBUG] Send round 2 broadcast");
+    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
     outgoings
         .feed(Outgoing::broadcast(Msg::Round2Broad(
             my_decommitment.clone(),
         )))
         .await
         .map_err(IoError::send_message)?;
-
+    debug!("Sent round 2 broadcast to all parties");
     let messages = utils::iter_peers(i, n).map(|j| {
         let message = MsgRound2Uni {
             sigma: sigmas[usize::from(j)],
@@ -308,11 +323,12 @@ where
         Outgoing::p2p(j, Msg::Round2Uni(message))
     });
 
-    println!("[DEBUG] Send round 2 uni to all parties");
+    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
     outgoings
         .send_all(&mut futures_util::stream::iter(messages.map(Ok)))
         .await
         .map_err(IoError::send_message)?;
+    debug!("Sent round 2 uni to all parties");
     tracer.msg_sent();
 
     // Round 3
@@ -328,7 +344,8 @@ where
         .await
         .map_err(IoError::receive_message)?;
     tracer.msgs_received();
-    println!("[DEBUG] Received decommitments from all parties");
+    
+    debug!("Received decommitments from all parties");
     tracer.stage("Validate decommitments");
     let blame = utils::collect_blame(&commitments, &decommitments, |j, com, decom| {
         let com_expected = udigest::hash::<D>(&unambiguous::HashCom {
@@ -338,7 +355,7 @@ where
         });
         com.commitment != com_expected
     });
-    println!("[DEBUG] Blame: {:?}", blame);
+
     if !blame.is_empty() {
         return Err(KeygenAborted::InvalidDecommitment(blame).into());
     }
@@ -352,7 +369,6 @@ where
     if !blame.is_empty() {
         return Err(KeygenAborted::InvalidDataSize { parties: blame }.into());
     }
-    println!("[DEBUG] Validate data size");
     tracer.stage("Validate Feldmann VSS");
     let blame = decommitments
         .iter_indexed()
@@ -366,7 +382,7 @@ where
     if !blame.is_empty() {
         return Err(KeygenAborted::FeldmanVerificationFailed { parties: blame }.into());
     }
-    println!("[DEBUG] Validate Feldmann VSS");
+
     tracer.stage("Compute rid");
     let rid = decommitments
         .iter_including_me(&my_decommitment)
@@ -391,7 +407,6 @@ where
     } else {
         None
     };
-    println!("[DEBUG] Compute chain_code");
     tracer.stage("Compute Ys");
     let polynomial_sum = decommitments
         .iter_including_me(&my_decommitment)
@@ -406,7 +421,6 @@ where
     let mut sigma = sigma + sigmas[usize::from(i)];
     let sigma = NonZero::from_secret_scalar(SecretScalar::new(&mut sigma)).ok_or(Bug::ZeroShare)?;
     debug_assert_eq!(Point::generator() * &sigma, ys[usize::from(i)]);
-    println!("[DEBUG] Compute sigma");
     tracer.stage("Calculate challenge");
     let challenge = Scalar::from_hash::<D>(&unambiguous::SchnorrPok {
         sid,
@@ -416,13 +430,11 @@ where
         h: my_decommitment.sch_commit.0,
     });
     let challenge = schnorr_pok::Challenge { nonce: challenge };
-    println!("[DEBUG] Calculate challenge");
     tracer.stage("Prove knowledge of `sigma_i`");
     let z = schnorr_pok::prove(&r, &challenge, &sigma);
-    println!("[DEBUG] Prove knowledge of `sigma_i`");   
     tracer.send_msg();
     let my_sch_proof = MsgRound3 { sch_proof: z };
-    println!("[DEBUG] Send round 3 broadcast");
+    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
     outgoings
         .send(Outgoing::broadcast(Msg::Round3(my_sch_proof.clone())))
         .await
@@ -459,7 +471,6 @@ where
     }
 
     tracer.stage("Derive resulting public key and other data");
-    println!("[DEBUG] Derive resulting public key and other data");
     let y: Point<E> = decommitments
         .iter_including_me(&my_decommitment)
         .map(|d| d.F.coefs()[0])
@@ -468,9 +479,9 @@ where
         .map(|i| NonZero::from_scalar(Scalar::from(i)))
         .collect::<Option<Vec<_>>>()
         .ok_or(Bug::NonZeroScalar)?;
-    println!("[DEBUG] Derive resulting public key and other data");
     tracer.protocol_ends();
 
+    debug!("Derive resulting public key and other data");
     Ok(DirtyCoreKeyShare {
         i,
         key_info: DirtyKeyInfo {

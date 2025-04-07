@@ -15,7 +15,7 @@ serde_yaml = "0.9"
 bincode = "1.3"
 
 # CGGMP21
-round-based ={ workspace = true}
+round-based = { git = "https://github.com/nxhieu3102/round-based", rev = "4fb064b" }
 cggmp21 = {workspace = true}
 generic-ec = { workspace = true, features = ["serde", "all-curves"] }
 sha2 = { workspace = true}
@@ -24,3 +24,5 @@ rand = { workspace = true}
 # Added for message signing
 ed25519-dalek = "1.0.1"
 hex = "0.4.3"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.19"

@@ -17,8 +17,7 @@ key-share = { version = "0.6", path = "key-share", default-features = false }
 
 generic-ec = { version = "0.4.1", default-features = false } 
 generic-ec-zkp = { version = "0.4.1", default-features = false } 
-round-based = { version = "0.4.1", default-features = false }
-
+round-based = { git = "https://github.com/nxhieu3102/round-based", rev = "4fb064b" }
 paillier-zk = "0.4.1" 
 udigest = { version = "0.2.1", default-features = false }
 
@@ -47,3 +46,4 @@ hd-wallet = { version = "0.6", default-features = false }
 
 generic-tests = "0.1"
 
+tracing = "0.1.40"

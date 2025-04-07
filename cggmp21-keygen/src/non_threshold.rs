@@ -27,7 +27,7 @@ macro_rules! prefixed {
 }
 
 /// Message of key generation protocol
-#[derive(ProtocolMessage, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(bound = "")]
 pub enum Msg<E: Curve, L: SecurityLevel, D: Digest> {
     /// Round 1 message
@@ -38,6 +38,23 @@ pub enum Msg<E: Curve, L: SecurityLevel, D: Digest> {
     Round2(MsgRound2<E, L>),
     /// Round 3 message
     Round3(MsgRound3<E>),
+}
+
+// Constants for round numbers
+pub const NON_THRESHOLD_ROUND_1: u16 = 1;
+pub const NON_THRESHOLD_ROUND_2: u16 = 2;
+pub const NON_THRESHOLD_ROUND_3: u16 = 3;
+pub const NON_THRESHOLD_ROUND_RELIABILITY: u16 = 4;
+
+impl<E: Curve, L: SecurityLevel, D: Digest> ProtocolMessage for Msg<E, L, D> {
+    fn round(&self) -> u16 {
+        match self {
+            Self::Round1(_) => NON_THRESHOLD_ROUND_1,
+            Self::Round2(_) => NON_THRESHOLD_ROUND_2,
+            Self::Round3(_) => NON_THRESHOLD_ROUND_3,
+            Self::ReliabilityCheck(_) => NON_THRESHOLD_ROUND_RELIABILITY,
+        }
+    }
 }
 
 /// Message from round 1

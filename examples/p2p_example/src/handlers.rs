@@ -12,6 +12,7 @@ use tokio::{
 use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature, Signer, Verifier};
 use hex;
 use rand::Rng;
+use tracing::{debug, error, info, trace, warn};
 
 // Define our internal message type for key exchange
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -93,7 +94,7 @@ impl KeyManager {
         let public_bytes = hex::decode(public_key_hex)?;
         let public = PublicKey::from_bytes(&public_bytes)?;
         self.public_keys.insert(peer_id, public);
-        println!("Added public key for peer ID: {}", peer_id);
+        info!("Added public key for peer ID: {}", peer_id);
         Ok(())
     }
 
@@ -195,7 +196,7 @@ where
     sender.send(signed_message).await
         .map_err(|_| anyhow::anyhow!("Failed to send key exchange message"))?;
     
-    println!("Sent public key to peer");
+    debug!("Sent public key to peer");
     Ok(())
 }
 
@@ -218,16 +219,16 @@ where
         match reader.read(&mut buffer).await {
             Ok(0) => break,
             Ok(n) => {
-                println!("[DEBUG] Received {} bytes from {}", n, address);
+                // trace!("Received {} bytes from {}", n, address);
                 
                 // Try to deserialize as a SignedMessage with our InternalMessage
                 if let Ok(signed_msg) = bincode::deserialize::<SignedMessage<M>>(&buffer[..n]) {
-                    println!("[RECEIVED] Received signed message from {:?}, claimed sender: {}, msg_type: {:?}", 
-                             address, signed_msg.sender_id, signed_msg.msg_type);
+                    // debug!("Received signed message from {:?}, claimed sender: {}, msg_type: {:?}", 
+                    //          address, signed_msg.sender_id, signed_msg.msg_type);
                     
                     // First handle key exchange messages
                     if let InternalMessage::KeyExchange { node_id, public_key_hex } = &signed_msg.message {
-                        println!("Received key exchange from node: {}", node_id);
+                        // info!("Received key exchange from node: {}", node_id);
                         
                         // Check if we already have this peer's key
                         let already_have_key = {
@@ -240,7 +241,7 @@ where
                             {
                                 let mut key_manager_write = key_manager.write().await;
                                 if let Err(e) = key_manager_write.add_public_key(*node_id, public_key_hex) {
-                                    println!("Error adding public key: {}", e);
+                                    error!("Error adding public key: {}", e);
                                     continue;
                                 }
                             }
@@ -255,11 +256,11 @@ where
                             let peers_read = peers.read().await;
                             if let Some(tx) = peers_read.get(&address) {
                                 if let Err(e) = send_key_exchange(tx, &key_manager).await {
-                                    println!("Failed to send key exchange back: {}", e);
+                                    error!("Failed to send key exchange back: {}", e);
                                 }
                             }
                         } else {
-                            println!("Already have public key for node {}, not responding", node_id);
+                            debug!("Already have public key for node {}, not responding", node_id);
                         }
                         
                         continue; // Don't forward key exchange messages to the application
@@ -271,7 +272,7 @@ where
                         Ok(true) => {
                             // Process the actual protocol message
                             if let InternalMessage::ProtocolMessage(actual_msg) = signed_msg.message {
-                                println!("[DEBUG] Forwarding protocol message from sender: {}, type: {:?}", 
+                                trace!("Forwarding protocol message from sender: {}, type: {:?}", 
                                        signed_msg.sender_id, signed_msg.msg_type);
                                 
                                 // Create incoming message with verified sender_id
@@ -283,25 +284,25 @@ where
                                 };
                                 
                                 if incoming_tx.send(incoming_msg).await.is_err() {
-                                    println!("[ERROR] Failed to forward message to MPC protocol");
+                                    error!("Failed to forward message to MPC protocol");
                                     break;
                                 } else {
-                                    println!("[DEBUG] Successfully forwarded message to MPC protocol");
+                                    debug!("Successfully forwarded message to MPC protocol");
                                 }
                             }
                         },
                         Ok(false) => {
-                            println!("Warning: Invalid signature from claimed sender: {}", signed_msg.sender_id);
+                            warn!("Invalid signature from claimed sender: {}", signed_msg.sender_id);
                         },
                         Err(e) => {
-                            println!("Error verifying signature: {}", e);
+                            error!("Error verifying signature: {}", e);
                         }
                     }
                 } else {
-                    println!("[DEBUG] Failed to deserialize as SignedMessage, trying legacy format");
+                    debug!("Failed to deserialize as SignedMessage, trying legacy format");
                     // Fallback for legacy messages or incompatible format
                     if let Ok(msg) = bincode::deserialize::<M>(&buffer[..n]) {
-                        println!("[RECEIVED] Received unsigned message from {:?}", address);
+                        debug!("Received unsigned message from {:?}", address);
                         
                         // Try to find the peer ID
                         let peer_id = find_peer_id(&peers_id, address).await;
@@ -313,18 +314,18 @@ where
                             msg,
                         };
                         if incoming_tx.send(incoming_msg).await.is_err() {
-                            println!("[ERROR] Failed to forward legacy message to MPC protocol");
+                            error!("Failed to forward legacy message to MPC protocol");
                             break;
                         } else {
-                            println!("[DEBUG] Successfully forwarded legacy message to MPC protocol");
+                            debug!("Successfully forwarded legacy message to MPC protocol");
                         }
                     } else {
-                        println!("[ERROR] Could not deserialize message in any format");
+                        error!("Could not deserialize message in any format");
                     }
                 }
             }
             Err(e) => {
-                println!("[ERROR] Error reading from socket: {}", e);
+                error!("Error reading from socket: {}", e);
                 break;
             }
         }
@@ -388,7 +389,7 @@ pub async fn handle_connection<'a, M>(
     
     // Send our public key to the new peer
     if let Err(e) = send_key_exchange(&tx, &key_manager).await {
-        eprintln!("Failed to send key exchange: {}", e);
+        error!("Failed to send key exchange: {}", e);
     }
 
     // Clone Arc before moving it into task
@@ -409,7 +410,6 @@ pub async fn handle_outgoing<M>(
 where
     M: Send + Sync + Clone + 'static + Serialize,
 {
-    println!("[SEND] Sending message to: {:?}", outgoing.recipient);
 
     // Create a signed message
     let key_manager_read = key_manager.read().await;
@@ -417,12 +417,13 @@ where
     
     // Wrap the protocol message
     let internal_msg = InternalMessage::ProtocolMessage(outgoing.msg);
+    debug!("Sending message to: {:?}", outgoing.recipient);
     
     // Sign the message
     let signature = match key_manager_read.sign_message(&internal_msg) {
         Ok(sig) => sig,
         Err(e) => {
-            eprintln!("Failed to sign message: {}", e);
+            error!("Failed to sign message: {}", e);
             return Err(anyhow::anyhow!("Failed to sign message"));
         }
     };
@@ -455,9 +456,9 @@ where
     };
 
     for receiver in receivers {
-        println!("[SEND] Sending message with sender_id: {} and msg_type: {:?}", signed_message.sender_id, signed_message.msg_type);
+        trace!("Sending message with sender_id: {} and msg_type: {:?}", signed_message.sender_id, signed_message.msg_type);
         if let Err(e) = receiver.send(signed_message.clone()).await {
-            eprintln!("Failed to send message: {}", e);
+            error!("Failed to send message: {}", e);
         }
     }
 

@@ -24,7 +24,7 @@ round-based = { workspace = true, features = ["derive"] }
 sha2 = { workspace = true }
 digest = { workspace = true }
 rand_core = { workspace = true }
-
+tracing = "0.1.40"
 serde = { workspace = true, features = ["derive"] }
 serde_with = { workspace = true }
 hex = { workspace = true, features = ["serde"] }

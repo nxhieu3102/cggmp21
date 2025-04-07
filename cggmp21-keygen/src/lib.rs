@@ -20,6 +20,8 @@ pub mod security_level;
 mod non_threshold;
 /// Threshold DKG specific types
 mod threshold;
+/// Implementation of RoundMessage trait for threshold messages
+mod round_message_impl;
 
 mod errors;
 mod execution_id;
