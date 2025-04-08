@@ -28,6 +28,8 @@ use core::ops;
 use generic_ec::{serde::CurveName, Curve, NonZero, Point, Scalar, SecretScalar};
 use generic_ec_zkp::polynomial::lagrange_coefficient;
 
+use birkhoff::birkhoff_coefficient::birkhoff_coefficient;
+
 #[cfg(feature = "serde")]
 mod serde_fix;
 #[cfg(feature = "spof")]
@@ -373,9 +375,16 @@ fn validate_vss_key_info<E: Curve>(
             // Sort by rank (ascending order)
             rank_indices.sort_by_key(|&(rank, _)| rank);
 
+            // t highest ranks
+            let t_highest_ranks = rank_indices
+                .iter()
+                .take(usize::from(t))
+                .map(|&(rank, _)| rank)
+                .collect::<Vec<_>>();
+
             // Check that the first t indices create an accessible set
             for i in 0..usize::from(t) {
-                if rank_indices[i].0 > i as u16 {
+                if t_highest_ranks[i] > i as u16 {
                     return Err(InvalidShareReason::RankNotAccessible.into());
                 }
             }
@@ -388,23 +397,25 @@ fn validate_vss_key_info<E: Curve>(
                 .collect();
 
             // Get the corresponding public shares
-            let _t_highest_ranked_shares: Vec<&NonZero<Point<E>>> = t_highest_ranked_indices
+            let t_highest_ranked_shares: Vec<&NonZero<Point<E>>> = t_highest_ranked_indices
                 .iter()
                 .map(|&idx| &public_shares[idx])
                 .collect();
 
             // Get the corresponding I values
-            let _t_highest_ranked_indexes: Vec<&NonZero<Scalar<E>>> = t_highest_ranked_indices
+            let t_highest_ranked_indexes: Vec<&NonZero<Scalar<E>>> = t_highest_ranked_indices
                 .iter()
                 .map(|&idx| &vss_setup.I[idx])
                 .collect();
-            /*
+
             // Interpolate the public key using Birkhoff interpolation
             let interpolation = |x: Scalar<E>| {
-                let birkhoff_coefficients = (0..usize::from(t))
-                    .map(|j| birkhoff_coefficient(x, j, t_highest_ranked_indexes))
-                    .collect::<Option<Vec<_>>>()
-                    .ok_or(InvalidShareReason::INotPairwiseDistinct)?;
+                let birkhoff_coefficients = birkhoff_coefficient(
+                    t,
+                    &t_highest_ranked_indexes, // x-coordinates
+                    &t_highest_ranks,          // t highest (smallest) ranks
+                )
+                .ok_or(InvalidShareReason::INotPairwiseDistinct)?;
                 Ok::<_, InvalidCoreShare>(Scalar::multiscalar_mul(
                     birkhoff_coefficients
                         .into_iter()
@@ -416,12 +427,13 @@ fn validate_vss_key_info<E: Curve>(
                 return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
             }
 
-            for (&j, public_share_j) in vss_setup.I.iter().zip(public_shares).skip(t.into()) {
-                if interpolation(j.into())? != *public_share_j {
-                    return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
-                }
-            }
-            */
+            todo!()
+
+            // for (&j, public_share_j) in vss_setup.I.iter().zip(public_shares).skip(t.into()) {
+            //     if interpolation(j.into())? != *public_share_j {
+            //         return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
+            //     }
+            // }
         }
         None => {
             // Threshold key share

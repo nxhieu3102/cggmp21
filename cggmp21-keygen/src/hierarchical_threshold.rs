@@ -397,8 +397,6 @@ where
         None
     };
 
-    println!("pass bug 1");
-
     tracer.stage("Compute Ys");
     let polynomial_sum = decommitments
         .iter_including_me(&my_decommitment)
@@ -412,15 +410,11 @@ where
         .map(|y_j: Point<E>| NonZero::from_point(y_j).ok_or(Bug::ZeroShare))
         .collect::<Result<Vec<_>, _>>()?;
 
-    println!("pass bug 2");
-
     tracer.stage("Compute sigma");
     let sigma: Scalar<E> = sigmas_msg.iter().map(|msg| msg.sigma).sum();
     let mut sigma = sigma + sigmas[usize::from(i)];
     let sigma = NonZero::from_secret_scalar(SecretScalar::new(&mut sigma)).ok_or(Bug::ZeroShare)?;
     debug_assert_eq!(Point::generator() * &sigma, ys[usize::from(i)]);
-
-    println!("pass bug 3");
 
     tracer.stage("Calculate challenge");
     let challenge = Scalar::from_hash::<D>(&unambiguous::SchnorrPok {
@@ -484,19 +478,13 @@ where
         .collect::<Option<Vec<_>>>()
         .ok_or(Bug::NonZeroScalar)?;
 
-    println!("pass bug 4");
-
     tracer.protocol_ends();
 
-    let shared_public_key = NonZero::from_point(y).ok_or(Bug::ZeroPk)?;
-
-    println!("pass bug 5");
-
-    let key_share = DirtyCoreKeyShare {
+    Ok(DirtyCoreKeyShare {
         i,
         key_info: DirtyKeyInfo {
             curve: Default::default(),
-            shared_public_key,
+            shared_public_key: NonZero::from_point(y).ok_or(Bug::ZeroPk)?,
             public_shares: ys,
             vss_setup: Some(VssSetup {
                 min_signers: t,
@@ -509,9 +497,5 @@ where
         x: sigma,
     }
     .validate()
-    .map_err(|err| Bug::InvalidKeyShare(err.into_error()))?;
-
-    println!("pass bug 6");
-
-    Ok(key_share)
+    .map_err(|err| Bug::InvalidKeyShare(err.into_error()))?)
 }
