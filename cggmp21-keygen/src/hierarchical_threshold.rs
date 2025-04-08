@@ -403,8 +403,6 @@ where
         .map(|d| &d.F)
         .sum::<Polynomial<_>>();
 
-    println!("done calculating polynomial sum");
-
     let ys = (0..n)
         .map(|l| polynomial_sum.nth_derivative_at(&Scalar::from(l + 1), ranks[usize::from(l)]))
         .map(|y_j: Point<E>| NonZero::from_point(y_j).ok_or(Bug::ZeroShare))

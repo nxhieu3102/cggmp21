@@ -1,7 +1,6 @@
 //! Signing protocol
 #![allow(unused_extern_crates)]
 
-use tokio as _;
 use digest::Digest;
 use futures::SinkExt;
 use generic_ec::{coords::AlwaysHasAffineX, Curve, NonZero, Point, Scalar, SecretScalar};
@@ -21,6 +20,7 @@ use round_based::{
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use tokio as _;
 use tokio as _;
 
 use crate::errors::IoError;
@@ -537,12 +537,14 @@ where
         .len()
         .try_into()
         .map_err(|_| Bug::PartiesNumberExceedsU16)?;
+    // TODO: fix code get threshold from the key share
     let t = key_share
         .core
         .vss_setup
         .as_ref()
         .map(|s| s.min_signers)
         .unwrap_or(n);
+    // TODO: get ranks from the key share
     if S.len() != usize::from(t) {
         return Err(InvalidArgs::MismatchedAmountOfParties.into());
     }
@@ -553,6 +555,7 @@ where
         return Err(InvalidArgs::InvalidS.into());
     }
 
+    // TODO: (until line 600) process htss or tss into t-out-of-t
     // Assemble x_i and \vec X
     let (mut x_i, mut X) = if let Some(VssSetup { I, .. }) = &key_share.core.vss_setup {
         // For t-out-of-n keys generated via VSS DKG scheme

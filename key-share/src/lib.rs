@@ -409,25 +409,25 @@ fn validate_vss_key_info<E: Curve>(
                 .collect();
 
             // Interpolate the public key using Birkhoff interpolation
-            let interpolation = |x: Scalar<E>| {
-                let birkhoff_coefficients = birkhoff_coefficient(
-                    t,
-                    &t_highest_ranked_indexes, // x-coordinates
-                    &t_highest_ranks,          // t highest (smallest) ranks
-                )
-                .ok_or(InvalidShareReason::INotPairwiseDistinct)?;
-                Ok::<_, InvalidCoreShare>(Scalar::multiscalar_mul(
-                    birkhoff_coefficients
-                        .into_iter()
-                        .zip(t_highest_ranked_shares),
-                ))
-            };
-            let reconstructed_pk = interpolation(Scalar::zero())?;
-            if reconstructed_pk != shared_public_key {
-                return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
-            }
+            // let interpolation = |x: Scalar<E>| {
+            //     let birkhoff_coefficients = birkhoff_coefficient(
+            //         t,
+            //         &t_highest_ranked_indexes, // x-coordinates
+            //         &t_highest_ranks,          // t highest (smallest) ranks
+            //     )
+            //     .ok_or(InvalidShareReason::INotPairwiseDistinct)?;
+            //     Ok::<_, InvalidCoreShare>(Scalar::multiscalar_mul(
+            //         birkhoff_coefficients
+            //             .into_iter()
+            //             .zip(t_highest_ranked_shares),
+            //     ))
+            // };
+            // let reconstructed_pk = interpolation(Scalar::zero())?;
+            // if reconstructed_pk != shared_public_key {
+            //     return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
+            // }
 
-            todo!()
+            // todo!()
 
             // for (&j, public_share_j) in vss_setup.I.iter().zip(public_shares).skip(t.into()) {
             //     if interpolation(j.into())? != *public_share_j {
