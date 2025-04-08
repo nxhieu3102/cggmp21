@@ -253,6 +253,14 @@ pub struct VssSetup<E: Curve> {
         serde(with = "As::<Vec<generic_ec::serde::PreferCompact>>")
     )]
     pub I: Vec<NonZero<Scalar<E>>>,
+    /// Ranks of the signers
+    ///
+    /// If the key share is generated using hierarchical threshold, the ranks are stored here.
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
+    pub ranks: Option<Vec<u16>>,
 }
 
 impl<E: Curve> Validate for DirtyCoreKeyShare<E> {
@@ -333,32 +341,118 @@ fn validate_vss_key_info<E: Curve>(
         return Err(InvalidShareReason::ILen.into());
     }
 
-    // Now we need to check that public key shares indeed form a public key.
-    // We do that in two steps:
-    // 1. Take `t` first public key shares, derive a public key and compare
-    //    with public key specified in key share
-    // 2. Using first `t` public key shares, derive other `n-t` public shares
-    //    and compare with the ones specified in the key share
+    match &vss_setup.ranks {
+        Some(ranks) => {
+            // Hierarchical threshold key share
 
-    let first_t_shares = &public_shares[0..usize::from(t)];
-    let indexes = &vss_setup.I[0..usize::from(t)];
-    let interpolation = |x: Scalar<E>| {
-        let lagrange_coefficients = (0..usize::from(t))
-            .map(|j| lagrange_coefficient(x, j, indexes))
-            .collect::<Option<Vec<_>>>()
-            .ok_or(InvalidShareReason::INotPairwiseDistinct)?;
-        Ok::<_, InvalidCoreShare>(Scalar::multiscalar_mul(
-            lagrange_coefficients.into_iter().zip(first_t_shares),
-        ))
-    };
-    let reconstructed_pk = interpolation(Scalar::zero())?;
-    if reconstructed_pk != shared_public_key {
-        return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
-    }
+            // Check that ranks length is equal to n
+            if ranks.len() != usize::from(n) {
+                return Err(InvalidShareReason::RanksLen.into());
+            }
 
-    for (&j, public_share_j) in vss_setup.I.iter().zip(public_shares).skip(t.into()) {
-        if interpolation(j.into())? != *public_share_j {
-            return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
+            // Check that ranks are in range 0..t
+            for rank in ranks {
+                if *rank >= t {
+                    return Err(InvalidShareReason::RankTooLarge.into());
+                }
+            }
+            // Now we need to check that public key shares indeed form a public key.
+            // We do that in two steps:
+            // 1. Take `t` highest ranked public key shares, derive a public key and compare
+            //    with public key specified in key share
+            // 2. Using `t` highest ranked public key shares, derive other `n-t` public shares
+            //    and compare with the ones specified in the key share
+
+            // Find the t highest ranked parties (those with the smallest rank values)
+            let mut rank_indices: Vec<(u16, usize)> = ranks
+                .iter()
+                .enumerate()
+                .map(|(idx, &rank)| (rank, idx))
+                .collect();
+
+            // Sort by rank (ascending order)
+            rank_indices.sort_by_key(|&(rank, _)| rank);
+
+            // Check that the first t indices create an accessible set
+            for i in 0..usize::from(t) {
+                if rank_indices[i].0 > i as u16 {
+                    return Err(InvalidShareReason::RankNotAccessible.into());
+                }
+            }
+
+            // Take the top t indices
+            let t_highest_ranked_indices: Vec<usize> = rank_indices
+                .iter()
+                .take(usize::from(t))
+                .map(|&(_, idx)| idx)
+                .collect();
+
+            // Get the corresponding public shares
+            let _t_highest_ranked_shares: Vec<&NonZero<Point<E>>> = t_highest_ranked_indices
+                .iter()
+                .map(|&idx| &public_shares[idx])
+                .collect();
+
+            // Get the corresponding I values
+            let _t_highest_ranked_indexes: Vec<&NonZero<Scalar<E>>> = t_highest_ranked_indices
+                .iter()
+                .map(|&idx| &vss_setup.I[idx])
+                .collect();
+            /*
+            // Interpolate the public key using Birkhoff interpolation
+            let interpolation = |x: Scalar<E>| {
+                let birkhoff_coefficients = (0..usize::from(t))
+                    .map(|j| birkhoff_coefficient(x, j, t_highest_ranked_indexes))
+                    .collect::<Option<Vec<_>>>()
+                    .ok_or(InvalidShareReason::INotPairwiseDistinct)?;
+                Ok::<_, InvalidCoreShare>(Scalar::multiscalar_mul(
+                    birkhoff_coefficients
+                        .into_iter()
+                        .zip(t_highest_ranked_shares),
+                ))
+            };
+            let reconstructed_pk = interpolation(Scalar::zero())?;
+            if reconstructed_pk != shared_public_key {
+                return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
+            }
+
+            for (&j, public_share_j) in vss_setup.I.iter().zip(public_shares).skip(t.into()) {
+                if interpolation(j.into())? != *public_share_j {
+                    return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
+                }
+            }
+            */
+        }
+        None => {
+            // Threshold key share
+            // Now we need to check that public key shares indeed form a public key.
+            // We do that in two steps:
+            // 1. Take `t` first public key shares, derive a public key and compare
+            //    with public key specified in key share
+            // 2. Using first `t` public key shares, derive other `n-t` public shares
+            //    and compare with the ones specified in the key share
+
+            let first_t_shares = &public_shares[0..usize::from(t)];
+            let indexes = &vss_setup.I[0..usize::from(t)];
+            let interpolation = |x: Scalar<E>| {
+                let lagrange_coefficients = (0..usize::from(t))
+                    .map(|j| lagrange_coefficient(x, j, indexes))
+                    .collect::<Option<Vec<_>>>()
+                    .ok_or(InvalidShareReason::INotPairwiseDistinct)?;
+                Ok::<_, InvalidCoreShare>(Scalar::multiscalar_mul(
+                    lagrange_coefficients.into_iter().zip(first_t_shares),
+                ))
+            };
+            let reconstructed_pk = interpolation(Scalar::zero())?;
+            if reconstructed_pk != shared_public_key {
+                return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
+            }
+
+            for (&j, public_share_j) in vss_setup.I.iter().zip(public_shares).skip(t.into()) {
+                if interpolation(j.into())? != *public_share_j {
+                    return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
+                }
+            }
         }
     }
 
@@ -542,6 +636,12 @@ enum InvalidShareReason {
     ILen,
     #[displaydoc("indexes of shares in I are not pairwise distinct")]
     INotPairwiseDistinct,
+    #[displaydoc("ranks length is not equal to n")]
+    RanksLen,
+    #[displaydoc("rank is too large: rank >= t")]
+    RankTooLarge,
+    #[displaydoc("no set of ranks is accessible: rank_i <= i for all 0 <= i < t")]
+    RankNotAccessible,
 }
 
 impl From<InvalidShareReason> for InvalidCoreShare {

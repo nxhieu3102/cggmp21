@@ -17,6 +17,7 @@ struct Args {
     bench_primes_gen: bool,
     bench_non_threshold_keygen: bool,
     bench_threshold_keygen: bool,
+    bench_hierarchical_threshold_keygen: bool,
     bench_aux_data_gen: bool,
     bench_signing: bool,
     optimize_multiexp: bool,
@@ -35,6 +36,9 @@ fn args() -> Args {
         .switch()
         .map(|b| !b);
     let bench_threshold_keygen = bpaf::long("no-bench-threshold-keygen").switch().map(|b| !b);
+    let bench_hierarchical_threshold_keygen = bpaf::long("no-bench-hierarchical-threshold-keygen")
+        .switch()
+        .map(|b| !b);
     let bench_aux_data_gen = bpaf::long("no-bench-aux-data-gen").switch().map(|b| !b);
     let bench_signing = bpaf::long("no-bench-signing").switch().map(|b| !b);
     let optimize_multiexp = bpaf::long("optimize-multiexp").switch();
@@ -45,6 +49,7 @@ fn args() -> Args {
         bench_primes_gen,
         bench_non_threshold_keygen,
         bench_threshold_keygen,
+        bench_hierarchical_threshold_keygen,
         bench_aux_data_gen,
         bench_signing,
         optimize_multiexp,
@@ -146,6 +151,64 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
                 .into_vec();
 
                 println!("Threshold DKG");
+                println!("{}", outputs[0].1.clone().display_io(false));
+                println!();
+
+                Some(outputs.into_iter().map(|(k, _)| k).collect())
+            } else {
+                None
+            };
+
+        let _hierarchical_threshold_key_shares: Option<Vec<cggmp21::IncompleteKeyShare<E>>> =
+            if args.bench_hierarchical_threshold_keygen {
+                // ranks must follow some rules to be valid
+                // so we have some hard coded values for ranks
+
+                // n = {3, 5, 7, 10}
+                let t = match n {
+                    3 => 2,
+                    5 => 3,
+                    7 => 4,
+                    10 => 5,
+                    _ => panic!("n is not supported"),
+                };
+                // ranks is the rank of each shareholder
+                // 0 <= ranks[i] < t, for all 0 <= i < n
+                let ranks = match (n, t) {
+                    (3, 2) => vec![0, 1, 1],
+                    (5, 3) => vec![0, 1, 1, 2, 2],
+                    (7, 4) => vec![0, 1, 1, 2, 2, 3, 3],
+                    (10, 5) => vec![0, 1, 1, 2, 2, 3, 3, 4, 4, 4],
+                    _ => panic!("t is not supported"),
+                };
+
+                let eid: [u8; 32] = rng.gen();
+                let eid = ExecutionId::new(&eid);
+
+                let outputs = round_based::sim::run(n, |i, party| {
+                    let mut party_rng = rng.fork();
+
+                    let mut profiler = PerfProfiler::new();
+
+                    let ranks = ranks.clone();
+
+                    async move {
+                        let key_share = cggmp21::keygen(eid, i, n)
+                            .set_hierarchical_threshold(t, ranks)
+                            .set_progress_tracer(&mut profiler)
+                            .set_security_level::<L>()
+                            .start(&mut party_rng, party)
+                            .await
+                            .context("keygen failed")?;
+                        let report = profiler.get_report().context("get perf report")?;
+                        Ok::<_, anyhow::Error>((key_share, report))
+                    }
+                })
+                .unwrap()
+                .expect_ok()
+                .into_vec();
+
+                println!("Hierarchical threshold DKG");
                 println!("{}", outputs[0].1.clone().display_io(false));
                 println!();
 
