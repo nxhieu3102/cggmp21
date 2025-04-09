@@ -28,7 +28,7 @@ use core::ops;
 use generic_ec::{serde::CurveName, Curve, NonZero, Point, Scalar, SecretScalar};
 use generic_ec_zkp::polynomial::lagrange_coefficient;
 
-use birkhoff::birkhoff_coefficient::birkhoff_coefficient_at_zero;
+use birkhoff::birkhoff_coefficient::birkhoff_coefficient;
 
 #[cfg(feature = "serde")]
 mod serde_fix;
@@ -410,7 +410,7 @@ fn validate_vss_key_info<E: Curve>(
 
             // TODO: Interpolate the public key using Birkhoff interpolation
             // let reconstructed_pk = {
-            //     let birkhoff_coefficients = birkhoff_coefficient_at_zero(
+            //     let birkhoff_coefficients = birkhoff_coefficient(
             //         t,
             //         &t_highest_ranked_indexes, // x-coordinates
             //         &t_highest_ranks,          // t highest (smallest) ranks

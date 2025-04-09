@@ -28,7 +28,7 @@ use crate::key_share::{KeyShare, PartyAux, VssSetup};
 use crate::progress::Tracer;
 use crate::{key_share::InvalidKeyShare, security_level::SecurityLevel, utils, ExecutionId};
 
-use birkhoff::birkhoff_coefficient::birkhoff_coefficient_at_zero;
+use birkhoff::birkhoff_coefficient::birkhoff_coefficient;
 
 use self::msg::*;
 
@@ -590,7 +590,7 @@ where
             let ranks = utils::subset(S, &ranks).ok_or(Bug::Subset)?;
 
             // Convert birkhoff shares into additive shares for HTSS
-            let birkhoff = birkhoff_coefficient_at_zero(t, &I, &ranks).ok_or(Bug::BirkhoffCoef)?;
+            let birkhoff = birkhoff_coefficient(t, &I, &ranks).ok_or(Bug::BirkhoffCoef)?;
 
             let birkhoff_i = birkhoff.get(usize::from(i)).ok_or(Bug::BirkhoffCoef)?;
             let x_i = (birkhoff_i * &key_share.core.x).into_secret();
