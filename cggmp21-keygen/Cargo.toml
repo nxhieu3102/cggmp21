@@ -11,7 +11,7 @@ keywords = ["mpc", "dkg", "threshold-signatures", "tss"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-birkhoff = { path = "../birkhoff" }
+birkhoff = { workspace = true }
 
 key-share = { workspace = true, features = ["serde"] }
 hd-wallet = { workspace = true, optional = true }

@@ -331,6 +331,7 @@ name = "cggmp21"
 version = "0.6.0"
 dependencies = [
  "anyhow",
+ "birkhoff",
  "cggmp21-keygen",
  "digest",
  "futures",

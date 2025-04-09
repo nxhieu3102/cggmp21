@@ -21,8 +21,6 @@ use alloc::vec::Vec;
 /// Because the polynomial is of degree t-1
 /// The shareholder with rank >= t will get the share with value 0
 ///
-use std::println;
-
 use digest::Digest;
 use generic_ec::{Curve, NonZero, Point, Scalar, SecretScalar};
 use generic_ec_zkp::{polynomial::Polynomial, schnorr_pok};

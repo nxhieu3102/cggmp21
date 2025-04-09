@@ -28,7 +28,7 @@ use core::ops;
 use generic_ec::{serde::CurveName, Curve, NonZero, Point, Scalar, SecretScalar};
 use generic_ec_zkp::polynomial::lagrange_coefficient;
 
-use birkhoff::birkhoff_coefficient::birkhoff_coefficient;
+use birkhoff::birkhoff_coefficient::birkhoff_coefficient_at_zero;
 
 #[cfg(feature = "serde")]
 mod serde_fix;
@@ -408,9 +408,9 @@ fn validate_vss_key_info<E: Curve>(
                 .map(|&idx| &vss_setup.I[idx])
                 .collect();
 
-            // Interpolate the public key using Birkhoff interpolation
-            // let interpolation = |x: Scalar<E>| {
-            //     let birkhoff_coefficients = birkhoff_coefficient(
+            // TODO: Interpolate the public key using Birkhoff interpolation
+            // let reconstructed_pk = {
+            //     let birkhoff_coefficients = birkhoff_coefficient_at_zero(
             //         t,
             //         &t_highest_ranked_indexes, // x-coordinates
             //         &t_highest_ranks,          // t highest (smallest) ranks
@@ -421,18 +421,9 @@ fn validate_vss_key_info<E: Curve>(
             //             .into_iter()
             //             .zip(t_highest_ranked_shares),
             //     ))
-            // };
-            // let reconstructed_pk = interpolation(Scalar::zero())?;
+            // }?;
             // if reconstructed_pk != shared_public_key {
             //     return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
-            // }
-
-            // todo!()
-
-            // for (&j, public_share_j) in vss_setup.I.iter().zip(public_shares).skip(t.into()) {
-            //     if interpolation(j.into())? != *public_share_j {
-            //         return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
-            //     }
             // }
         }
         None => {

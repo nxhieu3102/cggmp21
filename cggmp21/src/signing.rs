@@ -28,6 +28,8 @@ use crate::key_share::{KeyShare, PartyAux, VssSetup};
 use crate::progress::Tracer;
 use crate::{key_share::InvalidKeyShare, security_level::SecurityLevel, utils, ExecutionId};
 
+use birkhoff::birkhoff_coefficient::birkhoff_coefficient_at_zero;
+
 use self::msg::*;
 
 /// A (prehashed) data to be signed
@@ -505,8 +507,16 @@ where
 ///
 /// CGGMP paper doesn't support threshold signing out of the box. However, threshold signing
 /// can be easily implemented on top of CGGMP's [`signing_n_out_of_n`] by converting polynomial
-/// (VSS) key shares into additive (by multiplying at lagrange coefficient) and calling
-/// t-out-of-t protocol. The trick is described in more details in the spec.
+/// (VSS) key shares into additive (by multiplying at lagrange coefficient for tss, or by
+/// multiplying at birkhoff coefficient for htss) and calling t-out-of-t protocol.
+/// The trick is described in more details in the spec.
+///
+/// S: vector of parties' original indexes, who take part in signing
+/// i: index of the party in S
+/// key_share: key share of the party
+/// message_to_sign: message to sign
+/// enforce_reliable_broadcast: whether to enforce reliable broadcast
+/// additive_shift: additive shift for the key
 async fn signing_t_out_of_n<M, E, L, D, R>(
     mut tracer: Option<&mut dyn Tracer>,
     rng: &mut R,
@@ -537,42 +547,86 @@ where
         .len()
         .try_into()
         .map_err(|_| Bug::PartiesNumberExceedsU16)?;
-    // TODO: fix code get threshold from the key share
     let t = key_share
         .core
         .vss_setup
         .as_ref()
         .map(|s| s.min_signers)
         .unwrap_or(n);
-    // TODO: get ranks from the key share
+    // TODO: How about S.len() > t?
     if S.len() != usize::from(t) {
         return Err(InvalidArgs::MismatchedAmountOfParties.into());
     }
+    // TODO: i is the index before or after mapping?
+    // before: 0 <= i < n
+    // after: 0 <= i < t
     if !(i < t) {
         return Err(InvalidArgs::SignerIndexOutOfBounds.into());
     }
+    // S_j is the index of the party in the original group
     if S.iter().any(|&S_j| S_j >= n) {
         return Err(InvalidArgs::InvalidS.into());
     }
 
-    // TODO: (until line 600) process htss or tss into t-out-of-t
     // Assemble x_i and \vec X
-    let (mut x_i, mut X) = if let Some(VssSetup { I, .. }) = &key_share.core.vss_setup {
-        // For t-out-of-n keys generated via VSS DKG scheme
-        let I = utils::subset(S, I).ok_or(Bug::Subset)?;
-        let X = utils::subset(S, &key_share.core.public_shares).ok_or(Bug::Subset)?;
+    // x_i: new shares (additive shares), X: vector of public shares
+    let (mut x_i, mut X) = if let Some(VssSetup { I, ranks, .. }) = &key_share.core.vss_setup {
+        if let Some(ref ranks) = ranks {
+            // HTSS
 
-        let lambda_i = lagrange_coefficient_at_zero(usize::from(i), &I).ok_or(Bug::LagrangeCoef)?;
-        let x_i = (lambda_i * &key_share.core.x).into_secret();
+            // validate ranks
+            if ranks.iter().any(|&r| r >= t) {
+                return Err(InvalidArgs::InvalidRanks.into());
+            }
 
-        let lambda = (0..t).map(|j| lagrange_coefficient_at_zero(usize::from(j), &I));
-        let X = lambda
-            .zip(&X)
-            .map(|(lambda_j, X_j)| Some(lambda_j? * X_j))
-            .collect::<Option<Vec<_>>>()
-            .ok_or(Bug::LagrangeCoef)?;
+            // I: vector of indexes (x-coordinates) of the parties, who take part in signing
+            let I = utils::subset(S, I).ok_or(Bug::Subset)?;
 
-        (x_i, X)
+            // X: vector of old public shares of the parties, who take part in signing
+            // corresponding to lagrange/birkhoff shares
+            let X = utils::subset(S, &key_share.core.public_shares).ok_or(Bug::Subset)?;
+
+            // ranks: vector of ranks of the parties, who take part in signing
+            let ranks = utils::subset(S, &ranks).ok_or(Bug::Subset)?;
+
+            // Convert birkhoff shares into additive shares for HTSS
+            let birkhoff = birkhoff_coefficient_at_zero(t, &I, &ranks).ok_or(Bug::BirkhoffCoef)?;
+
+            let birkhoff_i = birkhoff.get(usize::from(i)).ok_or(Bug::BirkhoffCoef)?;
+            let x_i = (birkhoff_i * &key_share.core.x).into_secret();
+
+            let X = birkhoff
+                .iter()
+                .zip(&X)
+                .map(|(birkhoff_j, X_j)| Some(birkhoff_j * X_j))
+                .collect::<Option<Vec<_>>>()
+                .ok_or(Bug::BirkhoffCoef)?;
+
+            (x_i, X)
+        } else {
+            // TSS
+
+            // I: vector of indexes (x-coordinates) of the parties, who take part in signing
+            let I = utils::subset(S, I).ok_or(Bug::Subset)?;
+
+            // X: vector of old public shares of the parties, who take part in signing
+            // corresponding to lagrange/birkhoff shares
+            let X = utils::subset(S, &key_share.core.public_shares).ok_or(Bug::Subset)?;
+
+            // Convert lagrange shares into additive shares for TSS
+            let lambda_i =
+                lagrange_coefficient_at_zero(usize::from(i), &I).ok_or(Bug::LagrangeCoef)?;
+            let x_i = (lambda_i * &key_share.core.x).into_secret();
+
+            let lambda = (0..t).map(|j| lagrange_coefficient_at_zero(usize::from(j), &I));
+            let X = lambda
+                .zip(&X)
+                .map(|(lambda_j, X_j)| Some(lambda_j? * X_j))
+                .collect::<Option<Vec<_>>>()
+                .ok_or(Bug::LagrangeCoef)?;
+
+            (x_i, X)
+        }
     } else {
         // For n-out-of-n keys generated using original CGGMP DKG
         let X = utils::subset(S, &key_share.core.public_shares).ok_or(Bug::Subset)?;
@@ -1564,6 +1618,8 @@ enum InvalidArgs {
     SignerIndexOutOfBounds,
     #[error("party index in S is out of bounds (must be < n)")]
     InvalidS,
+    #[error("ranks are invalid (must be < t)")]
+    InvalidRanks,
 }
 
 #[derive(Debug, Error)]
@@ -1592,6 +1648,8 @@ enum Bug {
     UnexpectedProtocolOutput,
     #[error("derive lagrange coef")]
     LagrangeCoef,
+    #[error("derive birkhoff coef")]
+    BirkhoffCoef,
     #[error("subset function returned error")]
     Subset,
     #[error("derived child key is zero - probability of that is negligible")]

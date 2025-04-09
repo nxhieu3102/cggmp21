@@ -25,7 +25,7 @@ serde_with = { workspace = true, features = ["alloc"], optional = true }
 thiserror = { workspace = true, optional = true }
 displaydoc = { workspace = true }
 
-birkhoff = { path = "../birkhoff" }
+birkhoff = { workspace = true }
 
 [dev-dependencies]
 rand_core = { workspace = true, features = ["getrandom"] }

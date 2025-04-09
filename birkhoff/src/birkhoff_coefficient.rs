@@ -41,6 +41,28 @@ pub fn birkhoff_coefficient<E: Curve>(
     }
 }
 
+pub fn birkhoff_coefficient_at_zero<E: Curve>(
+    threshold: u16,
+    indexes: &[impl AsRef<Scalar<E>>], // x-coordinates of shares
+    ranks: &[u16],
+) -> Option<Vec<NonZero<Scalar<E>>>> {
+    // ranks.len() = indexes.len() = number of equations
+    if ranks.len() != indexes.len() {
+        return None;
+    }
+
+    let birkhoff_matrix = get_linear_equation_coefficient_matrix(threshold, indexes, ranks);
+
+    // Compute the pseudo-inverse of the matrix
+    let invert_matrix = birkhoff_matrix.pseudo_inverse();
+
+    // Extract the first row of the pseudo-inverse
+    match invert_matrix {
+        Ok(matrix) => Some(matrix.get_row(0)),
+        Err(_) => None,
+    }
+}
+
 // Establish the coefficient of linear system of Birkhoff systems
 fn get_linear_equation_coefficient_matrix<E: Curve>(
     threshold: u16,
