@@ -27,7 +27,7 @@ use crate::errors::IoError;
 use crate::key_share::{KeyShare, PartyAux, VssSetup};
 use crate::progress::Tracer;
 use crate::{key_share::InvalidKeyShare, security_level::SecurityLevel, utils, ExecutionId};
-
+use tracing::{debug, error, info, trace, warn}; 
 use self::msg::*;
 
 /// A (prehashed) data to be signed
@@ -529,7 +529,7 @@ where
 {
     tracer.protocol_begins();
     tracer.stage("Map t-out-of-n protocol to t-out-of-t");
-
+    debug!("[SIGNING] validating arguments");
     // Validate arguments
     let n: u16 = key_share
         .aux

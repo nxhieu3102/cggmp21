@@ -2,8 +2,8 @@ node:
   id: 2
   address: '127.0.0.1:8083'
   # Adding key pair for message signing
-  private_key: "ad1482f4ca8d83ece9c93875e9c977880d5291a39e89fc8a699de147289bb854"
-  public_key: "e935d1005d7e10e47d9c58fcb16c76e89168b04196296760d33928677d1d8f18"
+  private_key: "d75c8d59957f1234567890abcdef1234567890abcdef1234567890abcdef1234"
+  public_key: "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c"
 peers:
   - id: 0
     address: '127.0.0.1:8081'

@@ -3,7 +3,7 @@ use futures::SinkExt;
 use futures_channel::mpsc;
 use round_based::{Incoming, MessageDestination, Outgoing};
 use serde::{Serialize, Deserialize};
-use std::{collections::HashMap, net::SocketAddr, sync::Arc};
+use std::{collections::HashMap, net::SocketAddr, sync::Arc, cmp::min};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream,
@@ -130,7 +130,7 @@ impl KeyManager {
     }
 }
 
-/// Creates a communication channel for a TCP stream
+/// Creates a communication channel for a TCP stream with length-prefixed message protocol
 fn create_stream_channel<M>(
     stream: TcpStream,
 ) -> (
@@ -145,11 +145,40 @@ where
 
     tokio::spawn(async move {
         while let Some(msg) = rx.recv().await {
-            let encoded_msg = bincode::serialize(&msg).expect("Failed to serialize message");
-            if writer.write_all(&encoded_msg).await.is_err() {
+            // Serialize the message
+            let encoded_msg = match bincode::serialize(&msg) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    error!("Failed to serialize message: {}", e);
+                    continue;
+                }
+            };
+            
+            // Add size warning if message is large
+            let msg_size = encoded_msg.len();
+            if msg_size > 1024 * 1024 {
+                warn!("Very large outgoing message: {} bytes", msg_size);
+            } else if msg_size > 4096 {
+                warn!("Large outgoing message: {} bytes", msg_size);
+            } else {
+                debug!("Sending message of size: {} bytes", msg_size);
+            }
+            
+            // Write the message length as a u32 prefix (4 bytes, little endian)
+            let len_bytes = (msg_size as u32).to_le_bytes();
+            if let Err(e) = writer.write_all(&len_bytes).await {
+                error!("Failed to write message length: {}", e);
                 break;
             }
-            if writer.flush().await.is_err() {
+            
+            // Write the actual message data
+            if let Err(e) = writer.write_all(&encoded_msg).await {
+                error!("Failed to write message data: {}", e);
+                break;
+            }
+            
+            if let Err(e) = writer.flush().await {
+                error!("Failed to flush socket: {}", e);
                 break;
             }
         }
@@ -212,120 +241,185 @@ async fn handle_messages<M>(
 where
     M: Send + Sync + 'static + for<'de> serde::de::Deserialize<'de> + Serialize + Clone,
 {
-    let mut buffer = [0u8; 1024];
     let mut incoming_tx = incoming_tx;
+    let mut len_buf = [0u8; 4]; // Buffer to store message length (4 bytes)
 
     loop {
-        match reader.read(&mut buffer).await {
-            Ok(0) => break,
-            Ok(n) => {
-                // trace!("Received {} bytes from {}", n, address);
+        // First read the message length prefix (4 bytes)
+        match reader.read_exact(&mut len_buf).await {
+            Ok(_) => {
+                // Convert bytes to u32 (little endian)
+                let msg_len = u32::from_le_bytes(len_buf) as usize;
                 
-                // Try to deserialize as a SignedMessage with our InternalMessage
-                if let Ok(signed_msg) = bincode::deserialize::<SignedMessage<M>>(&buffer[..n]) {
-                    // debug!("Received signed message from {:?}, claimed sender: {}, msg_type: {:?}", 
-                    //          address, signed_msg.sender_id, signed_msg.msg_type);
-                    
-                    // First handle key exchange messages
-                    if let InternalMessage::KeyExchange { node_id, public_key_hex } = &signed_msg.message {
-                        // info!("Received key exchange from node: {}", node_id);
-                        
-                        // Check if we already have this peer's key
-                        let already_have_key = {
-                            let key_manager_read = key_manager.read().await;
-                            key_manager_read.public_keys.contains_key(node_id)
-                        };
-                        
-                        if !already_have_key {
-                            // Add the peer's public key to our key manager
-                            {
-                                let mut key_manager_write = key_manager.write().await;
-                                if let Err(e) = key_manager_write.add_public_key(*node_id, public_key_hex) {
-                                    error!("Error adding public key: {}", e);
-                                    continue;
-                                }
-                            }
-                            
-                            // Update peers_id mapping
-                            {
-                                let mut peers_id_write = peers_id.write().await;
-                                peers_id_write.insert(*node_id, address);
-                            }
-                            
-                            // Get our key manager to send our key back
-                            let peers_read = peers.read().await;
-                            if let Some(tx) = peers_read.get(&address) {
-                                if let Err(e) = send_key_exchange(tx, &key_manager).await {
-                                    error!("Failed to send key exchange back: {}", e);
-                                }
-                            }
-                        } else {
-                            debug!("Already have public key for node {}, not responding", node_id);
-                        }
-                        
-                        continue; // Don't forward key exchange messages to the application
-                    }
-                    
-                    // For protocol messages, verify the signature
-                    let key_manager_read = key_manager.read().await;
-                    match key_manager_read.verify_signature(signed_msg.sender_id, &signed_msg.message, &signed_msg.signature) {
-                        Ok(true) => {
-                            // Process the actual protocol message
-                            if let InternalMessage::ProtocolMessage(actual_msg) = signed_msg.message {
-                                trace!("Forwarding protocol message from sender: {}, type: {:?}", 
-                                       signed_msg.sender_id, signed_msg.msg_type);
-                                
-                                // Create incoming message with verified sender_id
-                                let incoming_msg = Incoming {
-                                    id: rand::thread_rng().gen::<u64>(),
-                                    sender: signed_msg.sender_id,
-                                    msg_type: signed_msg.msg_type.to_round_based(),
-                                    msg: actual_msg,
-                                };
-                                
-                                if incoming_tx.send(incoming_msg).await.is_err() {
-                                    error!("Failed to forward message to MPC protocol");
-                                    break;
-                                } else {
-                                    debug!("Successfully forwarded message to MPC protocol");
-                                }
-                            }
-                        },
-                        Ok(false) => {
-                            warn!("Invalid signature from claimed sender: {}", signed_msg.sender_id);
-                        },
-                        Err(e) => {
-                            error!("Error verifying signature: {}", e);
-                        }
-                    }
+                // Log the message size
+                if msg_len > 1024 * 1024 {
+                    warn!("Receiving very large message: {} bytes from {}", msg_len, address);
+                } else if msg_len > 4096 {
+                    warn!("Receiving large message: {} bytes from {}", msg_len, address);
                 } else {
-                    debug!("Failed to deserialize as SignedMessage, trying legacy format");
-                    // Fallback for legacy messages or incompatible format
-                    if let Ok(msg) = bincode::deserialize::<M>(&buffer[..n]) {
-                        debug!("Received unsigned message from {:?}", address);
-                        
-                        // Try to find the peer ID
-                        let peer_id = find_peer_id(&peers_id, address).await;
-                        
-                        let incoming_msg = Incoming {
-                            id: rand::thread_rng().gen::<u64>(),
-                            sender: peer_id,
-                            msg_type: round_based::MessageType::Broadcast,
-                            msg,
-                        };
-                        if incoming_tx.send(incoming_msg).await.is_err() {
-                            error!("Failed to forward legacy message to MPC protocol");
-                            break;
-                        } else {
-                            debug!("Successfully forwarded legacy message to MPC protocol");
+                    trace!("Receiving message: {} bytes from {}", msg_len, address);
+                }
+                
+                // Allocate a buffer of the exact message size
+                let mut buffer = vec![0u8; msg_len];
+                
+                // Read the entire message into the buffer
+                match reader.read_exact(&mut buffer).await {
+                    Ok(_) => {
+                        // Try to deserialize as a SignedMessage with our InternalMessage
+                        match bincode::deserialize::<SignedMessage<M>>(&buffer) {
+                            Ok(signed_msg) => {
+                                // First handle key exchange messages
+                                if let InternalMessage::KeyExchange { node_id, public_key_hex } = &signed_msg.message {
+                                    // Check if we already have this peer's key
+                                    let already_have_key = {
+                                        let key_manager_read = key_manager.read().await;
+                                        key_manager_read.public_keys.contains_key(node_id)
+                                    };
+                                    
+                                    if !already_have_key {
+                                        // Add the peer's public key to our key manager
+                                        {
+                                            let mut key_manager_write = key_manager.write().await;
+                                            if let Err(e) = key_manager_write.add_public_key(*node_id, public_key_hex) {
+                                                error!("Error adding public key: {}", e);
+                                                continue;
+                                            }
+                                        }
+                                        
+                                        // Update peers_id mapping
+                                        {
+                                            let mut peers_id_write = peers_id.write().await;
+                                            peers_id_write.insert(*node_id, address);
+                                        }
+                                        
+                                        // Get our key manager to send our key back
+                                        let peers_read = peers.read().await;
+                                        if let Some(tx) = peers_read.get(&address) {
+                                            if let Err(e) = send_key_exchange(tx, &key_manager).await {
+                                                error!("Failed to send key exchange back: {}", e);
+                                            }
+                                        }
+                                    } else {
+                                        debug!("Already have public key for node {}, not responding", node_id);
+                                    }
+                                    
+                                    continue; // Don't forward key exchange messages to the application
+                                }
+                                
+                                // For protocol messages, verify the signature
+                                let key_manager_read = key_manager.read().await;
+                                match key_manager_read.verify_signature(signed_msg.sender_id, &signed_msg.message, &signed_msg.signature) {
+                                    Ok(true) => {
+                                        // Process the actual protocol message
+                                        if let InternalMessage::ProtocolMessage(actual_msg) = signed_msg.message {
+                                            trace!("Forwarding protocol message from sender: {}, type: {:?}", 
+                                                signed_msg.sender_id, signed_msg.msg_type);
+                                            
+                                            // Create incoming message with verified sender_id
+                                            let incoming_msg = Incoming {
+                                                id: rand::thread_rng().gen::<u64>(),
+                                                sender: signed_msg.sender_id,
+                                                msg_type: signed_msg.msg_type.to_round_based(),
+                                                msg: actual_msg,
+                                            };
+                                            
+                                            // Try to send the message with retries
+                                            let mut retry_count = 0;
+                                            const MAX_RETRIES: usize = 10;
+                                            const RETRY_DELAY_MS: u64 = 1000;
+                                            
+                                            let mut send_result = incoming_tx.send(incoming_msg.clone()).await;
+                                            
+                                            while send_result.is_err() && retry_count < MAX_RETRIES {
+                                                retry_count += 1;
+                                                debug!("Retrying message send attempt {}/{}", retry_count, MAX_RETRIES);
+                                                debug!("Sending message with id: {:?}", incoming_msg.id);
+                                                
+                                                // Estimate size by serializing a copy of the message
+                                                let encoded = match bincode::serialize(&incoming_msg.msg) {
+                                                    Ok(bytes) => {
+                                                        debug!("Message approximate size: {} bytes", bytes.len());
+                                                        true
+                                                    },
+                                                    Err(e) => {
+                                                        error!("Failed to serialize message: {}", e);
+                                                        false
+                                                    }
+                                                };
+                                                
+                                                tokio::time::sleep(tokio::time::Duration::from_millis(RETRY_DELAY_MS)).await;
+                                                send_result = incoming_tx.send(incoming_msg.clone()).await;
+                                            }
+                                            
+                                            if send_result.is_err() {
+                                                error!("Failed to forward message to MPC protocol after {} attempts", retry_count + 1);
+                                                debug!("Continuing to process other messages");
+                                            } else {
+                                                debug!("Successfully forwarded message to MPC protocol{}", 
+                                                    if retry_count > 0 { format!(" after {} retries", retry_count) } else { String::new() });
+                                            }
+                                        }
+                                    },
+                                    Ok(false) => {
+                                        warn!("Invalid signature from claimed sender: {}", signed_msg.sender_id);
+                                    },
+                                    Err(e) => {
+                                        error!("Error verifying signature: {}", e);
+                                    }
+                                }
+                            },
+                            Err(e) => {
+                                // Try legacy format if SignedMessage deserialization fails
+                                debug!("Failed to deserialize as SignedMessage: {}", e);
+                                
+                                match bincode::deserialize::<M>(&buffer) {
+                                    Ok(msg) => {
+                                        debug!("Successfully deserialized legacy message from {:?}", address);
+                                        
+                                        // Try to find the peer ID
+                                        let peer_id = find_peer_id(&peers_id, address).await;
+                                        
+                                        let incoming_msg = Incoming {
+                                            id: rand::thread_rng().gen::<u64>(),
+                                            sender: peer_id,
+                                            msg_type: round_based::MessageType::Broadcast,
+                                            msg,
+                                        };
+                                        
+                                        if incoming_tx.send(incoming_msg).await.is_err() {
+                                            error!("Failed to forward legacy message to MPC protocol");
+                                        } else {
+                                            debug!("Successfully forwarded legacy message to MPC protocol");
+                                        }
+                                    },
+                                    Err(e) => {
+                                        // Log detailed error information for debugging
+                                        error!("Could not deserialize message in any format: {}", e);
+                                        if buffer.len() > 100 {
+                                            let prefix = hex::encode(&buffer[..min(buffer.len(), 50)]);
+                                            debug!("Message prefix (hex): {}", prefix);
+                                        } else {
+                                            let msg_hex = hex::encode(&buffer);
+                                            debug!("Full message (hex): {}", msg_hex);
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    } else {
-                        error!("Could not deserialize message in any format");
+                    },
+                    Err(e) => {
+                        error!("Error reading message body: {}", e);
+                        break;
                     }
                 }
-            }
+            },
             Err(e) => {
-                error!("Error reading from socket: {}", e);
+                if e.kind() == std::io::ErrorKind::UnexpectedEof {
+                    debug!("Connection closed by peer: {}", address);
+                } else {
+                    error!("Error reading message length: {}", e);
+                }
                 break;
             }
         }
@@ -418,6 +512,20 @@ where
     // Wrap the protocol message
     let internal_msg = InternalMessage::ProtocolMessage(outgoing.msg);
     debug!("Sending message to: {:?}", outgoing.recipient);
+    
+    // Check the size of the serialized message
+    match bincode::serialized_size(&internal_msg) {
+        Ok(size) => {
+            if size > 4096 {
+                warn!("Large message being sent: {} bytes", size);
+            } else {
+                trace!("Outgoing message size: {} bytes", size);
+            }
+        },
+        Err(e) => {
+            error!("Failed to determine message size: {}", e);
+        }
+    }
     
     // Sign the message
     let signature = match key_manager_read.sign_message(&internal_msg) {

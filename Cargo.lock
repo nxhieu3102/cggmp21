@@ -351,6 +351,7 @@ dependencies = [
  "sha2 0.10.6",
  "thiserror 1.0.48",
  "tokio",
+ "tracing",
  "udigest",
 ]
 

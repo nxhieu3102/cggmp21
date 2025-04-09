@@ -238,6 +238,7 @@ where
     };
 
     debug!("Sending commitment to all parties");
+    tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
     outgoings
         .send(Outgoing::broadcast(Msg::Round1(my_commitment.clone())))
         .await
@@ -266,7 +267,7 @@ where
 
         tracer.send_msg();
 
-        tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+        tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
 
         outgoings
             .send(Outgoing::broadcast(Msg::ReliabilityCheck(
@@ -307,7 +308,7 @@ where
 
     tracer.send_msg();
 
-    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+    tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
     outgoings
         .feed(Outgoing::broadcast(Msg::Round2Broad(
             my_decommitment.clone(),
@@ -323,7 +324,7 @@ where
         Outgoing::p2p(j, Msg::Round2Uni(message))
     });
 
-    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+    tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
     outgoings
         .send_all(&mut futures_util::stream::iter(messages.map(Ok)))
         .await
@@ -434,7 +435,7 @@ where
     let z = schnorr_pok::prove(&r, &challenge, &sigma);
     tracer.send_msg();
     let my_sch_proof = MsgRound3 { sch_proof: z };
-    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+    tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
     outgoings
         .send(Outgoing::broadcast(Msg::Round3(my_sch_proof.clone())))
         .await

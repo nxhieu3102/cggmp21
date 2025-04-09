@@ -23,6 +23,7 @@ use crate::{
     zk::ring_pedersen_parameters as π_prm,
     ExecutionId,
 };
+use tracing::{debug, error, info, trace, warn};
 
 use super::{Bug, KeyRefreshError, PregeneratedPrimes, ProtocolAborted};
 
@@ -246,11 +247,17 @@ where
     let commitment = MsgRound1 {
         commitment: hash_commit,
     };
+
+    debug!("[AUX] generated commitment");
+
+    tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
     outgoings
         .send(Outgoing::broadcast(Msg::Round1(commitment.clone())))
         .await
         .map_err(IoError::send_message)?;
     tracer.msg_sent();
+
+    debug!("[AUX] sent commitment");
 
     // Round 2
     tracer.round_begins();
@@ -262,8 +269,11 @@ where
         .map_err(IoError::receive_message)?;
     tracer.msgs_received();
 
+    debug!("[AUX] received commitments");
+
     // Optional reliability check
     if reliable_broadcast_enforced {
+        debug!("[AUX] performing reliability check");
         tracer.stage("Hash received msgs (reliability check)");
         let h_i = udigest::hash_iter::<D>(
             commitments
@@ -272,6 +282,8 @@ where
         );
 
         tracer.send_msg();
+        tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
+        debug!("[AUX] sending reliability check");
         outgoings
             .send(Outgoing::broadcast(Msg::ReliabilityCheck(
                 MsgReliabilityCheck(h_i),
@@ -280,6 +292,7 @@ where
             .map_err(IoError::send_message)?;
         tracer.msg_sent();
 
+        debug!("[AUX] waiting for other parties to hash messages");
         tracer.round_begins();
 
         tracer.receive_msgs();
@@ -288,7 +301,7 @@ where
             .await
             .map_err(IoError::receive_message)?;
         tracer.msgs_received();
-
+        debug!("[AUX] received hashes");
         tracer.stage("Assert other parties hashed messages (reliability check)");
         let parties_have_different_hashes = hashes
             .into_iter_indexed()
@@ -301,6 +314,8 @@ where
     }
 
     tracer.send_msg();
+    debug!("[AUX] sending round 2");
+    tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
     outgoings
         .send(Outgoing::broadcast(Msg::Round2(decommitment.clone())))
         .await
@@ -316,7 +331,7 @@ where
         .await
         .map_err(IoError::receive_message)?;
     tracer.msgs_received();
-
+    debug!("[AUX] received round 2");
     // validate decommitments
     tracer.stage("Validate round 1 decommitments");
     let blame = collect_blame(&decommitments, &commitments, |j, decomm, comm| {
@@ -417,6 +432,9 @@ where
             mod_proof: psi.clone(),
             fac_proof: phi.clone(),
         };
+
+        tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
+        debug!("[AUX] sending round 3");
         outgoings
             .feed(Outgoing::p2p(j, Msg::Round3(msg)))
             .await
@@ -437,7 +455,7 @@ where
         .await
         .map_err(IoError::receive_message)?;
     tracer.msgs_received();
-
+    debug!("[AUX] received round 3");
     tracer.stage("Validate ψ_j (П_mod)");
     // verify mod proofs
     let blame = collect_blame(

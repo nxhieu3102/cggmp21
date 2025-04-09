@@ -34,8 +34,8 @@ where
         impl Stream<Item = Result<Incoming<M>>>,
         impl Sink<Outgoing<M>, Error = mpsc::SendError>,
     )> {
-        let (incoming_tx, incoming_rx) = mpsc::channel(32);
-        let (outgoing_tx, outgoing_rx) = mpsc::channel(32);
+        let (incoming_tx, incoming_rx) = mpsc::channel(256);
+        let (outgoing_tx, outgoing_rx) = mpsc::channel(256);
 
         let peers = Arc::new(RwLock::new(HashMap::new()));
         let peers_id = Arc::new(RwLock::new(HashMap::new()));
