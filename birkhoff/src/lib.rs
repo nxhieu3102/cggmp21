@@ -12,15 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod error;
-mod matrix;
-// mod birkhoff_interpolation;
-// mod ec_point;
 pub mod birkhoff_coefficient;
+pub mod birkhoff_error;
+pub mod birkhoff_matrix;
 pub mod polynomial;
-
-// pub use birkhoff_interpolation::*;
-// pub use ec_point::CurveParams;
-// pub use ec_point::ECPoint;
-// pub use error::Error;
-// pub use matrix::Matrix;

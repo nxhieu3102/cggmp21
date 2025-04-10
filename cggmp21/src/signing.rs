@@ -590,7 +590,7 @@ where
             let ranks = utils::subset(S, &ranks).ok_or(Bug::Subset)?;
 
             // Convert birkhoff shares into additive shares for HTSS
-            let birkhoff = birkhoff_coefficient(t, &I, &ranks).ok_or(Bug::BirkhoffCoef)?;
+            let birkhoff = birkhoff_coefficient(t, &I, &ranks).map_err(|_| Bug::BirkhoffCoef)?;
 
             let birkhoff_i = birkhoff.get(usize::from(i)).ok_or(Bug::BirkhoffCoef)?;
             let x_i = (birkhoff_i * &key_share.core.x).into_secret();

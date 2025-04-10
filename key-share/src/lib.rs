@@ -397,34 +397,34 @@ fn validate_vss_key_info<E: Curve>(
                 .collect();
 
             // Get the corresponding public shares
-            let t_highest_ranked_shares: Vec<&NonZero<Point<E>>> = t_highest_ranked_indices
+            let t_highest_ranked_shares = t_highest_ranked_indices
                 .iter()
                 .map(|&idx| &public_shares[idx])
-                .collect();
+                .collect::<Vec<_>>();
 
             // Get the corresponding I values
-            let t_highest_ranked_indexes: Vec<&NonZero<Scalar<E>>> = t_highest_ranked_indices
+            let t_highest_ranked_indexes = t_highest_ranked_indices
                 .iter()
-                .map(|&idx| &vss_setup.I[idx])
-                .collect();
+                .map(|&idx| vss_setup.I[idx].clone())
+                .collect::<Vec<_>>();
 
-            // TODO: Interpolate the public key using Birkhoff interpolation
-            // let reconstructed_pk = {
-            //     let birkhoff_coefficients = birkhoff_coefficient(
-            //         t,
-            //         &t_highest_ranked_indexes, // x-coordinates
-            //         &t_highest_ranks,          // t highest (smallest) ranks
-            //     )
-            //     .ok_or(InvalidShareReason::INotPairwiseDistinct)?;
-            //     Ok::<_, InvalidCoreShare>(Scalar::multiscalar_mul(
-            //         birkhoff_coefficients
-            //             .into_iter()
-            //             .zip(t_highest_ranked_shares),
-            //     ))
-            // }?;
-            // if reconstructed_pk != shared_public_key {
-            //     return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
-            // }
+            // Interpolate the public key using Birkhoff interpolation
+            let reconstructed_pk = {
+                let birkhoff_coefficients = birkhoff_coefficient(
+                    t,
+                    &t_highest_ranked_indexes, // x-coordinates as a slice
+                    &t_highest_ranks,          // t highest (smallest) ranks
+                )
+                .map_err(|_| InvalidShareReason::ReconstructPublicKeyFailed)?;
+                Ok::<_, InvalidCoreShare>(Scalar::multiscalar_mul(
+                    birkhoff_coefficients
+                        .into_iter()
+                        .zip(t_highest_ranked_shares),
+                ))
+            }?;
+            if reconstructed_pk != shared_public_key {
+                return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
+            }
         }
         None => {
             // Threshold key share
@@ -645,6 +645,8 @@ enum InvalidShareReason {
     RankTooLarge,
     #[displaydoc("no set of ranks is accessible: rank_i <= i for all 0 <= i < t")]
     RankNotAccessible,
+    #[displaydoc("failed to reconstruct public key")]
+    ReconstructPublicKeyFailed,
 }
 
 impl From<InvalidShareReason> for InvalidCoreShare {
