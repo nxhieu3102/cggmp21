@@ -5,19 +5,8 @@ edition = "2024"
 
 [dependencies]
 # For polynomial
-generic-ec = { workspace = true, features = ["serde", "udigest", "hash-to-scalar"] }
-generic-ec-zkp = { workspace = true, features = ["serde", "udigest"] }
-
-# For matrix.rs
-num-bigint = "0.4"
-
-# For error.rs
-thiserror = { workspace = true }
-
-# For birkhoff interpolation
-num-traits = "0.2"
-num-integer = "0.1"
-itertools = "0.12"
+generic-ec = { workspace = true, features = ["serde", "udigest", "hash-to-scalar", "curve-secp256k1"] }
+generic-ec-zkp = { workspace = true, features = ["serde", "udigest", "alloc"] }
 
 [dev-dependencies]
 pretty_assertions = "1.3"
