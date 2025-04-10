@@ -1,7 +1,7 @@
 use crate::birkhoff_error::{BirkhoffError, BirkhoffResult};
 use generic_ec::{Curve, NonZero, Scalar};
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BirkhoffMatrix<E: Curve> {
     /// The coefficient can be 0 at some cells
     cells: Vec<Vec<Scalar<E>>>,
@@ -32,7 +32,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
         if row >= self.rows() {
             return Err(BirkhoffError::IndexOutOfBounds {
                 index: row,
-                max_index: self.rows(),
+                max_index: self.rows() - 1,
             });
         }
 
@@ -213,6 +213,41 @@ impl<E: Curve> BirkhoffMatrix<E> {
         self.cols() == self.rows()
     }
 
+    fn is_diagonal(&self) -> bool {
+        // check if the matrix is square
+        if !self.is_square() {
+            return false;
+        }
+
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                if i != j && self.cells[i][j] != Scalar::zero() {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+
+    fn is_identity(&self) -> bool {
+        if !self.is_square() {
+            return false;
+        }
+
+        for i in 0..self.rows() {
+            for j in 0..self.cols() {
+                if i != j && self.cells[i][j] != Scalar::zero() {
+                    return false;
+                } else if i == j && self.cells[i][j] != Scalar::one() {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+
     /// Only work "matrixA is squared-matrix"
     /// Then the output is U_A and L^{-1} such that L*U_A = A. Here U_A is a upper triangular matrix
     /// with det(U_A) = det(A). (i.e. <A|I> = <U_A|L^{-1}> by Gauss elimination)
@@ -226,7 +261,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
         }
 
         // Create identity matrix for lower matrix
-        let mut lower = Self::create_identity_matrix(self.rows())?;
+        let mut lower = Self::create_identity_matrix(self.rows());
 
         // Create a copy of self for upper matrix
         let mut upper = self.clone();
@@ -265,7 +300,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
                 let temp_result_a = self.multiply_scalar(&row_i, inverse_diagonal_component);
 
                 // Add the multiplied row to row_j
-                upper.cells[j] = self.add_rows(&row_j, &temp_result_a)?;
+                upper.cells[j] = Self::add_rows(&row_j, &temp_result_a)?;
 
                 // Do the same operation for lower matrix
                 let row_lower_i = lower.get_row(i)?;
@@ -276,7 +311,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
                     self.multiply_scalar(&row_lower_i, inverse_diagonal_component);
 
                 // Add the multiplied row to row_lower_j
-                lower.cells[j] = self.add_rows(&row_lower_j, &temp_result_identity)?;
+                lower.cells[j] = Self::add_rows(&row_lower_j, &temp_result_identity)?;
             }
         }
 
@@ -284,7 +319,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
     }
 
     /// Creates an identity matrix with the same dimensions as self
-    fn create_identity_matrix(rank: usize) -> BirkhoffResult<BirkhoffMatrix<E>> {
+    fn create_identity_matrix(rank: usize) -> BirkhoffMatrix<E> {
         let mut cells = vec![vec![Scalar::from(0); rank]; rank];
 
         // Set diagonal elements to 1, others to 0
@@ -292,7 +327,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
             cells[i][i] = Scalar::from(1);
         }
 
-        Ok(BirkhoffMatrix::new(cells))
+        BirkhoffMatrix::new(cells)
     }
 
     /// Finds a non-zero coefficient in the specified row
@@ -315,7 +350,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
         if row1 >= self.rows() || row2 >= self.rows() {
             return Err(BirkhoffError::IndexOutOfBounds {
                 index: row1.max(row2),
-                max_index: self.rows(),
+                max_index: self.rows() - 1,
             });
         }
 
@@ -339,7 +374,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
     }
 
     /// Adds two rows element by element
-    fn add_rows(&self, row1: &[Scalar<E>], row2: &[Scalar<E>]) -> BirkhoffResult<Vec<Scalar<E>>> {
+    fn add_rows(row1: &[Scalar<E>], row2: &[Scalar<E>]) -> BirkhoffResult<Vec<Scalar<E>>> {
         if row1.len() != row2.len() {
             return Err(BirkhoffError::RowsDifferentLengths {
                 row1_len: row1.len(),
@@ -364,13 +399,18 @@ impl<E: Curve> BirkhoffMatrix<E> {
         diagonal: &BirkhoffMatrix<E>,
     ) -> BirkhoffResult<BirkhoffMatrix<E>> {
         // Ensure diagonal matrix is square and has the same number of rows as columns in self
-        if self.cols() != diagonal.rows() || !diagonal.is_square() {
+        if self.cols() != diagonal.rows() {
             return Err(BirkhoffError::MatrixDimensionsMismatch {
                 self_rows: self.rows(),
                 self_cols: self.cols(),
                 other_rows: diagonal.rows(),
                 other_cols: diagonal.cols(),
             });
+        }
+
+        // check if the diagonal matrix is diagonal
+        if !diagonal.is_diagonal() {
+            return Err(BirkhoffError::NotDiagonalMatrix);
         }
 
         // Create the result matrix with the same number of rows as `self` and columns as `diagonal`
@@ -391,10 +431,17 @@ impl<E: Curve> BirkhoffMatrix<E> {
 
     // calculate self.cells[row][col]^-1
     fn mod_inverse(&self, row: usize, col: usize) -> BirkhoffResult<Scalar<E>> {
-        if row >= self.rows() || col >= self.cols() {
+        if row >= self.rows() {
             return Err(BirkhoffError::IndexOutOfBounds {
-                index: row.max(col),
-                max_index: self.rows().max(self.cols()),
+                index: row,
+                max_index: self.rows() - 1,
+            });
+        }
+
+        if col >= self.cols() {
+            return Err(BirkhoffError::IndexOutOfBounds {
+                index: col,
+                max_index: self.cols() - 1,
             });
         }
 
@@ -406,5 +453,534 @@ impl<E: Curve> BirkhoffMatrix<E> {
             Some(inverse) => Ok(inverse),
             None => Err(BirkhoffError::ElementNotInvertible { row: row, col: col }),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use generic_ec::curves;
+
+    type E = curves::Secp256k1;
+
+    #[test]
+    fn test_new() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        assert_eq!(matrix.rows(), 2);
+        assert_eq!(matrix.cols(), 3);
+
+        assert_eq!(matrix.cells[0][0], Scalar::from(1));
+        assert_eq!(matrix.cells[0][1], Scalar::from(2));
+        assert_eq!(matrix.cells[0][2], Scalar::from(3));
+        assert_eq!(matrix.cells[1][0], Scalar::from(4));
+        assert_eq!(matrix.cells[1][1], Scalar::from(5));
+        assert_eq!(matrix.cells[1][2], Scalar::from(6));
+    }
+
+    #[test]
+    fn test_new_with_size() {
+        let matrix = BirkhoffMatrix::<E>::new_with_size(2, 3, Scalar::from(10));
+
+        assert_eq!(matrix.rows(), 2);
+        assert_eq!(matrix.cols(), 3);
+
+        for i in 0..matrix.rows() {
+            for j in 0..matrix.cols() {
+                assert_eq!(matrix.cells[i][j], Scalar::from(10));
+            }
+        }
+    }
+
+    #[test]
+    fn test_create_identity_matrix() {
+        let matrix = BirkhoffMatrix::<E>::create_identity_matrix(3);
+
+        assert_eq!(matrix.rows(), 3);
+        assert_eq!(matrix.cols(), 3);
+        assert!(matrix.is_identity());
+    }
+
+    #[test]
+    fn happy_test_get_non_zero_coefficient_by_row() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(0), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(0), Scalar::from(0), Scalar::from(6)],
+        ]);
+
+        assert_eq!(matrix.get_non_zero_coefficient_by_row(0, 0), Some(1));
+        assert_eq!(matrix.get_non_zero_coefficient_by_row(0, 1), Some(1));
+        assert_eq!(matrix.get_non_zero_coefficient_by_row(1, 1), Some(2));
+    }
+
+    #[test]
+    fn unhappy_test_get_non_zero_coefficient_by_row() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(0), Scalar::from(0), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(0), Scalar::from(6)],
+        ]);
+
+        assert_eq!(matrix.get_non_zero_coefficient_by_row(0, 0), None);
+    }
+
+    #[test]
+    fn happy_test_is_identity() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(0), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(1), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(0), Scalar::from(1)],
+        ]);
+
+        assert!(matrix.is_identity());
+    }
+
+    #[test]
+    fn unhappy_test_is_identity() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(0), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(1), Scalar::from(0)],
+        ]);
+
+        assert!(!matrix.is_identity());
+    }
+
+    #[test]
+    fn happy_test_is_diagonal() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(0), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(24325346), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(0), Scalar::from(1)],
+        ]);
+
+        assert!(matrix.is_diagonal());
+    }
+
+    #[test]
+    fn unhappy_test_is_diagonal() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(0), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(24325346), Scalar::from(0)],
+            vec![Scalar::from(1), Scalar::from(0), Scalar::from(1)],
+        ]);
+
+        assert!(!matrix.is_diagonal());
+    }
+
+    #[test]
+    fn happy_test_is_square() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+            vec![Scalar::from(7), Scalar::from(8), Scalar::from(9)],
+        ]);
+
+        assert!(matrix.is_square());
+    }
+
+    #[test]
+    fn unhappy_test_is_square() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        assert!(!matrix.is_square());
+    }
+
+    #[test]
+    fn happy_test_mod_inverse_cell() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(0), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+            vec![Scalar::from(7), Scalar::from(8), Scalar::from(9)],
+        ]);
+
+        for i in 0..matrix.rows() {
+            for j in 0..matrix.cols() {
+                if matrix.cells[i][j] != Scalar::from(0) {
+                    let inverse_element = matrix.mod_inverse(i, j).unwrap();
+                    assert_eq!(Scalar::from(1), inverse_element * matrix.cells[i][j]);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn unhappy_test_mod_inverse_cell() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(0), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(0)],
+            vec![Scalar::from(7), Scalar::from(0), Scalar::from(9)],
+        ]);
+
+        for i in 0..matrix.rows() {
+            for j in 0..matrix.cols() {
+                if matrix.cells[i][j] == Scalar::from(0) {
+                    let inverse_element = matrix.mod_inverse(i, j);
+                    let expected_error =
+                        Err(BirkhoffError::ElementNotInvertible { row: i, col: j });
+                    assert_eq!(inverse_element, expected_error);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn happy_test_get_row_non_zero() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+            vec![Scalar::from(0), Scalar::from(0), Scalar::from(0)],
+        ]);
+
+        let row = matrix.get_row_non_zero(0).unwrap();
+        let expected_row = vec![
+            NonZero::from_scalar(Scalar::from(1)).unwrap(),
+            NonZero::from_scalar(Scalar::from(2)).unwrap(),
+            NonZero::from_scalar(Scalar::from(3)).unwrap(),
+        ];
+        assert_eq!(row, expected_row);
+
+        let row = matrix.get_row_non_zero(1).unwrap();
+        let expected_row = vec![
+            NonZero::from_scalar(Scalar::from(4)).unwrap(),
+            NonZero::from_scalar(Scalar::from(5)).unwrap(),
+            NonZero::from_scalar(Scalar::from(6)).unwrap(),
+        ];
+        assert_eq!(row, expected_row);
+    }
+
+    #[test]
+    fn unhappy_test_get_row_non_zero() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(0), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(0)],
+        ]);
+
+        let row = matrix.get_row_non_zero(0);
+        let expected_error = Err(BirkhoffError::ZeroCoefficient);
+        assert_eq!(row, expected_error);
+
+        let row = matrix.get_row_non_zero(1);
+        let expected_error = Err(BirkhoffError::ZeroCoefficient);
+        assert_eq!(row, expected_error);
+    }
+
+    #[test]
+    fn happy_test_get_row() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let row = matrix.get_row(0).unwrap();
+        let expected_row = vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)];
+        assert_eq!(row, expected_row);
+
+        let row = matrix.get_row(1).unwrap();
+        let expected_row = vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)];
+        assert_eq!(row, expected_row);
+    }
+
+    #[test]
+    fn unhappy_test_get_row() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let row = matrix.get_row(3);
+        let expected_error = Err(BirkhoffError::IndexOutOfBounds {
+            index: 3,
+            max_index: 1,
+        });
+        assert_eq!(row, expected_error);
+    }
+
+    #[test]
+    fn happy_test_add_rows() {
+        let row1: Vec<Scalar<E>> = vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)];
+        let row2: Vec<Scalar<E>> = vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)];
+        let result = BirkhoffMatrix::add_rows(&row1, &row2).unwrap();
+        let expected_result = vec![Scalar::from(5), Scalar::from(7), Scalar::from(9)];
+        assert_eq!(result, expected_result);
+    }
+
+    #[test]
+    fn unhappy_test_add_rows() {
+        let row1: Vec<Scalar<E>> = vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)];
+        let row2: Vec<Scalar<E>> = vec![Scalar::from(4), Scalar::from(5)];
+        let result = BirkhoffMatrix::add_rows(&row1, &row2);
+        let expected_error = Err(BirkhoffError::RowsDifferentLengths {
+            row1_len: row1.len(),
+            row2_len: row2.len(),
+        });
+        assert_eq!(result, expected_error);
+    }
+
+    #[test]
+    fn happy_test_swap_rows() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let result = matrix.swap_rows(0, 1).unwrap();
+
+        let expected_result = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+        ]);
+
+        assert_eq!(result, expected_result);
+    }
+
+    #[test]
+    fn unhappy_test_swap_rows() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let result = matrix.swap_rows(0, 3);
+        let expected_error = Err(BirkhoffError::IndexOutOfBounds {
+            index: 3,
+            max_index: 1,
+        });
+        assert_eq!(result, expected_error);
+    }
+
+    #[test]
+    fn test_multiply_scalar() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let result = matrix.multiply_scalar(&matrix.cells[0], Scalar::from(2));
+        let expected_result = vec![Scalar::from(2), Scalar::from(4), Scalar::from(6)];
+        assert_eq!(result, expected_result);
+
+        let result = matrix.multiply_scalar(&matrix.cells[1], Scalar::from(2));
+        let expected_result = vec![Scalar::from(8), Scalar::from(10), Scalar::from(12)];
+        assert_eq!(result, expected_result);
+    }
+
+    #[test]
+    fn test_transpose() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let result = matrix.transpose();
+        let expected_result = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(4)],
+            vec![Scalar::from(2), Scalar::from(5)],
+            vec![Scalar::from(3), Scalar::from(6)],
+        ]);
+        assert_eq!(result, expected_result);
+    }
+
+    #[test]
+    fn happy_test_multiply_birkhoff_matrix() {
+        let matrix1 = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let matrix2 = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+            vec![Scalar::from(7), Scalar::from(8), Scalar::from(9)],
+        ]);
+
+        let expected = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(30), Scalar::from(36), Scalar::from(42)],
+            vec![Scalar::from(66), Scalar::from(81), Scalar::from(96)],
+        ]);
+
+        let result = matrix1.multiply(&matrix2).unwrap();
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn unhappy_test_multiply_birkhoff_matrix() {
+        let matrix1 = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let matrix2 = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let expected_error = BirkhoffError::MatrixDimensionsMismatch {
+            self_rows: matrix1.rows(),
+            self_cols: matrix1.cols(),
+            other_rows: matrix2.rows(),
+            other_cols: matrix2.cols(),
+        };
+
+        let result = matrix1.multiply(&matrix2);
+
+        match result {
+            Ok(_) => panic!("Expected an error"),
+            Err(e) => assert_eq!(e, expected_error),
+        }
+    }
+
+    #[test]
+    fn happy_test_multi_inverse_identity() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let identity = BirkhoffMatrix::<E>::create_identity_matrix(3);
+
+        let result = matrix.multi_inverse_diagonal(&identity).unwrap();
+
+        assert_eq!(result, matrix);
+    }
+
+    #[test]
+    fn happy_test_multi_inverse_diagonal() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let diagonal = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(0), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(10), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(0), Scalar::from(100)],
+        ]);
+
+        let inverse_diagonal = BirkhoffMatrix::<E>::new(vec![
+            vec![
+                Scalar::from(1).invert().unwrap(),
+                Scalar::from(0),
+                Scalar::from(0),
+            ],
+            vec![
+                Scalar::from(0),
+                Scalar::from(10).invert().unwrap(),
+                Scalar::from(0),
+            ],
+            vec![
+                Scalar::from(0),
+                Scalar::from(0),
+                Scalar::from(100).invert().unwrap(),
+            ],
+        ]);
+
+        let identity = BirkhoffMatrix::<E>::create_identity_matrix(3);
+        // check for correct inverse, which help us calculate the correct expected value
+        assert_eq!(diagonal.multiply(&inverse_diagonal).unwrap(), identity);
+
+        let expected_result = matrix.multiply(&inverse_diagonal).unwrap();
+        let result = matrix.multi_inverse_diagonal(&diagonal).unwrap();
+        assert_eq!(result, expected_result);
+    }
+
+    #[test]
+    fn unhappy_test_multi_inverse_diagonal_1() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let diagonal = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(0), Scalar::from(1)],
+            vec![Scalar::from(0), Scalar::from(1), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(0), Scalar::from(100)],
+        ]);
+
+        let result = matrix.multi_inverse_diagonal(&diagonal);
+        let expected_error = Err(BirkhoffError::NotDiagonalMatrix);
+        assert_eq!(result, expected_error);
+    }
+
+    #[test]
+    fn unhappy_test_multi_inverse_diagonal_2() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+        ]);
+
+        let diagonal = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(0), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(0), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(0), Scalar::from(100)],
+        ]);
+
+        let result = matrix.multi_inverse_diagonal(&diagonal);
+        let expected_error = Err(BirkhoffError::ElementNotInvertible { row: 1, col: 1 });
+        assert_eq!(result, expected_error);
+    }
+
+    #[test]
+    fn happy_test_inverse_matrix() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(15), Scalar::from(6)],
+            vec![Scalar::from(7), Scalar::from(8), Scalar::from(9)],
+        ]);
+
+        let inverse = matrix.inverse().unwrap();
+        let check = matrix.multiply(&inverse).unwrap();
+        let identity = BirkhoffMatrix::<E>::create_identity_matrix(3);
+
+        assert_eq!(check, identity);
+    }
+
+    #[test]
+    fn unhappy_test_inverse_matrix() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+            vec![Scalar::from(7), Scalar::from(8), Scalar::from(9)],
+        ]);
+
+        let inverse = matrix.inverse();
+
+        assert!(
+            inverse.is_err(),
+            "The matrix is not invertible. Expect an error."
+        );
+    }
+}
+
+#[cfg(test)]
+mod writing_tests {
+    use super::*;
+    use generic_ec::curves;
+
+    type E = curves::Secp256k1;
+
+    #[test]
+    fn happy_test_gauss_elimination() {
+        todo!()
+    }
+
+    #[test]
+    fn unhappy_test_gauss_elimination() {
+        todo!()
+    }
+
+    #[test]
+    fn happy_test_pseudo_inverse() {
+        todo!()
+    }
+
+    #[test]
+    fn unhappy_test_pseudo_inverse() {
+        todo!()
     }
 }

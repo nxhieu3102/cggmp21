@@ -1,7 +1,7 @@
 use std::fmt;
 
 /// Error types that can occur in the birkhoff crate
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum BirkhoffError {
     /// Error when an element is not invertible
     ElementNotInvertible { row: usize, col: usize },
@@ -18,6 +18,8 @@ pub enum BirkhoffError {
     /// Error when the matrix is not square
     NotSquareMatrix { rows: usize, cols: usize },
 
+    /// Error when the matrix is not diagonal
+    NotDiagonalMatrix,
     /// Error when the matrix is not invertible
     NotInvertibleMatrix,
 
@@ -79,6 +81,9 @@ impl fmt::Display for BirkhoffError {
             }
             BirkhoffError::NotSquareMatrix { rows, cols } => {
                 write!(f, "Matrix is not square: rows={}, cols={}", rows, cols)
+            }
+            BirkhoffError::NotDiagonalMatrix => {
+                write!(f, "Matrix is not diagonal")
             }
             BirkhoffError::NotInvertibleMatrix => {
                 write!(f, "Matrix is not invertible")
@@ -146,6 +151,7 @@ pub fn from_str_error(msg: &'static str) -> BirkhoffError {
             max_index: 0,
         },
         "Matrix is not square" => BirkhoffError::NotSquareMatrix { rows: 0, cols: 0 },
+        "Matrix is not diagonal" => BirkhoffError::NotDiagonalMatrix,
         "Matrix is not invertible" => BirkhoffError::NotInvertibleMatrix,
         "Matrix dimensions do not match for multiplication" => {
             BirkhoffError::MatrixDimensionsMismatch {

@@ -58,7 +58,7 @@ pub trait Derivative<C> {
     /// use generic_ec::{Point, Scalar, NonZero, curves::Secp256k1};
     /// use generic_ec_zkp::polynomial::Polynomial;
     /// use birkhoff::polynomial::Derivative;
-    /// # use rand_core::OsRng;
+    /// use rand_core::OsRng;
     ///
     /// let f: Polynomial<NonZero<Scalar<Secp256k1>>> = Polynomial::sample(&mut OsRng, 3);
     /// let x = Scalar::random(&mut OsRng);
@@ -117,12 +117,21 @@ mod tests {
     #[test]
     fn test_polynomial_derivatives() {
         // Setup: Create a polynomial and its corresponding point polynomial
+        // f(x) = 1 + 2x + 3x^2
         let coefs = vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)];
         let x = Scalar::from(4);
         let f = Polynomial::<Scalar<curves::Secp256k1>>::from_coefs(coefs);
         let F: Polynomial<Point<curves::Secp256k1>> = &f * &Point::generator();
 
         // Test polynomial evaluation
+        // f(x) = 1 + 2x + 3x^2
+        // f(4) = 1 + 2*4 + 3*4^2 = 1 + 8 + 48 = 57
+        assert_eq!(
+            f.value::<_, Scalar<_>>(&x),
+            Scalar::from(57),
+            "Polynomial evaluation at x = 4 should be 57"
+        );
+
         assert_eq!(
             f.value::<_, Scalar<_>>(&x) * Point::generator(),
             F.value::<_, Point<_>>(&x),
@@ -143,6 +152,14 @@ mod tests {
         );
 
         // Test first derivative
+        // f'(x) = 2 + 6x
+        // f'(4) = 2 + 6*4 = 2 + 24 = 26
+        assert_eq!(
+            f.nth_derivative_at::<_, Scalar<_>>(&x, 1),
+            Scalar::from(26),
+            "First derivative evaluation at x = 4 should be 26"
+        );
+
         assert_eq!(
             f.nth_derivative_at::<_, Scalar<_>>(&x, 1) * Point::generator(),
             F.nth_derivative_at::<_, Point<_>>(&x, 1),
@@ -150,6 +167,14 @@ mod tests {
         );
 
         // Test second derivative
+        // f''(x) = 6
+        // f''(4) = 6
+        assert_eq!(
+            f.nth_derivative_at::<_, Scalar<_>>(&x, 2),
+            Scalar::from(6),
+            "Second derivative evaluation at x = 4 should be 6"
+        );
+
         assert_eq!(
             f.nth_derivative_at::<_, Scalar<_>>(&x, 2) * Point::generator(),
             F.nth_derivative_at::<_, Point<_>>(&x, 2),
@@ -157,6 +182,14 @@ mod tests {
         );
 
         // Test third derivative
+        // f'''(x) = 0
+        // f'''(4) = 0
+        assert_eq!(
+            f.nth_derivative_at::<_, Scalar<_>>(&x, 3),
+            Scalar::<curves::Secp256k1>::zero(),
+            "Third derivative evaluation at x = 4 should be 0"
+        );
+
         assert_eq!(
             f.nth_derivative_at::<_, Scalar<_>>(&x, 3) * Point::generator(),
             F.nth_derivative_at::<_, Point<_>>(&x, 3),
@@ -164,6 +197,8 @@ mod tests {
         );
 
         // Test higher derivative (should be zero for degree 2 polynomial)
+        // f''''(x) = 0
+        // f''''(4) = 0
         assert_eq!(
             f.nth_derivative_at::<_, Scalar<_>>(&x, 4),
             Scalar::<curves::Secp256k1>::zero(),
