@@ -554,13 +554,19 @@ where
         .map(|s| s.min_signers)
         .unwrap_or(n);
     // TODO: How about S.len() > t?
-    if S.len() != usize::from(t) {
+    // if S.len() != usize::from(t) {
+    //     return Err(InvalidArgs::MismatchedAmountOfParties.into());
+    // }
+    if S.len() < usize::from(t) {
         return Err(InvalidArgs::MismatchedAmountOfParties.into());
     }
     // TODO: i is the index before or after mapping?
     // before: 0 <= i < n
     // after: 0 <= i < t
-    if !(i < t) {
+    // if !(i < t) {
+    //     return Err(InvalidArgs::SignerIndexOutOfBounds.into());
+    // }
+    if !(i < n) {
         return Err(InvalidArgs::SignerIndexOutOfBounds.into());
     }
     // S_j is the index of the party in the original group

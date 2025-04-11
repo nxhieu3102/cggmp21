@@ -1,3 +1,5 @@
+Note: Added HTSS key generation (with public key reconstruction validation)
+
 RUST_TESTS_SEED=fc19ac45eed0f39821cf0ba3c07f2981dd2eadebfd340454c8ab12ee75108cd0
 n = 3
 

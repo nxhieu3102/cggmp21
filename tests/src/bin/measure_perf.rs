@@ -20,6 +20,8 @@ struct Args {
     bench_hierarchical_threshold_keygen: bool,
     bench_aux_data_gen: bool,
     bench_signing: bool,
+    bench_threshold_signing: bool,
+    bench_htss_signing: bool,
     optimize_multiexp: bool,
     custom_sec_level: bool,
 }
@@ -41,6 +43,10 @@ fn args() -> Args {
         .map(|b| !b);
     let bench_aux_data_gen = bpaf::long("no-bench-aux-data-gen").switch().map(|b| !b);
     let bench_signing = bpaf::long("no-bench-signing").switch().map(|b| !b);
+    let bench_threshold_signing = bpaf::long("no-bench-threshold-signing")
+        .switch()
+        .map(|b| !b);
+    let bench_htss_signing = bpaf::long("no-bench-htss-signing").switch().map(|b| !b);
     let optimize_multiexp = bpaf::long("optimize-multiexp").switch();
     let custom_sec_level = bpaf::long("custom-sec-level").switch();
 
@@ -52,6 +58,8 @@ fn args() -> Args {
         bench_hierarchical_threshold_keygen,
         bench_aux_data_gen,
         bench_signing,
+        bench_threshold_signing,
+        bench_htss_signing,
         optimize_multiexp,
         custom_sec_level,
     })
@@ -122,8 +130,8 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
                 None
             };
 
-        let _threshold_key_shares: Option<Vec<cggmp21::IncompleteKeyShare<E>>> =
-            if args.bench_threshold_keygen {
+        let threshold_key_shares: Option<Vec<cggmp21::IncompleteKeyShare<E>>> =
+            if args.bench_threshold_keygen || args.bench_threshold_signing {
                 let t = n - 1;
 
                 let eid: [u8; 32] = rng.gen();
@@ -159,8 +167,8 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
                 None
             };
 
-        let _hierarchical_threshold_key_shares: Option<Vec<cggmp21::IncompleteKeyShare<E>>> =
-            if args.bench_hierarchical_threshold_keygen {
+        let hierarchical_threshold_key_shares: Option<Vec<cggmp21::IncompleteKeyShare<E>>> =
+            if args.bench_hierarchical_threshold_keygen || args.bench_htss_signing {
                 // ranks must follow some rules to be valid
                 // so we have some hard coded values for ranks
 
@@ -217,43 +225,46 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
                 None
             };
 
-        let mut aux_data: Option<Vec<cggmp21::key_share::AuxInfo<L>>> =
-            if args.bench_aux_data_gen || args.bench_signing {
-                let eid: [u8; 32] = rng.gen();
-                let eid = ExecutionId::new(&eid);
+        let mut aux_data: Option<Vec<cggmp21::key_share::AuxInfo<L>>> = if args.bench_aux_data_gen
+            || args.bench_signing
+            || args.bench_threshold_signing
+            || args.bench_htss_signing
+        {
+            let eid: [u8; 32] = rng.gen();
+            let eid = ExecutionId::new(&eid);
 
-                let mut primes = cggmp21_tests::CACHED_PRIMES.iter::<L>();
+            let mut primes = cggmp21_tests::CACHED_PRIMES.iter::<L>();
 
-                let outputs = round_based::sim::run(n, |i, party| {
-                    let mut party_rng = rng.fork();
-                    let pregen = primes.next().expect("Can't get pregenerated prime");
+            let outputs = round_based::sim::run(n, |i, party| {
+                let mut party_rng = rng.fork();
+                let pregen = primes.next().expect("Can't get pregenerated prime");
 
-                    let mut profiler = PerfProfiler::new();
+                let mut profiler = PerfProfiler::new();
 
-                    async move {
-                        let aux_data = cggmp21::aux_info_gen(eid, i, n, pregen)
-                            .set_progress_tracer(&mut profiler)
-                            .start(&mut party_rng, party)
-                            .await
-                            .context("aux data gen failed")?;
-                        let report = profiler.get_report().context("get perf report")?;
-                        Ok::<_, anyhow::Error>((aux_data, report))
-                    }
-                })
-                .unwrap()
-                .expect_ok()
-                .into_vec();
-
-                if args.bench_aux_data_gen {
-                    println!("Auxiliary data generation protocol");
-                    println!("{}", outputs[0].1.clone().display_io(false));
-                    println!();
+                async move {
+                    let aux_data = cggmp21::aux_info_gen(eid, i, n, pregen)
+                        .set_progress_tracer(&mut profiler)
+                        .start(&mut party_rng, party)
+                        .await
+                        .context("aux data gen failed")?;
+                    let report = profiler.get_report().context("get perf report")?;
+                    Ok::<_, anyhow::Error>((aux_data, report))
                 }
+            })
+            .unwrap()
+            .expect_ok()
+            .into_vec();
 
-                Some(outputs.into_iter().map(|(a, _)| a).collect())
-            } else {
-                None
-            };
+            if args.bench_aux_data_gen {
+                println!("Auxiliary data generation protocol");
+                println!("{}", outputs[0].1.clone().display_io(false));
+                println!();
+            }
+
+            Some(outputs.into_iter().map(|(a, _)| a).collect())
+        } else {
+            None
+        };
 
         if aux_data.is_some() && args.optimize_multiexp {
             let start = std::time::Instant::now();
@@ -287,6 +298,8 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
         if args.bench_signing {
             // Note that we don't parametrize signing performance tests by `t` as it doesn't make much sense
             // since performance of t-out-of-n protocol should be roughly the same as t-out-of-t
+            let aux_data = aux_data.clone();
+
             let shares = non_threshold_key_shares
                 .expect("non threshold key shares are not generated")
                 .into_iter()
@@ -324,6 +337,120 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
             .into_vec();
 
             println!("Signing protocol");
+            println!("{}", perf_reports[0].clone().display_io(false));
+            println!();
+        }
+
+        if args.bench_threshold_signing {
+            let aux_data = aux_data.clone();
+
+            let shares = threshold_key_shares
+                .expect("threshold key shares are not generated")
+                .into_iter()
+                .zip(aux_data.expect("aux data is not generated"))
+                .map(|(key_share, aux_data)| {
+                    cggmp21::key_share::KeyShare::from_parts((key_share, aux_data))
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .expect("couldn't complete a share");
+
+            let eid: [u8; 32] = rng.gen();
+            let eid = ExecutionId::new(&eid);
+
+            let t = n - 1;
+
+            // let party 0..t-1 take part in signing
+            let signers_indexes_at_keygen = &(0..t).collect::<Vec<_>>();
+
+            let message_to_sign = b"Dfns rules!";
+            let message_to_sign = DataToSign::digest::<Sha256>(message_to_sign);
+
+            let perf_reports = round_based::sim::run_with_setup(&shares, |i, party, share| {
+                let mut party_rng = rng.fork();
+
+                let mut profiler = PerfProfiler::new();
+
+                async move {
+                    if i < t {
+                        let _signature = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
+                            .set_progress_tracer(&mut profiler)
+                            .sign(&mut party_rng, party, message_to_sign)
+                            .await
+                            .context("threshold signing failed")?;
+                    }
+                    profiler.get_report().context("get perf report")
+                }
+            })
+            .unwrap()
+            .expect_ok()
+            .into_vec();
+
+            println!("Threshold signing protocol");
+            println!("{}", perf_reports[0].clone().display_io(false));
+            println!();
+        }
+
+        if args.bench_htss_signing {
+            // TODO: implement htss signing
+            let aux_data = aux_data.clone();
+
+            let shares = hierarchical_threshold_key_shares
+                .expect("hierarchical threshold key shares are not generated")
+                .into_iter()
+                .zip(aux_data.expect("aux data is not generated"))
+                .map(|(key_share, aux_data)| {
+                    cggmp21::key_share::KeyShare::from_parts((key_share, aux_data))
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .expect("couldn't complete a share");
+
+            let eid: [u8; 32] = rng.gen();
+            let eid = ExecutionId::new(&eid);
+
+            // n = {3, 5, 7, 10}
+            let t = match n {
+                3 => 2,
+                5 => 3,
+                7 => 4,
+                10 => 5,
+                _ => panic!("n is not supported"),
+            };
+            // ranks is the rank of each shareholder
+            // 0 <= ranks[i] < t, for all 0 <= i < n
+            let _ranks = match (n, t) {
+                (3, 2) => vec![0, 1, 1],
+                (5, 3) => vec![0, 1, 1, 2, 2],
+                (7, 4) => vec![0, 1, 1, 2, 2, 3, 3],
+                (10, 5) => vec![0, 1, 1, 2, 2, 3, 3, 4, 4, 4],
+                _ => panic!("t is not supported"),
+            };
+
+            let signers_indexes_at_keygen = &(0..t).collect::<Vec<_>>();
+
+            let message_to_sign = b"Dfns rules!";
+            let message_to_sign = DataToSign::digest::<Sha256>(message_to_sign);
+
+            let perf_reports = round_based::sim::run_with_setup(&shares, |i, party, share| {
+                let mut party_rng = rng.fork();
+
+                let mut profiler = PerfProfiler::new();
+
+                async move {
+                    if i < t {
+                        let _signature = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
+                            .set_progress_tracer(&mut profiler)
+                            .sign(&mut party_rng, party, message_to_sign)
+                            .await
+                            .context("htss signing failed")?;
+                    }
+                    profiler.get_report().context("get perf report")
+                }
+            })
+            .unwrap()
+            .expect_ok()
+            .into_vec();
+
+            println!("Hierarchical threshold signing protocol");
             println!("{}", perf_reports[0].clone().display_io(false));
             println!();
         }
