@@ -37,7 +37,7 @@ pub fn birkhoff_coefficient<E: Curve>(
         });
     }
 
-    let birkhoff_matrix = get_linear_equation_coefficient_matrix(threshold, xs, ranks)?;
+    let birkhoff_matrix = get_linear_equation_coefficient_matrix(threshold, xs, ranks);
 
     let invert_matrix = birkhoff_matrix.pseudo_inverse()?;
 
@@ -50,7 +50,7 @@ fn get_linear_equation_coefficient_matrix<E: Curve>(
     threshold: u16,
     xs: &[NonZero<Scalar<E>>],
     ranks: &[u16],
-) -> BirkhoffResult<BirkhoffMatrix<E>> {
+) -> BirkhoffMatrix<E> {
     let num_row = ranks.len();
     let num_col = threshold as usize;
 
@@ -62,7 +62,7 @@ fn get_linear_equation_coefficient_matrix<E: Curve>(
         }
     }
 
-    Ok(BirkhoffMatrix::new(cells))
+    BirkhoffMatrix::new(cells)
 }
 
 /// Get the coefficient at one cell of the linear system of Birkhoff systems: (x^exp)[derivative_order]
@@ -109,4 +109,144 @@ fn get_coefficient<E: Curve>(x: NonZero<Scalar<E>>, exp: u16, derivative_order: 
     coeff = coeff * x_pow;
 
     coeff
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use generic_ec::curves;
+
+    type E = curves::Secp256k1;
+
+    #[test]
+    fn happy_test_birkhoff_coefficient() {
+        // TODO
+        // let threshold = 3;
+        // let xs = vec![
+        //     NonZero::from_scalar(Scalar::<E>::from(1)).unwrap(),
+        //     NonZero::from_scalar(Scalar::<E>::from(2)).unwrap(),
+        //     NonZero::from_scalar(Scalar::<E>::from(3)).unwrap(),
+        // ];
+        // let ranks = vec![0, 1, 2];
+
+        // let birkhoff_coefficient = birkhoff_coefficient(threshold, &xs, &ranks).unwrap();
+
+        // for coef in birkhoff_coefficient.iter() {
+        //     println!("{:?}", coef);
+        // }
+    }
+
+    #[test]
+    fn unhappy_test_birkhoff_coefficient() {
+        // TODO
+        // let threshold = 3;
+        // let xs = vec![
+        //     NonZero::from_scalar(Scalar::<E>::from(1)).unwrap(),
+        //     NonZero::from_scalar(Scalar::<E>::from(2)).unwrap(),
+        //     NonZero::from_scalar(Scalar::<E>::from(3)).unwrap(),
+        // ];
+        // let ranks = vec![0, 1, 2];
+
+        // let birkhoff_coefficient = birkhoff_coefficient(threshold, &xs, &ranks);
+        // assert!(birkhoff_coefficient.is_err());
+    }
+
+    #[test]
+    fn happy_test_get_linear_equation_coefficient_matrix() {
+        // 0 <= rank < threshold
+        let threshold = 3;
+        let xs = vec![
+            NonZero::from_scalar(Scalar::<E>::from(1)).unwrap(),
+            NonZero::from_scalar(Scalar::<E>::from(2)).unwrap(),
+            NonZero::from_scalar(Scalar::<E>::from(3)).unwrap(),
+        ];
+        let ranks = vec![0, 1, 2];
+
+        let birkhoff_matrix = get_linear_equation_coefficient_matrix(threshold, &xs, &ranks);
+
+        // (xs_1^0)[rank_1] , (xs_1^1)[rank_1] , (xs_1^2)[rank_1]
+        // (xs_2^0)[rank_2] , (xs_2^1)[rank_2] , (xs_2^2)[rank_2]
+        // (xs_3^0)[rank_3] , (xs_3^1)[rank_3] , (xs_3^2)[rank_3]
+        //
+        // (xs_1^0)[0] , (xs_1^1)[0] , (xs_1^2)[0]
+        // (xs_2^0)[1] , (xs_2^1)[1] , (xs_2^2)[1]
+        // (xs_3^0)[2] , (xs_3^1)[2] , (xs_3^2)[2]
+        //
+        // (1)[0], (xs_1)[0], (xs_1^2)[0]
+        // (1)[1], (xs_2)[1], (xs_2^2)[1]
+        // (1)[2], (xs_3)[2], (xs_3^2)[2]
+        //
+        // 1, xs_1, xs_1^2
+        // 0, 1, 2.xs_2
+        // 0, 0, 2
+        //
+        // 1 , 1 , 1
+        // 0 , 1 , 4
+        // 0 , 0 , 2
+        let expected_matrix = BirkhoffMatrix::new(vec![
+            vec![Scalar::from(1), Scalar::from(1), Scalar::from(1)],
+            vec![Scalar::from(0), Scalar::from(1), Scalar::from(4)],
+            vec![Scalar::from(0), Scalar::from(0), Scalar::from(2)],
+        ]);
+
+        assert_eq!(birkhoff_matrix, expected_matrix);
+    }
+
+    #[test]
+    fn test_get_coefficient() {
+        // Case 1:
+        // exp > derivative_order
+        // x = 3, exp = 2, derivative_order = 1
+        // (x^2)' = (2x) = 2 * 3 = 6
+        let x = NonZero::from_scalar(Scalar::<E>::from(3)).unwrap();
+        let exp = 2;
+        let derivative_order = 1;
+
+        let coefficient = get_coefficient(x, exp, derivative_order);
+        assert_eq!(coefficient, Scalar::from(6));
+
+        // Case 2:
+        // exp = derivative_order
+        // x = 3, exp = 2, derivative_order = 2
+        // (x^2)'' = (2x)' = 2
+        let x = NonZero::from_scalar(Scalar::<E>::from(3)).unwrap();
+        let exp = 2;
+        let derivative_order = 2;
+
+        let coefficient = get_coefficient(x, exp, derivative_order);
+        assert_eq!(coefficient, Scalar::from(2));
+
+        // Case 3:
+        // exp > derivative_order
+        // x = 5, exp = 5, derivative_order = 2
+        // (x^5)'' = (5x^4)' = (5*4*x^3) = 5 * 4 * 5^3 = 2500
+        let x = NonZero::from_scalar(Scalar::<E>::from(5)).unwrap();
+        let exp = 5;
+        let derivative_order = 2;
+
+        let coefficient = get_coefficient(x, exp, derivative_order);
+        assert_eq!(coefficient, Scalar::from(2500));
+
+        // Case 4:
+        // exp = 0
+        // x = 3, exp = 0, derivative_order = 1
+        // (x^0)' = (1)' = 0
+        let x = NonZero::from_scalar(Scalar::<E>::from(3)).unwrap();
+        let exp = 0;
+        let derivative_order = 1;
+
+        let coefficient = get_coefficient(x, exp, derivative_order);
+        assert_eq!(coefficient, Scalar::from(0));
+
+        // Case 5:
+        // derivative_order = 0
+        // x = 3, exp = 2, derivative_order = 0
+        // (x^2) = 3^2 = 9
+        let x = NonZero::from_scalar(Scalar::<E>::from(3)).unwrap();
+        let exp = 2;
+        let derivative_order = 0;
+
+        let coefficient = get_coefficient(x, exp, derivative_order);
+        assert_eq!(coefficient, Scalar::from(9));
+    }
 }

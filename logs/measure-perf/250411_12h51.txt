@@ -1,0 +1,441 @@
+RUST_TESTS_SEED=42d4b8537ce7ae93fafedf2cd97e5346f1ccca03c5995af35ecaf5fb7711f729
+n = 3
+
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1]
+rank_indices: [(0, 0), (1, 1), (1, 2)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2)]
+t_highest_ranks: [0, 1]
+t_highest_ranked_indices: [0, 1]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03d2428ba83f16997f0d73c50e8a1e5155892ce51efa24f3388e35f88f02ba9c01" }), NonZero(Point { curve: "secp256k1", value: "03e6464bc999368744089b0e9f489320c33b53cc4d8770562243f633279713f54a" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "034acfa33d6e3cf96c28cbe161d3a72ddd9d49ac400238e934b9d9e2acd95a4f28" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "034acfa33d6e3cf96c28cbe161d3a72ddd9d49ac400238e934b9d9e2acd95a4f28" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1]
+rank_indices: [(0, 0), (1, 1), (1, 2)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2)]
+t_highest_ranks: [0, 1]
+t_highest_ranked_indices: [0, 1]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03d2428ba83f16997f0d73c50e8a1e5155892ce51efa24f3388e35f88f02ba9c01" }), NonZero(Point { curve: "secp256k1", value: "03e6464bc999368744089b0e9f489320c33b53cc4d8770562243f633279713f54a" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "034acfa33d6e3cf96c28cbe161d3a72ddd9d49ac400238e934b9d9e2acd95a4f28" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "034acfa33d6e3cf96c28cbe161d3a72ddd9d49ac400238e934b9d9e2acd95a4f28" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1]
+rank_indices: [(0, 0), (1, 1), (1, 2)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2)]
+t_highest_ranks: [0, 1]
+t_highest_ranked_indices: [0, 1]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03d2428ba83f16997f0d73c50e8a1e5155892ce51efa24f3388e35f88f02ba9c01" }), NonZero(Point { curve: "secp256k1", value: "03e6464bc999368744089b0e9f489320c33b53cc4d8770562243f633279713f54a" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "034acfa33d6e3cf96c28cbe161d3a72ddd9d49ac400238e934b9d9e2acd95a4f28" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "034acfa33d6e3cf96c28cbe161d3a72ddd9d49ac400238e934b9d9e2acd95a4f28" })
+===============================
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 20.85ms to complete
+In particular:
+  - Stage: 18.36µs
+    - Setup networking: 17.86µs (97.3%)
+    - Unstaged: 497.00ns (2.7%)
+  - Round 1: 4.27ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 4.09ms (95.9%)
+    - Commit to public data: 173.40µs (4.1%)
+    - Unstaged: 2.06µs (0.0%)
+  - Round 2: 22.40µs
+    - Hash received msgs (reliability check): 21.72µs (96.9%)
+    - Unstaged: 685.00ns (3.1%)
+  - Round 3: 989.00ns
+    - Assert other parties hashed messages (reliability check): 775.00ns (78.4%)
+    - Unstaged: 214.00ns (21.6%)
+  - Round 4: 13.70ms
+    - Validate decommitments: 343.73µs (2.5%)
+    - Validate data size: 1.96µs (0.0%)
+    - Validate Feldmann VSS: 7.64ms (55.8%)
+    - Compute rid: 10.26µs (0.1%)
+    - Compute Ys: 4.86ms (35.5%)
+    - Compute sigma: 595.35µs (4.3%)
+    - Calculate challenge: 235.03µs (1.7%)
+    - Prove knowledge of `sigma_i`: 2.42µs (0.0%)
+    - Unstaged: 380.00ns (0.0%)
+  - Round 5: 2.84ms
+    - Validate schnorr proofs: 2.82ms (99.2%)
+    - Derive resulting public key and other data: 19.67µs (0.7%)
+    - Unstaged: 2.26µs (0.1%)
+
+
+n = 5
+
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4)]
+t_highest_ranks: [0, 1, 1]
+t_highest_ranked_indices: [0, 1, 2]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "0344d19688ca91ce8b543d454dd69c1a39f3ac7125185ab760574e5da347b76449" }), NonZero(Point { curve: "secp256k1", value: "023465f1292096cdd7143e7e56a5a00e30149ae01c6b2d8f2788c9bfcbb29ad2c4" }), NonZero(Point { curve: "secp256k1", value: "0257b4e4d002c4418e0936809904bc074b55f7fe8059035692ae6782e750508ec6" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02d1eb325ecaeff10242afd2ad88db8d8b8c7fc71d6f339fded41176308c71393e" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02d1eb325ecaeff10242afd2ad88db8d8b8c7fc71d6f339fded41176308c71393e" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4)]
+t_highest_ranks: [0, 1, 1]
+t_highest_ranked_indices: [0, 1, 2]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "0344d19688ca91ce8b543d454dd69c1a39f3ac7125185ab760574e5da347b76449" }), NonZero(Point { curve: "secp256k1", value: "023465f1292096cdd7143e7e56a5a00e30149ae01c6b2d8f2788c9bfcbb29ad2c4" }), NonZero(Point { curve: "secp256k1", value: "0257b4e4d002c4418e0936809904bc074b55f7fe8059035692ae6782e750508ec6" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02d1eb325ecaeff10242afd2ad88db8d8b8c7fc71d6f339fded41176308c71393e" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02d1eb325ecaeff10242afd2ad88db8d8b8c7fc71d6f339fded41176308c71393e" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4)]
+t_highest_ranks: [0, 1, 1]
+t_highest_ranked_indices: [0, 1, 2]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "0344d19688ca91ce8b543d454dd69c1a39f3ac7125185ab760574e5da347b76449" }), NonZero(Point { curve: "secp256k1", value: "023465f1292096cdd7143e7e56a5a00e30149ae01c6b2d8f2788c9bfcbb29ad2c4" }), NonZero(Point { curve: "secp256k1", value: "0257b4e4d002c4418e0936809904bc074b55f7fe8059035692ae6782e750508ec6" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02d1eb325ecaeff10242afd2ad88db8d8b8c7fc71d6f339fded41176308c71393e" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02d1eb325ecaeff10242afd2ad88db8d8b8c7fc71d6f339fded41176308c71393e" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4)]
+t_highest_ranks: [0, 1, 1]
+t_highest_ranked_indices: [0, 1, 2]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "0344d19688ca91ce8b543d454dd69c1a39f3ac7125185ab760574e5da347b76449" }), NonZero(Point { curve: "secp256k1", value: "023465f1292096cdd7143e7e56a5a00e30149ae01c6b2d8f2788c9bfcbb29ad2c4" }), NonZero(Point { curve: "secp256k1", value: "0257b4e4d002c4418e0936809904bc074b55f7fe8059035692ae6782e750508ec6" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02d1eb325ecaeff10242afd2ad88db8d8b8c7fc71d6f339fded41176308c71393e" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02d1eb325ecaeff10242afd2ad88db8d8b8c7fc71d6f339fded41176308c71393e" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4)]
+t_highest_ranks: [0, 1, 1]
+t_highest_ranked_indices: [0, 1, 2]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "0344d19688ca91ce8b543d454dd69c1a39f3ac7125185ab760574e5da347b76449" }), NonZero(Point { curve: "secp256k1", value: "023465f1292096cdd7143e7e56a5a00e30149ae01c6b2d8f2788c9bfcbb29ad2c4" }), NonZero(Point { curve: "secp256k1", value: "0257b4e4d002c4418e0936809904bc074b55f7fe8059035692ae6782e750508ec6" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02d1eb325ecaeff10242afd2ad88db8d8b8c7fc71d6f339fded41176308c71393e" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02d1eb325ecaeff10242afd2ad88db8d8b8c7fc71d6f339fded41176308c71393e" })
+===============================
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 38.45ms to complete
+In particular:
+  - Stage: 15.66µs
+    - Setup networking: 15.34µs (98.0%)
+    - Unstaged: 319.00ns (2.0%)
+  - Round 1: 2.67ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 2.45ms (91.8%)
+    - Commit to public data: 217.20µs (8.1%)
+    - Unstaged: 914.00ns (0.0%)
+  - Round 2: 34.29µs
+    - Hash received msgs (reliability check): 33.82µs (98.6%)
+    - Unstaged: 470.00ns (1.4%)
+  - Round 3: 986.00ns
+    - Assert other parties hashed messages (reliability check): 761.00ns (77.2%)
+    - Unstaged: 225.00ns (22.8%)
+  - Round 4: 29.95ms
+    - Validate decommitments: 818.82µs (2.7%)
+    - Validate data size: 2.39µs (0.0%)
+    - Validate Feldmann VSS: 16.91ms (56.5%)
+    - Compute rid: 12.59µs (0.0%)
+    - Compute Ys: 11.37ms (38.0%)
+    - Compute sigma: 602.78µs (2.0%)
+    - Calculate challenge: 236.28µs (0.8%)
+    - Prove knowledge of `sigma_i`: 1.93µs (0.0%)
+    - Unstaged: 638.00ns (0.0%)
+  - Round 5: 5.77ms
+    - Validate schnorr proofs: 5.74ms (99.4%)
+    - Derive resulting public key and other data: 34.98µs (0.6%)
+    - Unstaged: 2.23µs (0.0%)
+
+
+n = 7
+
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+t_highest_ranks: [0, 1, 1, 2]
+t_highest_ranked_indices: [0, 1, 2, 3]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "031a3496733906c02d2e85a2b7fd5fb3964a6a5561beac3884fa870676da2dcf53" }), NonZero(Point { curve: "secp256k1", value: "03a90c4b16aaac35b0cb270220b48b1a257d851c5e7f26f9a15b59c98ff86fd76d" }), NonZero(Point { curve: "secp256k1", value: "02d105a5638f37f857d3a06269ccf9b2fa78731cd4fbae034d846db8d6cc6a5937" }), NonZero(Point { curve: "secp256k1", value: "020523c3fd40980676deed96aa3d0587c8d006154622aa4298a1ce99b78bb02fed" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+t_highest_ranks: [0, 1, 1, 2]
+t_highest_ranked_indices: [0, 1, 2, 3]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "031a3496733906c02d2e85a2b7fd5fb3964a6a5561beac3884fa870676da2dcf53" }), NonZero(Point { curve: "secp256k1", value: "03a90c4b16aaac35b0cb270220b48b1a257d851c5e7f26f9a15b59c98ff86fd76d" }), NonZero(Point { curve: "secp256k1", value: "02d105a5638f37f857d3a06269ccf9b2fa78731cd4fbae034d846db8d6cc6a5937" }), NonZero(Point { curve: "secp256k1", value: "020523c3fd40980676deed96aa3d0587c8d006154622aa4298a1ce99b78bb02fed" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+t_highest_ranks: [0, 1, 1, 2]
+t_highest_ranked_indices: [0, 1, 2, 3]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "031a3496733906c02d2e85a2b7fd5fb3964a6a5561beac3884fa870676da2dcf53" }), NonZero(Point { curve: "secp256k1", value: "03a90c4b16aaac35b0cb270220b48b1a257d851c5e7f26f9a15b59c98ff86fd76d" }), NonZero(Point { curve: "secp256k1", value: "02d105a5638f37f857d3a06269ccf9b2fa78731cd4fbae034d846db8d6cc6a5937" }), NonZero(Point { curve: "secp256k1", value: "020523c3fd40980676deed96aa3d0587c8d006154622aa4298a1ce99b78bb02fed" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+t_highest_ranks: [0, 1, 1, 2]
+t_highest_ranked_indices: [0, 1, 2, 3]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "031a3496733906c02d2e85a2b7fd5fb3964a6a5561beac3884fa870676da2dcf53" }), NonZero(Point { curve: "secp256k1", value: "03a90c4b16aaac35b0cb270220b48b1a257d851c5e7f26f9a15b59c98ff86fd76d" }), NonZero(Point { curve: "secp256k1", value: "02d105a5638f37f857d3a06269ccf9b2fa78731cd4fbae034d846db8d6cc6a5937" }), NonZero(Point { curve: "secp256k1", value: "020523c3fd40980676deed96aa3d0587c8d006154622aa4298a1ce99b78bb02fed" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+t_highest_ranks: [0, 1, 1, 2]
+t_highest_ranked_indices: [0, 1, 2, 3]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "031a3496733906c02d2e85a2b7fd5fb3964a6a5561beac3884fa870676da2dcf53" }), NonZero(Point { curve: "secp256k1", value: "03a90c4b16aaac35b0cb270220b48b1a257d851c5e7f26f9a15b59c98ff86fd76d" }), NonZero(Point { curve: "secp256k1", value: "02d105a5638f37f857d3a06269ccf9b2fa78731cd4fbae034d846db8d6cc6a5937" }), NonZero(Point { curve: "secp256k1", value: "020523c3fd40980676deed96aa3d0587c8d006154622aa4298a1ce99b78bb02fed" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+t_highest_ranks: [0, 1, 1, 2]
+t_highest_ranked_indices: [0, 1, 2, 3]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "031a3496733906c02d2e85a2b7fd5fb3964a6a5561beac3884fa870676da2dcf53" }), NonZero(Point { curve: "secp256k1", value: "03a90c4b16aaac35b0cb270220b48b1a257d851c5e7f26f9a15b59c98ff86fd76d" }), NonZero(Point { curve: "secp256k1", value: "02d105a5638f37f857d3a06269ccf9b2fa78731cd4fbae034d846db8d6cc6a5937" }), NonZero(Point { curve: "secp256k1", value: "020523c3fd40980676deed96aa3d0587c8d006154622aa4298a1ce99b78bb02fed" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6)]
+t_highest_ranks: [0, 1, 1, 2]
+t_highest_ranked_indices: [0, 1, 2, 3]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "031a3496733906c02d2e85a2b7fd5fb3964a6a5561beac3884fa870676da2dcf53" }), NonZero(Point { curve: "secp256k1", value: "03a90c4b16aaac35b0cb270220b48b1a257d851c5e7f26f9a15b59c98ff86fd76d" }), NonZero(Point { curve: "secp256k1", value: "02d105a5638f37f857d3a06269ccf9b2fa78731cd4fbae034d846db8d6cc6a5937" }), NonZero(Point { curve: "secp256k1", value: "020523c3fd40980676deed96aa3d0587c8d006154622aa4298a1ce99b78bb02fed" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "02ea12f499cf4162dbb69e071dc5a47dd0d73a85abcfb667baf1a31a4c91fa2308" })
+===============================
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 65.33ms to complete
+In particular:
+  - Stage: 16.86µs
+    - Setup networking: 16.40µs (97.3%)
+    - Unstaged: 453.00ns (2.7%)
+  - Round 1: 3.43ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 3.16ms (92.1%)
+    - Commit to public data: 270.17µs (7.9%)
+    - Unstaged: 966.00ns (0.0%)
+  - Round 2: 44.32µs
+    - Hash received msgs (reliability check): 43.79µs (98.8%)
+    - Unstaged: 527.00ns (1.2%)
+  - Round 3: 1.06µs
+    - Assert other parties hashed messages (reliability check): 834.00ns (78.6%)
+    - Unstaged: 227.00ns (21.4%)
+  - Round 4: 53.47ms
+    - Validate decommitments: 1.48ms (2.8%)
+    - Validate data size: 2.24µs (0.0%)
+    - Validate Feldmann VSS: 31.85ms (59.6%)
+    - Compute rid: 13.07µs (0.0%)
+    - Compute Ys: 19.29ms (36.1%)
+    - Compute sigma: 592.71µs (1.1%)
+    - Calculate challenge: 232.52µs (0.4%)
+    - Prove knowledge of `sigma_i`: 2.01µs (0.0%)
+    - Unstaged: 549.00ns (0.0%)
+  - Round 5: 8.37ms
+    - Validate schnorr proofs: 8.33ms (99.5%)
+    - Derive resulting public key and other data: 36.41µs (0.4%)
+    - Unstaged: 1.60µs (0.0%)
+
+
+n = 10
+
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3, 4, 4, 4]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+t_highest_ranks: [0, 1, 1, 2, 2]
+t_highest_ranked_indices: [0, 1, 2, 3, 4]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03e6a2abfa8d4d2e4dfd0223d3cf519a66f781144d466b0a5230ac20e94fd3ab3a" }), NonZero(Point { curve: "secp256k1", value: "02898b4c865e00761809e58ac60d96c0ce4fdc87f403439f3cfdb48999e9c5da79" }), NonZero(Point { curve: "secp256k1", value: "020771cfabd273b1cf3c3a90ac484940eb25d1994cb43a431c9b9161ed01bbb94f" }), NonZero(Point { curve: "secp256k1", value: "0306994ada5ab5d612c052aca8a1094e2a450dc29921b75069ca0577f4ecb49450" }), NonZero(Point { curve: "secp256k1", value: "02230b58bd24ce50b19e7589e5923f4dd03edc6b863321caa9d45c34548f030fa3" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000005" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3, 4, 4, 4]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+t_highest_ranks: [0, 1, 1, 2, 2]
+t_highest_ranked_indices: [0, 1, 2, 3, 4]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03e6a2abfa8d4d2e4dfd0223d3cf519a66f781144d466b0a5230ac20e94fd3ab3a" }), NonZero(Point { curve: "secp256k1", value: "02898b4c865e00761809e58ac60d96c0ce4fdc87f403439f3cfdb48999e9c5da79" }), NonZero(Point { curve: "secp256k1", value: "020771cfabd273b1cf3c3a90ac484940eb25d1994cb43a431c9b9161ed01bbb94f" }), NonZero(Point { curve: "secp256k1", value: "0306994ada5ab5d612c052aca8a1094e2a450dc29921b75069ca0577f4ecb49450" }), NonZero(Point { curve: "secp256k1", value: "02230b58bd24ce50b19e7589e5923f4dd03edc6b863321caa9d45c34548f030fa3" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000005" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3, 4, 4, 4]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+t_highest_ranks: [0, 1, 1, 2, 2]
+t_highest_ranked_indices: [0, 1, 2, 3, 4]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03e6a2abfa8d4d2e4dfd0223d3cf519a66f781144d466b0a5230ac20e94fd3ab3a" }), NonZero(Point { curve: "secp256k1", value: "02898b4c865e00761809e58ac60d96c0ce4fdc87f403439f3cfdb48999e9c5da79" }), NonZero(Point { curve: "secp256k1", value: "020771cfabd273b1cf3c3a90ac484940eb25d1994cb43a431c9b9161ed01bbb94f" }), NonZero(Point { curve: "secp256k1", value: "0306994ada5ab5d612c052aca8a1094e2a450dc29921b75069ca0577f4ecb49450" }), NonZero(Point { curve: "secp256k1", value: "02230b58bd24ce50b19e7589e5923f4dd03edc6b863321caa9d45c34548f030fa3" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000005" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3, 4, 4, 4]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+t_highest_ranks: [0, 1, 1, 2, 2]
+t_highest_ranked_indices: [0, 1, 2, 3, 4]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03e6a2abfa8d4d2e4dfd0223d3cf519a66f781144d466b0a5230ac20e94fd3ab3a" }), NonZero(Point { curve: "secp256k1", value: "02898b4c865e00761809e58ac60d96c0ce4fdc87f403439f3cfdb48999e9c5da79" }), NonZero(Point { curve: "secp256k1", value: "020771cfabd273b1cf3c3a90ac484940eb25d1994cb43a431c9b9161ed01bbb94f" }), NonZero(Point { curve: "secp256k1", value: "0306994ada5ab5d612c052aca8a1094e2a450dc29921b75069ca0577f4ecb49450" }), NonZero(Point { curve: "secp256k1", value: "02230b58bd24ce50b19e7589e5923f4dd03edc6b863321caa9d45c34548f030fa3" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000005" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3, 4, 4, 4]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+t_highest_ranks: [0, 1, 1, 2, 2]
+t_highest_ranked_indices: [0, 1, 2, 3, 4]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03e6a2abfa8d4d2e4dfd0223d3cf519a66f781144d466b0a5230ac20e94fd3ab3a" }), NonZero(Point { curve: "secp256k1", value: "02898b4c865e00761809e58ac60d96c0ce4fdc87f403439f3cfdb48999e9c5da79" }), NonZero(Point { curve: "secp256k1", value: "020771cfabd273b1cf3c3a90ac484940eb25d1994cb43a431c9b9161ed01bbb94f" }), NonZero(Point { curve: "secp256k1", value: "0306994ada5ab5d612c052aca8a1094e2a450dc29921b75069ca0577f4ecb49450" }), NonZero(Point { curve: "secp256k1", value: "02230b58bd24ce50b19e7589e5923f4dd03edc6b863321caa9d45c34548f030fa3" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000005" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3, 4, 4, 4]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+t_highest_ranks: [0, 1, 1, 2, 2]
+t_highest_ranked_indices: [0, 1, 2, 3, 4]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03e6a2abfa8d4d2e4dfd0223d3cf519a66f781144d466b0a5230ac20e94fd3ab3a" }), NonZero(Point { curve: "secp256k1", value: "02898b4c865e00761809e58ac60d96c0ce4fdc87f403439f3cfdb48999e9c5da79" }), NonZero(Point { curve: "secp256k1", value: "020771cfabd273b1cf3c3a90ac484940eb25d1994cb43a431c9b9161ed01bbb94f" }), NonZero(Point { curve: "secp256k1", value: "0306994ada5ab5d612c052aca8a1094e2a450dc29921b75069ca0577f4ecb49450" }), NonZero(Point { curve: "secp256k1", value: "02230b58bd24ce50b19e7589e5923f4dd03edc6b863321caa9d45c34548f030fa3" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000005" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3, 4, 4, 4]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+t_highest_ranks: [0, 1, 1, 2, 2]
+t_highest_ranked_indices: [0, 1, 2, 3, 4]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03e6a2abfa8d4d2e4dfd0223d3cf519a66f781144d466b0a5230ac20e94fd3ab3a" }), NonZero(Point { curve: "secp256k1", value: "02898b4c865e00761809e58ac60d96c0ce4fdc87f403439f3cfdb48999e9c5da79" }), NonZero(Point { curve: "secp256k1", value: "020771cfabd273b1cf3c3a90ac484940eb25d1994cb43a431c9b9161ed01bbb94f" }), NonZero(Point { curve: "secp256k1", value: "0306994ada5ab5d612c052aca8a1094e2a450dc29921b75069ca0577f4ecb49450" }), NonZero(Point { curve: "secp256k1", value: "02230b58bd24ce50b19e7589e5923f4dd03edc6b863321caa9d45c34548f030fa3" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000005" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3, 4, 4, 4]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+t_highest_ranks: [0, 1, 1, 2, 2]
+t_highest_ranked_indices: [0, 1, 2, 3, 4]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03e6a2abfa8d4d2e4dfd0223d3cf519a66f781144d466b0a5230ac20e94fd3ab3a" }), NonZero(Point { curve: "secp256k1", value: "02898b4c865e00761809e58ac60d96c0ce4fdc87f403439f3cfdb48999e9c5da79" }), NonZero(Point { curve: "secp256k1", value: "020771cfabd273b1cf3c3a90ac484940eb25d1994cb43a431c9b9161ed01bbb94f" }), NonZero(Point { curve: "secp256k1", value: "0306994ada5ab5d612c052aca8a1094e2a450dc29921b75069ca0577f4ecb49450" }), NonZero(Point { curve: "secp256k1", value: "02230b58bd24ce50b19e7589e5923f4dd03edc6b863321caa9d45c34548f030fa3" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000005" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3, 4, 4, 4]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+t_highest_ranks: [0, 1, 1, 2, 2]
+t_highest_ranked_indices: [0, 1, 2, 3, 4]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03e6a2abfa8d4d2e4dfd0223d3cf519a66f781144d466b0a5230ac20e94fd3ab3a" }), NonZero(Point { curve: "secp256k1", value: "02898b4c865e00761809e58ac60d96c0ce4fdc87f403439f3cfdb48999e9c5da79" }), NonZero(Point { curve: "secp256k1", value: "020771cfabd273b1cf3c3a90ac484940eb25d1994cb43a431c9b9161ed01bbb94f" }), NonZero(Point { curve: "secp256k1", value: "0306994ada5ab5d612c052aca8a1094e2a450dc29921b75069ca0577f4ecb49450" }), NonZero(Point { curve: "secp256k1", value: "02230b58bd24ce50b19e7589e5923f4dd03edc6b863321caa9d45c34548f030fa3" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000005" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" })
+===============================
+===============================
+Validate HTSS shares
+ranks: [0, 1, 1, 2, 2, 3, 3, 4, 4, 4]
+rank_indices: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+rank_indices after sort by rank: [(0, 0), (1, 1), (1, 2), (2, 3), (2, 4), (3, 5), (3, 6), (4, 7), (4, 8), (4, 9)]
+t_highest_ranks: [0, 1, 1, 2, 2]
+t_highest_ranked_indices: [0, 1, 2, 3, 4]
+t_highest_ranked_shares: [NonZero(Point { curve: "secp256k1", value: "03e6a2abfa8d4d2e4dfd0223d3cf519a66f781144d466b0a5230ac20e94fd3ab3a" }), NonZero(Point { curve: "secp256k1", value: "02898b4c865e00761809e58ac60d96c0ce4fdc87f403439f3cfdb48999e9c5da79" }), NonZero(Point { curve: "secp256k1", value: "020771cfabd273b1cf3c3a90ac484940eb25d1994cb43a431c9b9161ed01bbb94f" }), NonZero(Point { curve: "secp256k1", value: "0306994ada5ab5d612c052aca8a1094e2a450dc29921b75069ca0577f4ecb49450" }), NonZero(Point { curve: "secp256k1", value: "02230b58bd24ce50b19e7589e5923f4dd03edc6b863321caa9d45c34548f030fa3" })]
+t_highest_ranked_indexes: [NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000001" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000002" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000003" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000004" }), NonZero(Scalar { curve: "secp256k1", value: "0000000000000000000000000000000000000000000000000000000000000005" })]
+reconstructed_pk: Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" }
+shared_public_key: NonZero(Point { curve: "secp256k1", value: "03c51c712a8585f301523e081763264320de0e045782bbaf3674374de004e25825" })
+===============================
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 112.23ms to complete
+In particular:
+  - Stage: 16.99µs
+    - Setup networking: 16.58µs (97.6%)
+    - Unstaged: 411.00ns (2.4%)
+  - Round 1: 4.36ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 4.03ms (92.4%)
+    - Commit to public data: 330.41µs (7.6%)
+    - Unstaged: 832.00ns (0.0%)
+  - Round 2: 61.23µs
+    - Hash received msgs (reliability check): 60.69µs (99.1%)
+    - Unstaged: 544.00ns (0.9%)
+  - Round 3: 1.29µs
+    - Assert other parties hashed messages (reliability check): 1.08µs (84.1%)
+    - Unstaged: 205.00ns (15.9%)
+  - Round 4: 95.18ms
+    - Validate decommitments: 2.66ms (2.8%)
+    - Validate data size: 2.83µs (0.0%)
+    - Validate Feldmann VSS: 58.17ms (61.1%)
+    - Compute rid: 14.72µs (0.0%)
+    - Compute Ys: 33.50ms (35.2%)
+    - Compute sigma: 605.05µs (0.6%)
+    - Calculate challenge: 236.03µs (0.2%)
+    - Prove knowledge of `sigma_i`: 1.59µs (0.0%)
+    - Unstaged: 725.00ns (0.0%)
+  - Round 5: 12.60ms
+    - Validate schnorr proofs: 12.55ms (99.6%)
+    - Derive resulting public key and other data: 50.20µs (0.4%)
+    - Unstaged: 2.83µs (0.0%)
+
+
