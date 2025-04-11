@@ -512,7 +512,7 @@ where
 /// The trick is described in more details in the spec.
 ///
 /// S: vector of parties' original indexes, who take part in signing
-/// i: index of the party in S
+/// i: index of the party in keygen (before mapping)
 /// key_share: key share of the party
 /// message_to_sign: message to sign
 /// enforce_reliable_broadcast: whether to enforce reliable broadcast
@@ -553,19 +553,9 @@ where
         .as_ref()
         .map(|s| s.min_signers)
         .unwrap_or(n);
-    // TODO: How about S.len() > t?
-    // if S.len() != usize::from(t) {
-    //     return Err(InvalidArgs::MismatchedAmountOfParties.into());
-    // }
     if S.len() < usize::from(t) {
         return Err(InvalidArgs::MismatchedAmountOfParties.into());
     }
-    // TODO: i is the index before or after mapping?
-    // before: 0 <= i < n
-    // after: 0 <= i < t
-    // if !(i < t) {
-    //     return Err(InvalidArgs::SignerIndexOutOfBounds.into());
-    // }
     if !(i < n) {
         return Err(InvalidArgs::SignerIndexOutOfBounds.into());
     }
@@ -573,6 +563,10 @@ where
     if S.iter().any(|&S_j| S_j >= n) {
         return Err(InvalidArgs::InvalidS.into());
     }
+
+    // Mapping i (index in keygen) to the index in S (in signing)
+    // TODO: return error if i is not in S
+    let i = PartyIndex::from(S.iter().position(|&S_j| S_j == i).unwrap() as u16);
 
     // Assemble x_i and \vec X
     // x_i: new shares (additive shares), X: vector of public shares
@@ -597,6 +591,7 @@ where
 
             // Convert birkhoff shares into additive shares for HTSS
             let birkhoff = birkhoff_coefficient(t, &I, &ranks).map_err(|_| Bug::BirkhoffCoef)?;
+            assert_eq!(birkhoff.len(), S.len());
 
             let birkhoff_i = birkhoff.get(usize::from(i)).ok_or(Bug::BirkhoffCoef)?;
             let x_i = (birkhoff_i * &key_share.core.x).into_secret();
@@ -624,7 +619,7 @@ where
                 lagrange_coefficient_at_zero(usize::from(i), &I).ok_or(Bug::LagrangeCoef)?;
             let x_i = (lambda_i * &key_share.core.x).into_secret();
 
-            let lambda = (0..t).map(|j| lagrange_coefficient_at_zero(usize::from(j), &I));
+            let lambda = (0..S.len()).map(|j| lagrange_coefficient_at_zero(usize::from(j), &I));
             let X = lambda
                 .zip(&X)
                 .map(|(lambda_j, X_j)| Some(lambda_j? * X_j))
@@ -666,7 +661,7 @@ where
         party,
         sid,
         i,
-        t,
+        S.len() as u16,
         &x_i,
         &X,
         key_share.core.shared_public_key + Shift,
@@ -1618,7 +1613,7 @@ enum SigningAborted {
 
 #[derive(Debug, Error)]
 enum InvalidArgs {
-    #[error("exactly `threshold` amount of parties should take part in signing")]
+    #[error("at least `threshold` amount of parties should take part in signing")]
     MismatchedAmountOfParties,
     #[error("signer index `i` is out of bounds (must be < n)")]
     SignerIndexOutOfBounds,

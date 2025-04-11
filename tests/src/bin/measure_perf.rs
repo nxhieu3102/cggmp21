@@ -359,8 +359,8 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
 
             let t = n - 1;
 
-            // let party 0..t-1 take part in signing
-            let signers_indexes_at_keygen = &(0..t).collect::<Vec<_>>();
+            // let party 0..t take part in signing
+            let signers_indexes_at_keygen = &(0..(t + 1)).collect::<Vec<_>>();
 
             let message_to_sign = b"Dfns rules!";
             let message_to_sign = DataToSign::digest::<Sha256>(message_to_sign);
@@ -371,7 +371,7 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
                 let mut profiler = PerfProfiler::new();
 
                 async move {
-                    if i < t {
+                    if i <= t {
                         let _signature = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
                             .set_progress_tracer(&mut profiler)
                             .sign(&mut party_rng, party, message_to_sign)
@@ -425,7 +425,8 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
                 _ => panic!("t is not supported"),
             };
 
-            let signers_indexes_at_keygen = &(0..t).collect::<Vec<_>>();
+            // let party 0..t take part in signing
+            let signers_indexes_at_keygen = &(0..(t + 1)).collect::<Vec<_>>();
 
             let message_to_sign = b"Dfns rules!";
             let message_to_sign = DataToSign::digest::<Sha256>(message_to_sign);
@@ -436,7 +437,7 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
                 let mut profiler = PerfProfiler::new();
 
                 async move {
-                    if i < t {
+                    if i <= t {
                         let _signature = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
                             .set_progress_tracer(&mut profiler)
                             .sign(&mut party_rng, party, message_to_sign)
