@@ -83,7 +83,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
         // Compute (A^T * A)^(-1)
         let inverse_symmetric = symmetric_form.inverse()?;
 
-        // Compute (A^T * A)^(-1) * A^T
+        // Compute (A^T * A)^(-1) * A^T = A^+
         let result = inverse_symmetric.multiply(&transpose)?;
 
         Ok(result)
@@ -186,23 +186,24 @@ impl<E: Curve> BirkhoffMatrix<E> {
         // Get U, L^{-1}. Note that A = L*U
         let (upper_matrix, lower_matrix) = self.get_gauss_elimination()?;
 
-        // Make a copy of lower matrix
-        let copy_lower_matrix = lower_matrix.clone();
-
         // K = U^t
-        let upper_matrix = upper_matrix.transpose();
+        let transpose_upper_matrix = upper_matrix.transpose();
 
         // Get D, L_K^{-1}. Note that K = L_K*D
-        let (temp_upper_matrix, temp_lower_matrix) = upper_matrix.get_gauss_elimination()?;
+        let (temp_upper_matrix, temp_lower_matrix) =
+            transpose_upper_matrix.get_gauss_elimination()?;
 
         // Get (D^{-1}L_{K}^{-1})^t = ((L_K*D)^{-1})^t = (K^{-1})^{t}
-        let mut temp_result = temp_lower_matrix.multi_inverse_diagonal(&temp_upper_matrix)?;
+        // K = U^t, so the result is (U^t)^{-1}^t
+        let temp_result = temp_lower_matrix.multi_inverse_diagonal(&temp_upper_matrix)?;
 
         // Transpose to get U^{-1}
-        temp_result = temp_result.transpose();
+        // Transpose (U^t)^{-1}^t --> (U^t)^{-1}
+        // Why (U^t)^{-1} = (U^{-1})
+        let transpose_result = temp_result.transpose();
 
         // U^{-1}*L^{-1} = (L*U)^{-1} = A^{-1}
-        let result = temp_result.multiply(&copy_lower_matrix)?;
+        let result = transpose_result.multiply(&lower_matrix)?;
 
         Ok(result)
     }
@@ -393,18 +394,19 @@ impl<E: Curve> BirkhoffMatrix<E> {
 
     /// Inverse the diagonal matrix and multiplies it with the current matrix
     /// Only use in computing the inverse of the matrix
-    /// compute: A * diag^{-1}
+    /// compute: diag^{-1} * A
+    /// result[i] = A[i] * diag^{-1}[i][i]
     fn multi_inverse_diagonal(
         &self,
         diagonal: &BirkhoffMatrix<E>,
     ) -> BirkhoffResult<BirkhoffMatrix<E>> {
         // Ensure diagonal matrix is square and has the same number of rows as columns in self
-        if self.cols() != diagonal.rows() {
+        if diagonal.cols() != self.rows() {
             return Err(BirkhoffError::MatrixDimensionsMismatch {
-                self_rows: self.rows(),
-                self_cols: self.cols(),
-                other_rows: diagonal.rows(),
-                other_cols: diagonal.cols(),
+                self_rows: diagonal.rows(),
+                self_cols: diagonal.cols(),
+                other_rows: self.rows(),
+                other_cols: self.cols(),
             });
         }
 
@@ -415,13 +417,13 @@ impl<E: Curve> BirkhoffMatrix<E> {
 
         // Create the result matrix with the same number of rows as `self` and columns as `diagonal`
         let mut result =
-            BirkhoffMatrix::new_with_size(self.rows(), diagonal.cols(), Scalar::zero());
+            BirkhoffMatrix::new_with_size(diagonal.rows(), self.cols(), Scalar::zero());
 
         // Iterate over each element and multiply the corresponding element by the inverse of the diagonal element
-        for i in 0..self.rows() {
-            for j in 0..diagonal.cols() {
+        for i in 0..diagonal.rows() {
+            for j in 0..self.cols() {
                 // Inverse the diagonal element and multiply with the corresponding column in self
-                let inverse_diagonal_element = diagonal.mod_inverse(j, j)?; // Reciprocal of the diagonal element
+                let inverse_diagonal_element = diagonal.mod_inverse(i, i)?; // Reciprocal of the diagonal element
                 result.cells[i][j] = self.cells[i][j] * inverse_diagonal_element;
             }
         }
@@ -840,12 +842,14 @@ mod tests {
         let matrix = BirkhoffMatrix::<E>::new(vec![
             vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
             vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+            vec![Scalar::from(7), Scalar::from(8), Scalar::from(9)],
         ]);
 
         let identity = BirkhoffMatrix::<E>::create_identity_matrix(3);
 
         let result = matrix.multi_inverse_diagonal(&identity).unwrap();
 
+        // identity matrix^ {-1} * A = A
         assert_eq!(result, matrix);
     }
 
@@ -854,6 +858,7 @@ mod tests {
         let matrix = BirkhoffMatrix::<E>::new(vec![
             vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
             vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+            vec![Scalar::from(7), Scalar::from(8), Scalar::from(9)],
         ]);
 
         let diagonal = BirkhoffMatrix::<E>::new(vec![
@@ -884,7 +889,7 @@ mod tests {
         // check for correct inverse, which help us calculate the correct expected value
         assert_eq!(diagonal.multiply(&inverse_diagonal).unwrap(), identity);
 
-        let expected_result = matrix.multiply(&inverse_diagonal).unwrap();
+        let expected_result = inverse_diagonal.multiply(&matrix).unwrap();
         let result = matrix.multi_inverse_diagonal(&diagonal).unwrap();
         assert_eq!(result, expected_result);
     }
@@ -894,6 +899,7 @@ mod tests {
         let matrix = BirkhoffMatrix::<E>::new(vec![
             vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
             vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+            vec![Scalar::from(17), Scalar::from(8), Scalar::from(9)],
         ]);
 
         let diagonal = BirkhoffMatrix::<E>::new(vec![
@@ -912,6 +918,7 @@ mod tests {
         let matrix = BirkhoffMatrix::<E>::new(vec![
             vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
             vec![Scalar::from(4), Scalar::from(5), Scalar::from(6)],
+            vec![Scalar::from(17), Scalar::from(8), Scalar::from(9)],
         ]);
 
         let diagonal = BirkhoffMatrix::<E>::new(vec![
@@ -926,6 +933,80 @@ mod tests {
     }
 
     #[test]
+    fn happy_test_get_gauss_elimination() {
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(4), Scalar::from(15), Scalar::from(6)],
+            vec![Scalar::from(7), Scalar::from(8), Scalar::from(9)],
+        ]);
+
+        // Get U_A and L^{-1}
+        let (upper, lower_inv) = matrix.get_gauss_elimination().unwrap();
+
+        // Verify U_A is upper triangular
+        for i in 0..upper.rows() {
+            for j in 0..i {
+                assert_eq!(
+                    upper.cells[i][j],
+                    Scalar::from(0),
+                    "U_A is not upper triangular at position ({}, {})",
+                    i,
+                    j
+                );
+            }
+        }
+
+        // Verify L^{-1} is lower triangular
+        for i in 0..lower_inv.rows() {
+            for j in (i + 1)..lower_inv.cols() {
+                assert_eq!(
+                    lower_inv.cells[i][j],
+                    Scalar::from(0),
+                    "L^{{-1}} is not lower triangular at position ({}, {})",
+                    i,
+                    j
+                );
+            }
+        }
+
+        // Verify L*U_A = A or L^{-1} * A = U_A
+        let reconstructed = lower_inv.multiply(&matrix).unwrap();
+        assert_eq!(
+            reconstructed, upper,
+            "L*U_A does not equal original matrix A"
+        );
+
+        // Verify det(U_A) = det(A)
+        // Note: This requires implementing determinant calculation
+        // For now, we'll skip this check as it requires additional functionality
+    }
+
+    #[test]
+    fn happy_test_get_gauss_elimination_identity() {
+        // Test with identity matrix
+        let matrix = BirkhoffMatrix::<E>::create_identity_matrix(3);
+
+        let (upper, lower_inv) = matrix.get_gauss_elimination().unwrap();
+
+        // For identity matrix, U_A should be identity and L^{-1} should be identity
+        assert!(upper.is_identity(), "U_A is not identity matrix");
+        assert!(lower_inv.is_identity(), "L^{{-1}} is not identity matrix");
+    }
+
+    #[test]
+    fn unhappy_test_get_gauss_elimination_singular() {
+        // Test with a singular matrix (non-invertible)
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
+            vec![Scalar::from(2), Scalar::from(4), Scalar::from(6)],
+            vec![Scalar::from(3), Scalar::from(6), Scalar::from(9)],
+        ]);
+
+        // This should fail as the matrix is singular
+        assert!(matrix.get_gauss_elimination().is_err());
+    }
+
+    #[test]
     fn happy_test_inverse_matrix() {
         let matrix = BirkhoffMatrix::<E>::new(vec![
             vec![Scalar::from(1), Scalar::from(2), Scalar::from(3)],
@@ -934,10 +1015,21 @@ mod tests {
         ]);
 
         let inverse = matrix.inverse().unwrap();
+
+        // matrix * inverse = identity
         let check = matrix.multiply(&inverse).unwrap();
         let identity = BirkhoffMatrix::<E>::create_identity_matrix(3);
 
         assert_eq!(check, identity);
+    }
+
+    #[test]
+    fn happy_test_inverse_identity() {
+        // inverse of identity matrix is itself
+        let matrix = BirkhoffMatrix::<E>::create_identity_matrix(3);
+        let inverse = matrix.inverse().unwrap();
+
+        assert_eq!(matrix, inverse);
     }
 
     #[test]
@@ -955,32 +1047,36 @@ mod tests {
             "The matrix is not invertible. Expect an error."
         );
     }
-}
-
-#[cfg(test)]
-mod writing_tests {
-    use super::*;
-    use generic_ec::curves;
-
-    type E = curves::Secp256k1;
-
-    #[test]
-    fn happy_test_gauss_elimination() {
-        todo!()
-    }
-
-    #[test]
-    fn unhappy_test_gauss_elimination() {
-        todo!()
-    }
 
     #[test]
     fn happy_test_pseudo_inverse() {
-        todo!()
+        // the columns of m are linearly independent
+        // row rank >= column rank.
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(1), Scalar::from(0)],
+            vec![Scalar::from(0), Scalar::from(1)],
+            vec![Scalar::from(1), Scalar::from(1)],
+        ]);
+
+        let pseudo_inverse = matrix.pseudo_inverse().unwrap();
+
+        let check = matrix.multiply(&pseudo_inverse).unwrap();
+        let check = check.multiply(&matrix).unwrap();
+
+        // A * A^+ * A = A (Moore-Penrose condition)
+        assert_eq!(check, matrix);
     }
 
     #[test]
     fn unhappy_test_pseudo_inverse() {
-        todo!()
+        // the columns of m are not linearly independent
+        let matrix = BirkhoffMatrix::<E>::new(vec![
+            vec![Scalar::from(10), Scalar::from(5)],
+            vec![Scalar::from(8), Scalar::from(4)],
+        ]);
+
+        let pseudo_inverse = matrix.pseudo_inverse();
+
+        assert!(pseudo_inverse.is_err());
     }
 }

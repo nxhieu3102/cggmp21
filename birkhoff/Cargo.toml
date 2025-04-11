@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 # For polynomial
-generic-ec = { workspace = true, features = ["serde", "udigest", "hash-to-scalar", "curve-secp256k1"] }
+generic-ec = { workspace = true, features = ["serde", "udigest", "hash-to-scalar", "curve-secp256k1", "std"] }
 generic-ec-zkp = { workspace = true, features = ["serde", "udigest", "alloc"] }
 
 [dev-dependencies]
