@@ -360,7 +360,7 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
             let t = n - 1;
 
             // let party 0..t take part in signing
-            let signers_indexes_at_keygen = &(0..(t + 1)).collect::<Vec<_>>();
+            let signers_indexes_at_keygen = &(0..n).collect::<Vec<_>>();
 
             let message_to_sign = b"Dfns rules!";
             let message_to_sign = DataToSign::digest::<Sha256>(message_to_sign);
@@ -371,13 +371,12 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
                 let mut profiler = PerfProfiler::new();
 
                 async move {
-                    if i <= t {
-                        let _signature = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
-                            .set_progress_tracer(&mut profiler)
-                            .sign(&mut party_rng, party, message_to_sign)
-                            .await
-                            .context("threshold signing failed")?;
-                    }
+                    let _signature = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
+                        .set_progress_tracer(&mut profiler)
+                        .sign(&mut party_rng, party, message_to_sign)
+                        .await
+                        .context("threshold signing failed")?;
+
                     profiler.get_report().context("get perf report")
                 }
             })
@@ -426,7 +425,7 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
             };
 
             // let party 0..t take part in signing
-            let signers_indexes_at_keygen = &(0..(t + 1)).collect::<Vec<_>>();
+            let signers_indexes_at_keygen = &(0..n).collect::<Vec<_>>();
 
             let message_to_sign = b"Dfns rules!";
             let message_to_sign = DataToSign::digest::<Sha256>(message_to_sign);
@@ -437,13 +436,12 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
                 let mut profiler = PerfProfiler::new();
 
                 async move {
-                    if i <= t {
-                        let _signature = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
-                            .set_progress_tracer(&mut profiler)
-                            .sign(&mut party_rng, party, message_to_sign)
-                            .await
-                            .context("htss signing failed")?;
-                    }
+                    let _signature = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
+                        .set_progress_tracer(&mut profiler)
+                        .sign(&mut party_rng, party, message_to_sign)
+                        .await
+                        .context("htss signing failed")?;
+
                     profiler.get_report().context("get perf report")
                 }
             })
