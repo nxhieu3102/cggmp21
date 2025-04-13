@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>P2P Network WASM Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        h1 {
+            color: #333;
+        }
+        .log {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input[type="text"] {
+            padding: 8px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>P2P Network WASM Example</h1>
+        
+        <div class="controls">
+            <button id="create-message">Create Message</button>
+            <button id="serialize">Serialize</button>
+            <button id="deserialize">Deserialize</button>
+            <button id="clear-log">Clear Log</button>
+        </div>
+        
+        <div>
+            <label for="message-input">Message:</label>
+            <input type="text" id="message-input" value="Hello, WASM P2P Network!">
+        </div>
+        
+        <h3>Log</h3>
+        <div class="log" id="log"></div>
+    </div>
+
+    <script type="module">
+        import init, { create_message, serialize_message, deserialize_message, get_version } from './pkg/p2p_network_wasm_example.js';
+        
+        let message = null;
+        let serialized = null;
+        
+        // DOM elements
+        const log = document.getElementById('log');
+        const messageInput = document.getElementById('message-input');
+        const createMessageBtn = document.getElementById('create-message');
+        const serializeBtn = document.getElementById('serialize');
+        const deserializeBtn = document.getElementById('deserialize');
+        const clearLogBtn = document.getElementById('clear-log');
+        
+        // Log helper function
+        function logMessage(text) {
+            const line = document.createElement('div');
+            line.textContent = text;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // Initialize WASM
+        async function initWasm() {
+            try {
+                await init();
+                const version = get_version();
+                logMessage(`P2P Network WASM initialized, version: ${version}`);
+            } catch (error) {
+                logMessage(`Error initializing WASM: ${error}`);
+            }
+        }
+        
+        // Event listeners
+        createMessageBtn.addEventListener('click', () => {
+            try {
+                const text = messageInput.value;
+                message = create_message("greeting", "browser-node", text);
+                logMessage(`Created message: ${JSON.stringify(message)}`);
+            } catch (error) {
+                logMessage(`Error creating message: ${error}`);
+            }
+        });
+        
+        serializeBtn.addEventListener('click', () => {
+            try {
+                if (!message) {
+                    logMessage('No message to serialize. Create a message first.');
+                    return;
+                }
+                
+                serialized = serialize_message(message);
+                logMessage(`Serialized message (${serialized.length} bytes)`);
+            } catch (error) {
+                logMessage(`Error serializing message: ${error}`);
+            }
+        });
+        
+        deserializeBtn.addEventListener('click', () => {
+            try {
+                if (!serialized) {
+                    logMessage('No serialized message. Serialize a message first.');
+                    return;
+                }
+                
+                const deserialized = deserialize_message(serialized);
+                logMessage(`Deserialized message: ${JSON.stringify(deserialized)}`);
+            } catch (error) {
+                logMessage(`Error deserializing message: ${error}`);
+            }
+        });
+        
+        clearLogBtn.addEventListener('click', () => {
+            log.innerHTML = '';
+        });
+        
+        // Initialize
+        initWasm();
+    </script>
+</body>
+</html> 
