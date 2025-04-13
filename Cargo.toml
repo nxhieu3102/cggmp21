@@ -5,6 +5,8 @@ members = [
     "cggmp21-keygen", "examples/p2p_example",
     "key-share",
     "tests",
+    "p2p-network",
+    "p2p-network/wasm-example",
 ]
 exclude = [
     "wasm/no_std",
@@ -47,3 +49,13 @@ hd-wallet = { version = "0.6", default-features = false }
 generic-tests = "0.1"
 
 tracing = "0.1.40"
+
+[package]
+name = "p2p-network-example"
+version = "0.1.0"
+edition = "2021"
+description = "A simple example using the p2p-network library"
+
+[dependencies]
+# Using the local version from our workspace
+p2p-network = { path = "p2p-network" }
