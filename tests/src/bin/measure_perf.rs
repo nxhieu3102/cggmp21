@@ -1,3 +1,6 @@
+// cargo run --bin measure_perf > logs/measure-perf/yymmdd_hhhmm.txt
+// example: cargo run --bin measure_perf > logs/measure-perf/250418_14h10.txt
+
 use anyhow::Context;
 use cggmp21::{
     key_share::Validate,
