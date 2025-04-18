@@ -171,6 +171,16 @@ where
     L: SecurityLevel,
     D: Digest<OutputSize = digest::typenum::U32> + Clone + 'static,
 {
+    // Generate Paillier and Pedersen parameters
+    // Prove they are well-formed
+    // -------------
+    // Paillier: N = p * q, p and q are prime
+    // Pedersen: (N, s, t) is Ring Pedersen Parameters
+    // -------------
+    // Pi_prm: prove s mod t = 0 (mod N) - ring pedersen parameters
+    // Pi_fac: N can be factored into two factors no larger than sqrt(N).2^{l + epsilon}.
+    // Pi_mod: prove N = pq, with p and q being Blum primes, and gcd(N, phi(N)) = 1 without disclosing p and q.
+    // -------------
     tracer.protocol_begins();
 
     tracer.stage("Retrieve auxiliary data");
@@ -189,6 +199,9 @@ where
     // Round 1
     tracer.round_begins();
 
+    // 2 primes p and q
+    // N = p * q
+    // phi_N = (p - 1) * (q - 1)
     tracer.stage("Retrieve primes (p and q)");
     let PregeneratedPrimes { p, q, .. } = pregenerated;
     tracer.stage("Compute paillier decryption key (N)");
@@ -196,14 +209,20 @@ where
     let phi_N = (&p - 1u8).complete() * (&q - 1u8).complete();
 
     tracer.stage("Generate auxiliary params r, λ, t, s");
+    // r in Z_N*
     let r = Integer::gen_invertible(&N, rng);
+    // 0 <= lambda < phi_N
     let lambda = phi_N
         .random_below_ref(&mut utils::external_rand(rng))
         .into();
+    // t = r^2 mod N
     let t = r.square().modulo(&N);
+    // s = t^lambda mod N
     let s = t.pow_mod_ref(&lambda, &N).ok_or(Bug::PowMod)?.into();
 
     tracer.stage("Prove Πprm (ψˆ_i)");
+    // (N, s, t) is Ring Pedersen Parameters
+    // ψˆ_i: proof s mod (t mod N) = 0
     let hat_psi = π_prm::prove::<{ crate::security_level::M }, D>(
         &unambiguous::ProofPrm { sid, prover: i },
         &mut rng,

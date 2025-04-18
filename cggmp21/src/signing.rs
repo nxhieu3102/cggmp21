@@ -730,20 +730,24 @@ where
     // Round 1
     tracer.round_begins();
 
-    tracer.stage("Generate local ephemeral secrets (k_i, y_i, p_i, v_i)");
-    let gamma_i = SecretScalar::<E>::random(rng);
+    tracer.stage("Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i)");
+    // k_i, gamma_i in F_q
     let k_i = SecretScalar::<E>::random(rng);
+    let gamma_i = SecretScalar::<E>::random(rng);
 
-    let v_i = Integer::gen_invertible(N_i, rng);
+    // rho_i, nu_i in Z_N*
     let rho_i = Integer::gen_invertible(N_i, rng);
+    let nu_i = Integer::gen_invertible(N_i, rng);
 
-    tracer.stage("Encrypt G_i and K_i");
-    let G_i = dec_i
-        .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &v_i)
-        .map_err(|_| Bug::PaillierEnc(BugSource::G_i))?;
+    tracer.stage("Encrypt k_i and gamma_i");
+    // K_i = enc(k_i, rho_i)
     let K_i = dec_i
         .encrypt_with(&utils::scalar_to_bignumber(&k_i), &rho_i)
         .map_err(|_| Bug::PaillierEnc(BugSource::K_i))?;
+    // G_i = enc(gamma_i, nu_i)
+    let G_i = dec_i
+        .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &nu_i)
+        .map_err(|_| Bug::PaillierEnc(BugSource::G_i))?;
     runtime.yield_now().await;
 
     tracer.send_msg();
@@ -756,10 +760,14 @@ where
         .map_err(IoError::send_message)?;
     tracer.msg_sent();
 
+    // TODO: compute elgama commitment
+
     for j in utils::iter_peers(i, n) {
         tracer.stage("Prove ψ0_j");
         let R_j = &R[usize::from(j)];
 
+        // TODO: replace pi_enc by py_enc-elg
+        // Pi_enc: prove K_i = enc(k_i, rho_i)
         let psi0 = pi_enc::non_interactive::prove::<D>(
             &unambiguous::ProofEnc { sid, prover: i },
             &R_j.into(),
@@ -873,10 +881,16 @@ where
     }
     runtime.yield_now().await;
 
+    // Q: why do not prove G_i = enc(gamma_i, nu_i) here?
+    // A: because we will prove it later in pi_log
+
     // Step 2
+    // Gamma_i = G * gamma_i
     let Gamma_i = Point::generator() * &gamma_i;
+    // J = 2^{ell}
     let J = (Integer::ONE << L::ELL_PRIME).complete();
 
+    // Q: what are beta_sum, hat_beta_sum?
     let mut beta_sum = Scalar::zero();
     let mut hat_beta_sum = Scalar::zero();
     for (j, _, ciphertext_j) in ciphertexts.iter_indexed() {
@@ -885,11 +899,14 @@ where
         let N_j = &R_j.N;
         let enc_j = fast_paillier::EncryptionKey::from_n(N_j.clone());
 
+        // r_ij, hat_r_ij, s_ij, hat_s_ij in Z_Nj
+        // TODO: N_j or N_i here?
         let r_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
         let hat_r_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
         let s_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
         let hat_s_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
 
+        // 0 <= beta_ij, hat_beta_ij < J
         let beta_ij = Integer::from_rng_pm(&J, rng);
         let hat_beta_ij = Integer::from_rng_pm(&J, rng);
 
@@ -899,18 +916,22 @@ where
         tracer.stage("Encrypt D_ji");
         // D_ji = (gamma_i * K_j) + enc_j(-beta_ij, s_ij)
         let D_ji = {
+            // gamma_i * K_j ~ scalar * ciphertext
             let gamma_i_times_K_j = enc_j
                 .omul(&utils::scalar_to_bignumber(&gamma_i), &ciphertext_j.K)
                 .map_err(|_| Bug::PaillierOp(BugSource::gamma_i_times_K_j))?;
+            // enc_j(-beta_ij, s_ij)
             let neg_beta_ij_enc = enc_j
                 .encrypt_with(&(-&beta_ij).complete(), &s_ij)
                 .map_err(|_| Bug::PaillierEnc(BugSource::neg_beta_ij_enc))?;
+            // D_ji = gamma_i * K_j + enc_j(-beta_ij, s_ij) ~ ciphertext + ciphertext
             enc_j
                 .oadd(&gamma_i_times_K_j, &neg_beta_ij_enc)
                 .map_err(|_| Bug::PaillierOp(BugSource::D_ji))?
         };
 
         tracer.stage("Encrypt F_ji");
+        // F_ji = enc_i(beta_ij, r_ij)
         let F_ji = dec_i
             .encrypt_with(&(-&beta_ij).complete(), &r_ij)
             .map_err(|_| Bug::PaillierEnc(BugSource::F_ji))?;
@@ -918,12 +939,15 @@ where
         tracer.stage("Encrypt hat_D_ji");
         // Dˆ_ji = (x_i * K_j) + enc_j(-hat_beta_ij, hat_s_ij)
         let hat_D_ji = {
+            // x_i * K_j ~ scalar * ciphertext
             let x_i_times_K_j = enc_j
                 .omul(&utils::scalar_to_bignumber(x_i), &ciphertext_j.K)
                 .map_err(|_| Bug::PaillierOp(BugSource::x_i_times_K_j))?;
+            // enc_j(-hat_beta_ij, hat_s_ij)
             let neg_hat_beta_ij_enc = enc_j
                 .encrypt_with(&(-&hat_beta_ij).complete(), &hat_s_ij)
                 .map_err(|_| Bug::PaillierEnc(BugSource::hat_beta_ij_enc))?;
+            // hat_D_ji = x_i * K_j + enc_j(-hat_beta_ij, hat_s_ij) ~ ciphertext + ciphertext
             enc_j
                 .oadd(&x_i_times_K_j, &neg_hat_beta_ij_enc)
                 .map_err(|_| Bug::PaillierOp(BugSource::hat_D))?
@@ -931,11 +955,13 @@ where
         runtime.yield_now().await;
 
         tracer.stage("Encrypt hat_F_ji");
+        // Fˆ_ji = enc_i(hat_beta_ij, hat_r_ij)
         let hat_F_ji = dec_i
             .encrypt_with(&(-&hat_beta_ij).complete(), &hat_r_ij)
             .map_err(|_| Bug::PaillierEnc(BugSource::hat_F))?;
 
         tracer.stage("Prove psi_ji");
+        // pi_aff-g: range proof for D_ji, F_ji in affine operation
         let psi_ji = pi_aff::non_interactive::prove::<E, D>(
             &unambiguous::ProofPsi {
                 sid,
@@ -949,7 +975,7 @@ where
                 c: &ciphertext_j.K,
                 d: &D_ji,
                 y: &F_ji,
-                x: &Gamma_i,
+                x: &Gamma_i, // MtA(k, gamma)
             },
             pi_aff::PrivateData {
                 x: &utils::scalar_to_bignumber(&gamma_i),
@@ -964,6 +990,7 @@ where
         runtime.yield_now().await;
 
         tracer.stage("Prove psiˆ_ji");
+        // pi_aff-g: range proof for hat_D_ji, hat_F_ji in affine operation
         let hat_psi_ji = pi_aff::non_interactive::prove::<E, D>(
             &unambiguous::ProofPsi {
                 sid,
@@ -977,7 +1004,7 @@ where
                 c: &ciphertext_j.K,
                 d: &hat_D_ji,
                 y: &hat_F_ji,
-                x: &(Point::generator() * x_i),
+                x: &(Point::generator() * x_i), // MtA(k, x)
             },
             pi_aff::PrivateData {
                 x: &utils::scalar_to_bignumber(x_i),
@@ -991,6 +1018,8 @@ where
         .map_err(|e| Bug::PiAffG(BugSource::hat_psi, e))?;
 
         tracer.stage("Prove psi_prime_ji ");
+        // pi_log: prove G_i = enc(gamma_i, nu_i) and Gamma_i = G * gamma_i
+        // and gamma_i in range
         let psi_prime_ji = pi_log::non_interactive::prove::<E, D>(
             &unambiguous::ProofLog {
                 sid,
@@ -1006,7 +1035,7 @@ where
             },
             pi_log::PrivateData {
                 x: &utils::scalar_to_bignumber(&gamma_i),
-                nonce: &v_i,
+                nonce: &nu_i,
             },
             &security_params.pi_log,
             &mut *rng,
@@ -1138,9 +1167,16 @@ where
 
     // Step 2
     tracer.stage("Compute Gamma, Delta_i, delta_i, chi_i");
+    // Gamma = sum(Gamma_i)
     let Gamma = Gamma_i + round2_msgs.iter().map(|msg| msg.Gamma).sum::<Point<E>>();
+    // Delta_i = Gamma * k_i
     let Delta_i = Gamma * &k_i;
 
+    // (gamma_i, k_j) --MtA--> (alpha_ij, beta_ij)
+    // gamma_i * k_j = alpha_ij + beta_ij
+    // => alpha_ij = gamma_i * k_j - beta_ij = dec_j(D_ji)
+    // D_ji = enc_j(gamma_i * k_j - beta_ij)
+    // alpha_sum = sum(dec_j(D_ji)) = sum(alpha_ij)
     let alpha_sum =
         round2_msgs
             .iter()
@@ -1151,6 +1187,12 @@ where
                     .map_err(|_| Bug::PaillierDec(BugSource::alpha))?;
                 Ok::<_, Bug>(sum + alpha_ij.to_scalar())
             })?;
+
+    // (x_i, k_j) --MtA--> (hat_alpha_ij, hat_beta_ij)
+    // x_i * k_j = hat_alpha_ij + hat_beta_ij
+    // => hat_alpha_ij = x_i * k_j - hat_beta_ij = dec_j(hat_D_ji)
+    // hat_D_ji = enc_j(x_i * k_j - hat_beta_ij)
+    // hat_alpha_sum = sum(dec_j(hat_D_ji)) = sum(hat_alpha_ij)
     let hat_alpha_sum =
         round2_msgs
             .iter()
@@ -1162,13 +1204,16 @@ where
                 Ok::<_, Bug>(sum + hat_alpha_ij.to_scalar())
             })?;
 
+    // delta_i = gamma_i * k_i + alpha_sum + beta_sum
     let delta_i = gamma_i.as_ref() * k_i.as_ref() + alpha_sum + beta_sum;
+    // chi_i = x_i * k_i + hat_alpha_sum + hat_beta_sum
     let chi_i = x_i * k_i.as_ref() + hat_alpha_sum + hat_beta_sum;
     runtime.yield_now().await;
 
     for j in utils::iter_peers(i, n) {
         tracer.stage("Prove psi_prime_prime");
         let R_j = &R[usize::from(j)];
+        // pi_log: prove K_i = enc(k_i, rho_i) and Delta_i = Gamma * k_i = G * sum(gamma_j) * k_i
         let psi_prime_prime = pi_log::non_interactive::prove::<E, D>(
             &unambiguous::ProofLog {
                 sid,
@@ -1260,7 +1305,9 @@ where
 
     // Step 2
     tracer.stage("Calculate presignature");
+    // delta = delta_i + sum(delta_j) = gamma * k
     let delta = delta_i + round3_msgs.iter().map(|m| m.delta).sum::<Scalar<E>>();
+    // Delta = Gamma * k = G * gamma * k
     let Delta = Delta_i + round3_msgs.iter().map(|m| m.Delta).sum::<Point<E>>();
 
     if Point::generator() * delta != Delta {
@@ -1270,6 +1317,8 @@ where
         return Err(SigningAborted::MismatchedDelta.into());
     }
 
+    // R = Gamma * delta^{-1} = (G * gamma) * (k * gamma)^{-1} = G * k^{-1}
+    // R = x-coordinate of G * k^{-1}
     let R = Gamma * delta.invert().ok_or(Bug::ZeroDelta)?;
     let R = NonZero::from_point(R).ok_or(Bug::ZeroR)?;
     let presig = Presignature {
@@ -1294,6 +1343,7 @@ where
     tracer.send_msg();
     outgoings
         .send(Outgoing::broadcast(Msg::Round4(MsgRound4 {
+            // sigma_i = k_i * m + r_i * chi_i
             sigma: partial_sig.sigma,
         })))
         .await
@@ -1309,9 +1359,11 @@ where
         .await
         .map_err(IoError::receive_message)?;
     tracer.msgs_received();
+
     let sig = {
         let r = NonZero::from_scalar(partial_sig.r);
         let s = NonZero::from_scalar(
+            // s = sigma = sum(sigma_j)
             partial_sig.sigma + partial_sigs.iter().map(|m| m.sigma).sum::<Scalar<E>>(),
         );
         Option::zip(r, s).map(|(r, s)| Signature { r, s }.normalize_s())
