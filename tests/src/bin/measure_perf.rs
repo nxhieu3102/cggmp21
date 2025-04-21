@@ -1,3 +1,6 @@
+// cargo run --bin measure_perf > logs/measure-perf/yymmdd_hhhmm.txt
+// example: cargo run --bin measure_perf > logs/measure-perf/250418_14h10.txt
+
 use anyhow::Context;
 use cggmp21::{
     key_share::Validate,
@@ -9,6 +12,7 @@ use cggmp21::{
 use rand::Rng;
 use rand_dev::DevRng;
 use sha2::Sha256;
+use rand::prelude::SliceRandom;
 
 type E = generic_ec::curves::Secp256k1;
 
@@ -359,19 +363,24 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
 
             let t = n - 1;
 
-            // let party 0..t take part in signing
-            let signers_indexes_at_keygen = &(0..n).collect::<Vec<_>>();
+            // choose signers
+            let num_signer = rng.gen_range(t..=n);
+            let mut participants = (0..n).collect::<Vec<_>>();
+            participants.shuffle(&mut rng);
+            let participants = &participants[..usize::from(num_signer)];
+            println!("Signers: {participants:?}");
+            let participants_shares = participants.iter().map(|i| &shares[usize::from(*i)]);
 
             let message_to_sign = b"Dfns rules!";
             let message_to_sign = DataToSign::digest::<Sha256>(message_to_sign);
 
-            let perf_reports = round_based::sim::run_with_setup(&shares, |i, party, share| {
+            let perf_reports = round_based::sim::run_with_setup(participants_shares, |i, party, share| {
                 let mut party_rng = rng.fork();
 
                 let mut profiler = PerfProfiler::new();
 
                 async move {
-                    let _signature = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
+                    let _signature = cggmp21::signing(eid, i, participants, share)
                         .set_progress_tracer(&mut profiler)
                         .sign(&mut party_rng, party, message_to_sign)
                         .await
@@ -390,7 +399,6 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
         }
 
         if args.bench_htss_signing {
-            // TODO: implement htss signing
             let aux_data = aux_data.clone();
 
             let shares = hierarchical_threshold_key_shares
@@ -424,19 +432,24 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
                 _ => panic!("t is not supported"),
             };
 
-            // let party 0..t take part in signing
-            let signers_indexes_at_keygen = &(0..n).collect::<Vec<_>>();
+            // choose signers
+            let num_signer = rng.gen_range(t..=n);
+            let mut participants = (0..num_signer).collect::<Vec<_>>();
+            participants.shuffle(&mut rng);
+            println!("Signers: {participants:?}");
+            let participants = &participants[..usize::from(num_signer)];
+            let participants_shares = participants.iter().map(|i| &shares[usize::from(*i)]);
 
             let message_to_sign = b"Dfns rules!";
             let message_to_sign = DataToSign::digest::<Sha256>(message_to_sign);
 
-            let perf_reports = round_based::sim::run_with_setup(&shares, |i, party, share| {
+            let perf_reports = round_based::sim::run_with_setup(participants_shares, |i, party, share| {
                 let mut party_rng = rng.fork();
 
                 let mut profiler = PerfProfiler::new();
 
                 async move {
-                    let _signature = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
+                    let _signature = cggmp21::signing(eid, i, participants, share)
                         .set_progress_tracer(&mut profiler)
                         .sign(&mut party_rng, party, message_to_sign)
                         .await

@@ -346,9 +346,6 @@ fn validate_vss_key_info<E: Curve>(
     match &vss_setup.ranks {
         Some(ranks) => {
             // Hierarchical threshold key share
-            std::println!("===============================");
-            std::println!("Validate HTSS shares");
-            std::println!("ranks: {:?}", ranks);
 
             // Check that ranks length is equal to n
             if ranks.len() != usize::from(n) {
@@ -374,11 +371,9 @@ fn validate_vss_key_info<E: Curve>(
                 .enumerate()
                 .map(|(idx, &rank)| (rank, idx))
                 .collect();
-            std::println!("rank_indices: {:?}", rank_indices);
 
             // Sort by rank (ascending order)
             rank_indices.sort_by_key(|&(rank, _)| rank);
-            std::println!("rank_indices after sort by rank: {:?}", rank_indices);
 
             // t highest ranks
             let t_highest_ranks = rank_indices
@@ -386,11 +381,10 @@ fn validate_vss_key_info<E: Curve>(
                 .take(usize::from(t))
                 .map(|&(rank, _)| rank)
                 .collect::<Vec<_>>();
-            std::println!("t_highest_ranks: {:?}", t_highest_ranks);
 
             // Check that the first t indices create an accessible set
-            for i in 0..usize::from(t) {
-                if t_highest_ranks[i] > i as u16 {
+            for (i, ith_highest_rank) in t_highest_ranks.iter().enumerate().take(usize::from(t)) {
+                if ith_highest_rank > &(i as u16) {
                     return Err(InvalidShareReason::RankNotAccessible.into());
                 }
             }
@@ -401,21 +395,18 @@ fn validate_vss_key_info<E: Curve>(
                 .take(usize::from(t))
                 .map(|&(_, idx)| idx)
                 .collect();
-            std::println!("t_highest_ranked_indices: {:?}", t_highest_ranked_indices);
 
             // Get the corresponding public shares
             let t_highest_ranked_shares = t_highest_ranked_indices
                 .iter()
                 .map(|&idx| &public_shares[idx])
                 .collect::<Vec<_>>();
-            std::println!("t_highest_ranked_shares: {:?}", t_highest_ranked_shares);
 
             // Get the corresponding I values
             let t_highest_ranked_indexes = t_highest_ranked_indices
                 .iter()
-                .map(|&idx| vss_setup.I[idx].clone())
+                .map(|&idx| vss_setup.I[idx])
                 .collect::<Vec<_>>();
-            std::println!("t_highest_ranked_indexes: {:?}", t_highest_ranked_indexes);
 
             // Interpolate the public key using Birkhoff interpolation
             let reconstructed_pk = {
@@ -432,9 +423,6 @@ fn validate_vss_key_info<E: Curve>(
                 ))
             }?;
 
-            std::println!("reconstructed_pk: {:?}", reconstructed_pk);
-            std::println!("shared_public_key: {:?}", shared_public_key);
-            std::println!("===============================");
             if reconstructed_pk != shared_public_key {
                 return Err(InvalidShareReason::SharesDontMatchPublicKey.into());
             }

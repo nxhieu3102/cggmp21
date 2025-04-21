@@ -92,21 +92,21 @@ fn get_coefficient<E: Curve>(x: NonZero<Scalar<E>>, exp: u16, derivative_order: 
 
     // (exp - 0)(exp - 1)(exp - 2)...(exp - (derivative_order - 1))
     for i in 0..derivative_order {
-        coeff = coeff * Scalar::from(exp - i);
+        coeff *= Scalar::from(exp - i);
     }
 
     // x^(exp - derivative_order)
     let x_pow = if exp > derivative_order {
         let mut result = Scalar::from(1);
         for _ in 0..(exp - derivative_order) {
-            result = result * x.as_ref();
+            result *= x.as_ref();
         }
         result
     } else {
         Scalar::from(1)
     };
 
-    coeff = coeff * x_pow;
+    coeff *= x_pow;
 
     coeff
 }

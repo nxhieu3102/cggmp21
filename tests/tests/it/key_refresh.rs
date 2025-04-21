@@ -121,6 +121,7 @@ cggmp21_tests::test_suite! {
         t3n5_reliable: (3, 5, true),
     }
 }
+
 fn aux_gen_works<E: generic_ec::Curve>(t: u16, n: u16, reliable_broadcast: bool)
 where
     Point<E>: generic_ec::coords::HasAffineX<E>,
