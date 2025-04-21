@@ -1,0 +1,1101 @@
+RUST_TESTS_SEED=8a0d7a3f94ec35cf38ae02e16d20fca742d0ff06e2e5d71d8989cc95f2af632b
+n = 3
+
+Primes generation (avg): 118.889792362s
+
+Non-threshold DKG
+Protocol Performance:
+  - Protocol took 27.32ms to complete
+In particular:
+  - Stage: 157.63µs
+    - Setup networking: 156.12µs (99.0%)
+    - Unstaged: 1.51µs (1.0%)
+  - Round 1: 9.02ms
+    - Sample x_i, rid_i, chain_code: 4.92ms (54.5%)
+    - Sample schnorr commitment: 3.37ms (37.3%)
+    - Commit to public data: 727.46µs (8.1%)
+    - Unstaged: 6.64µs (0.1%)
+  - Round 2: 141.44µs
+    - Hash received msgs (reliability check): 139.12µs (98.4%)
+    - Unstaged: 2.32µs (1.6%)
+  - Round 3: 5.06µs
+    - Assert other parties hashed messages (reliability check): 3.74µs (73.9%)
+    - Unstaged: 1.32µs (26.1%)
+  - Round 4: 1.74ms
+    - Validate decommitments: 1.46ms (84.0%)
+    - Calculate challege rid: 261.35µs (15.1%)
+    - Prove knowledge of `x_i`: 14.18µs (0.8%)
+    - Unstaged: 1.93µs (0.1%)
+  - Round 5: 16.26ms
+    - Validate schnorr proofs: 16.25ms (100.0%)
+    - Unstaged: 4.31µs (0.0%)
+
+
+Threshold DKG
+Protocol Performance:
+  - Protocol took 208.46ms to complete
+In particular:
+  - Stage: 45.04µs
+    - Setup networking: 44.77µs (99.4%)
+    - Unstaged: 264.00ns (0.6%)
+  - Round 1: 12.05ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 10.60ms (88.0%)
+    - Commit to public data: 1.45ms (12.0%)
+    - Unstaged: 2.88µs (0.0%)
+  - Round 2: 221.46µs
+    - Hash received msgs (reliability check): 218.11µs (98.5%)
+    - Unstaged: 3.36µs (1.5%)
+  - Round 3: 9.84µs
+    - Assert other parties hashed messages (reliability check): 7.37µs (74.9%)
+    - Unstaged: 2.47µs (25.1%)
+  - Round 4: 155.92ms
+    - Validate decommitments: 11.13ms (7.1%)
+    - Validate data size: 25.62µs (0.0%)
+    - Validate Feldmann VSS: 61.34ms (39.3%)
+    - Compute rid: 46.68µs (0.0%)
+    - Compute Ys: 72.28ms (46.4%)
+    - Compute sigma: 9.01ms (5.8%)
+    - Calculate challenge: 2.06ms (1.3%)
+    - Prove knowledge of `sigma_i`: 22.58µs (0.0%)
+    - Unstaged: 3.49µs (0.0%)
+  - Round 5: 40.21ms
+    - Validate schnorr proofs: 40.05ms (99.6%)
+    - Derive resulting public key and other data: 148.04µs (0.4%)
+    - Unstaged: 10.97µs (0.0%)
+
+
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 158.41ms to complete
+In particular:
+  - Stage: 103.63µs
+    - Setup networking: 102.36µs (98.8%)
+    - Unstaged: 1.26µs (1.2%)
+  - Round 1: 23.09ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 19.35ms (83.8%)
+    - Commit to public data: 3.74ms (16.2%)
+    - Unstaged: 6.25µs (0.0%)
+  - Round 2: 237.47µs
+    - Hash received msgs (reliability check): 233.41µs (98.3%)
+    - Unstaged: 4.06µs (1.7%)
+  - Round 3: 9.74µs
+    - Assert other parties hashed messages (reliability check): 7.45µs (76.5%)
+    - Unstaged: 2.29µs (23.5%)
+  - Round 4: 122.42ms
+    - Validate decommitments: 2.95ms (2.4%)
+    - Validate data size: 9.32µs (0.0%)
+    - Validate Feldmann VSS: 60.72ms (49.6%)
+    - Compute rid: 46.49µs (0.0%)
+    - Compute Ys: 41.35ms (33.8%)
+    - Compute sigma: 8.11ms (6.6%)
+    - Calculate challenge: 9.20ms (7.5%)
+    - Prove knowledge of `sigma_i`: 30.93µs (0.0%)
+    - Unstaged: 3.60µs (0.0%)
+  - Round 5: 12.54ms
+    - Validate schnorr proofs: 12.44ms (99.1%)
+    - Derive resulting public key and other data: 99.62µs (0.8%)
+    - Unstaged: 8.93µs (0.1%)
+
+
+Auxiliary data generation protocol
+Protocol Performance:
+  - Protocol took 32.44s to complete
+In particular:
+  - Stage: 79.53µs
+    - Retrieve auxiliary data: 7.83µs (9.8%)
+    - Setup networking: 70.93µs (89.2%)
+    - Unstaged: 761.00ns (1.0%)
+  - Round 1: 5.60s
+    - Retrieve primes (p and q): 1.20µs (0.0%)
+    - Compute paillier decryption key (N): 14.54µs (0.0%)
+    - Generate auxiliary params r, λ, t, s: 44.01ms (0.8%)
+    - Prove Πprm (ψˆ_i): 5.54s (99.0%)
+    - Sample random bytes: 45.54µs (0.0%)
+    - Compute hash commitment and sample decommitment: 9.39ms (0.2%)
+    - Unstaged: 3.40µs (0.0%)
+  - Round 2: 132.95µs
+    - Hash received msgs (reliability check): 130.83µs (98.4%)
+    - Unstaged: 2.12µs (1.6%)
+  - Round 3: 6.77µs
+    - Assert other parties hashed messages (reliability check): 4.79µs (70.8%)
+    - Unstaged: 1.98µs (29.2%)
+  - Round 4: 21.56s
+    - Validate round 1 decommitments: 23.68ms (0.1%)
+    - Validate П_prm (ψ_i): 10.74s (49.8%)
+    - Add together shared random bytes: 20.65µs (0.0%)
+    - Compute П_mod (ψ_i): 10.38s (48.1%)
+    - Assemble security params for П_fac (ф_i): 30.87µs (0.0%)
+    - Compute П_fac (ф_i^j): 414.97ms (1.9%)
+    - Unstaged: 14.14µs (0.0%)
+  - Round 5: 5.28s
+    - Validate ψ_j (П_mod): 4.94s (93.6%)
+    - Validate ф_j (П_fac): 336.83ms (6.4%)
+    - Assemble auxiliary info: 333.00µs (0.0%)
+    - Unstaged: 3.36µs (0.0%)
+
+
+Signing protocol
+Protocol Performance:
+  - Protocol took 3.18s to complete
+In particular:
+  - Stage: 1.60ms
+    - Map t-out-of-n protocol to t-out-of-t: 1.42ms (88.8%)
+    - Retrieve auxiliary data: 139.25µs (8.7%)
+    - Precompute execution id and security params: 2.53µs (0.2%)
+    - Setup networking: 36.31µs (2.3%)
+    - Unstaged: 198.00ns (0.0%)
+  - Round 1: 227.98ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 203.95µs (0.1%)
+    - Encrypt k_i and gamma_i: 69.06ms (30.3%)
+    - Prove ψ0_j: 158.72ms (69.6%)
+    - Unstaged: 4.97µs (0.0%)
+  - Round 2: 345.91µs
+    - Hash received msgs (reliability check): 344.58µs (99.6%)
+    - Unstaged: 1.33µs (0.4%)
+  - Round 3: 1.61s
+    - Assert other parties hashed messages (reliability check): 13.66µs (0.0%)
+    - Verify psi0 proofs: 183.80ms (11.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 379.24µs (0.0%)
+    - Encrypt D_ji: 140.83ms (8.8%)
+    - Encrypt F_ji: 68.50ms (4.3%)
+    - Encrypt hat_D_ji: 140.98ms (8.8%)
+    - Encrypt hat_F_ji: 69.17ms (4.3%)
+    - Prove psi_ji: 417.65ms (26.0%)
+    - Prove psiˆ_ji: 425.73ms (26.5%)
+    - Prove psi_prime_ji : 161.51ms (10.0%)
+    - Unstaged: 9.26µs (0.0%)
+  - Round 4: 1.15s
+    - Retrieve auxiliary data: 10.88µs (0.0%)
+    - Validate psi: 326.56ms (28.5%)
+    - Validate hat_psi: 329.33ms (28.7%)
+    - Validate psi_prime: 189.09ms (16.5%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 139.69ms (12.2%)
+    - Prove psi_prime_prime: 161.25ms (14.1%)
+    - Unstaged: 12.07µs (0.0%)
+  - Presig output: 187.91ms
+    - Validate psi_prime_prime: 185.00ms (98.5%)
+    - Calculate presignature: 2.91ms (1.5%)
+    - Unstaged: 2.69µs (0.0%)
+  - Partial signing: 105.22µs
+  - Signature reconstruction: 4.21ms
+
+
+Signers: [0, 2, 1]
+Threshold signing protocol
+Protocol Performance:
+  - Protocol took 3.10s to complete
+In particular:
+  - Stage: 6.90ms
+    - Map t-out-of-n protocol to t-out-of-t: 6.70ms (97.1%)
+    - Retrieve auxiliary data: 161.75µs (2.3%)
+    - Precompute execution id and security params: 2.95µs (0.0%)
+    - Setup networking: 34.38µs (0.5%)
+    - Unstaged: 419.00ns (0.0%)
+  - Round 1: 223.11ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 222.99µs (0.1%)
+    - Encrypt k_i and gamma_i: 67.50ms (30.3%)
+    - Prove ψ0_j: 155.38ms (69.6%)
+    - Unstaged: 5.80µs (0.0%)
+  - Round 2: 354.13µs
+    - Hash received msgs (reliability check): 352.75µs (99.6%)
+    - Unstaged: 1.38µs (0.4%)
+  - Round 3: 1.56s
+    - Assert other parties hashed messages (reliability check): 11.22µs (0.0%)
+    - Verify psi0 proofs: 180.61ms (11.6%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 413.53µs (0.0%)
+    - Encrypt D_ji: 138.20ms (8.9%)
+    - Encrypt F_ji: 67.79ms (4.3%)
+    - Encrypt hat_D_ji: 136.96ms (8.8%)
+    - Encrypt hat_F_ji: 67.84ms (4.3%)
+    - Prove psi_ji: 403.89ms (25.9%)
+    - Prove psiˆ_ji: 407.17ms (26.1%)
+    - Prove psi_prime_ji : 157.91ms (10.1%)
+    - Unstaged: 7.31µs (0.0%)
+  - Round 4: 1.13s
+    - Retrieve auxiliary data: 10.70µs (0.0%)
+    - Validate psi: 321.63ms (28.6%)
+    - Validate hat_psi: 322.51ms (28.6%)
+    - Validate psi_prime: 185.59ms (16.5%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 137.93ms (12.3%)
+    - Prove psi_prime_prime: 158.08ms (14.0%)
+    - Unstaged: 9.04µs (0.0%)
+  - Presig output: 181.98ms
+    - Validate psi_prime_prime: 179.07ms (98.4%)
+    - Calculate presignature: 2.91ms (1.6%)
+    - Unstaged: 2.30µs (0.0%)
+  - Partial signing: 109.02µs
+  - Signature reconstruction: 4.28ms
+
+
+Signers: [2, 0, 1]
+Hierarchical threshold signing protocol
+Protocol Performance:
+  - Protocol took 2.90s to complete
+In particular:
+  - Stage: 7.91ms
+    - Map t-out-of-n protocol to t-out-of-t: 7.74ms (97.8%)
+    - Retrieve auxiliary data: 139.60µs (1.8%)
+    - Precompute execution id and security params: 2.64µs (0.0%)
+    - Setup networking: 32.79µs (0.4%)
+    - Unstaged: 404.00ns (0.0%)
+  - Round 1: 212.02ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 190.59µs (0.1%)
+    - Encrypt k_i and gamma_i: 62.99ms (29.7%)
+    - Prove ψ0_j: 148.84ms (70.2%)
+    - Unstaged: 4.60µs (0.0%)
+  - Round 2: 289.38µs
+    - Hash received msgs (reliability check): 288.34µs (99.6%)
+    - Unstaged: 1.05µs (0.4%)
+  - Round 3: 1.45s
+    - Assert other parties hashed messages (reliability check): 12.65µs (0.0%)
+    - Verify psi0 proofs: 167.63ms (11.6%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 338.68µs (0.0%)
+    - Encrypt D_ji: 128.81ms (8.9%)
+    - Encrypt F_ji: 63.64ms (4.4%)
+    - Encrypt hat_D_ji: 129.53ms (8.9%)
+    - Encrypt hat_F_ji: 62.14ms (4.3%)
+    - Prove psi_ji: 372.51ms (25.7%)
+    - Prove psiˆ_ji: 377.98ms (26.1%)
+    - Prove psi_prime_ji : 147.15ms (10.2%)
+    - Unstaged: 7.66µs (0.0%)
+  - Round 4: 1.05s
+    - Retrieve auxiliary data: 9.05µs (0.0%)
+    - Validate psi: 302.90ms (28.9%)
+    - Validate hat_psi: 298.23ms (28.4%)
+    - Validate psi_prime: 173.02ms (16.5%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 127.38ms (12.1%)
+    - Prove psi_prime_prime: 147.42ms (14.1%)
+    - Unstaged: 10.88µs (0.0%)
+  - Presig output: 179.24ms
+    - Validate psi_prime_prime: 176.48ms (98.5%)
+    - Calculate presignature: 2.76ms (1.5%)
+    - Unstaged: 3.21µs (0.0%)
+  - Partial signing: 92.46µs
+  - Signature reconstruction: 3.86ms
+
+
+n = 5
+
+Primes generation (avg): 35.168079902s
+
+Non-threshold DKG
+Protocol Performance:
+  - Protocol took 10.75ms to complete
+In particular:
+  - Stage: 31.83µs
+    - Setup networking: 31.33µs (98.4%)
+    - Unstaged: 494.00ns (1.6%)
+  - Round 1: 2.13ms
+    - Sample x_i, rid_i, chain_code: 987.24µs (46.5%)
+    - Sample schnorr commitment: 935.03µs (44.0%)
+    - Commit to public data: 201.10µs (9.5%)
+    - Unstaged: 1.83µs (0.1%)
+  - Round 2: 79.65µs
+    - Hash received msgs (reliability check): 78.81µs (99.0%)
+    - Unstaged: 836.00ns (1.0%)
+  - Round 3: 1.88µs
+    - Assert other parties hashed messages (reliability check): 1.50µs (79.9%)
+    - Unstaged: 378.00ns (20.1%)
+  - Round 4: 707.28µs
+    - Validate decommitments: 648.00µs (91.6%)
+    - Calculate challege rid: 56.92µs (8.0%)
+    - Prove knowledge of `x_i`: 1.95µs (0.3%)
+    - Unstaged: 411.00ns (0.1%)
+  - Round 5: 7.81ms
+    - Validate schnorr proofs: 7.80ms (100.0%)
+    - Unstaged: 534.00ns (0.0%)
+
+
+Threshold DKG
+Protocol Performance:
+  - Protocol took 63.02ms to complete
+In particular:
+  - Stage: 21.26µs
+    - Setup networking: 21.09µs (99.2%)
+    - Unstaged: 171.00ns (0.8%)
+  - Round 1: 5.06ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 4.66ms (92.1%)
+    - Commit to public data: 397.18µs (7.9%)
+    - Unstaged: 978.00ns (0.0%)
+  - Round 2: 74.78µs
+    - Hash received msgs (reliability check): 74.18µs (99.2%)
+    - Unstaged: 600.00ns (0.8%)
+  - Round 3: 1.91µs
+    - Assert other parties hashed messages (reliability check): 1.44µs (75.1%)
+    - Unstaged: 476.00ns (24.9%)
+  - Round 4: 49.12ms
+    - Validate decommitments: 1.44ms (2.9%)
+    - Validate data size: 1.21µs (0.0%)
+    - Validate Feldmann VSS: 22.04ms (44.9%)
+    - Compute rid: 9.12µs (0.0%)
+    - Compute Ys: 24.09ms (49.0%)
+    - Compute sigma: 1.14ms (2.3%)
+    - Calculate challenge: 404.27µs (0.8%)
+    - Prove knowledge of `sigma_i`: 2.68µs (0.0%)
+    - Unstaged: 691.00ns (0.0%)
+  - Round 5: 8.74ms
+    - Validate schnorr proofs: 8.71ms (99.6%)
+    - Derive resulting public key and other data: 33.73µs (0.4%)
+    - Unstaged: 1.13µs (0.0%)
+
+
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 61.76ms to complete
+In particular:
+  - Stage: 26.15µs
+    - Setup networking: 26.04µs (99.6%)
+    - Unstaged: 104.00ns (0.4%)
+  - Round 1: 4.10ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 3.78ms (92.3%)
+    - Commit to public data: 313.90µs (7.7%)
+    - Unstaged: 1.18µs (0.0%)
+  - Round 2: 82.90µs
+    - Hash received msgs (reliability check): 82.16µs (99.1%)
+    - Unstaged: 744.00ns (0.9%)
+  - Round 3: 2.06µs
+    - Assert other parties hashed messages (reliability check): 1.62µs (78.5%)
+    - Unstaged: 443.00ns (21.5%)
+  - Round 4: 48.69ms
+    - Validate decommitments: 1.19ms (2.4%)
+    - Validate data size: 1.38µs (0.0%)
+    - Validate Feldmann VSS: 28.52ms (58.6%)
+    - Compute rid: 7.04µs (0.0%)
+    - Compute Ys: 17.70ms (36.3%)
+    - Compute sigma: 938.48µs (1.9%)
+    - Calculate challenge: 336.01µs (0.7%)
+    - Prove knowledge of `sigma_i`: 2.03µs (0.0%)
+    - Unstaged: 482.00ns (0.0%)
+  - Round 5: 8.86ms
+    - Validate schnorr proofs: 8.83ms (99.6%)
+    - Derive resulting public key and other data: 34.61µs (0.4%)
+    - Unstaged: 747.00ns (0.0%)
+
+
+Auxiliary data generation protocol
+Protocol Performance:
+  - Protocol took 21.87s to complete
+In particular:
+  - Stage: 27.27µs
+    - Retrieve auxiliary data: 695.00ns (2.5%)
+    - Setup networking: 26.41µs (96.8%)
+    - Unstaged: 168.00ns (0.6%)
+  - Round 1: 1.66s
+    - Retrieve primes (p and q): 392.00ns (0.0%)
+    - Compute paillier decryption key (N): 8.03µs (0.0%)
+    - Generate auxiliary params r, λ, t, s: 12.31ms (0.7%)
+    - Prove Πprm (ψˆ_i): 1.65s (99.0%)
+    - Sample random bytes: 3.68µs (0.0%)
+    - Compute hash commitment and sample decommitment: 4.98ms (0.3%)
+    - Unstaged: 1.60µs (0.0%)
+  - Round 2: 69.89µs
+    - Hash received msgs (reliability check): 68.67µs (98.3%)
+    - Unstaged: 1.22µs (1.7%)
+  - Round 3: 2.43µs
+    - Assert other parties hashed messages (reliability check): 1.70µs (70.0%)
+    - Unstaged: 731.00ns (30.0%)
+  - Round 4: 12.62s
+    - Validate round 1 decommitments: 20.73ms (0.2%)
+    - Validate П_prm (ψ_i): 6.96s (55.2%)
+    - Add together shared random bytes: 16.18µs (0.0%)
+    - Compute П_mod (ψ_i): 5.12s (40.5%)
+    - Assemble security params for П_fac (ф_i): 24.93µs (0.0%)
+    - Compute П_fac (ф_i^j): 523.31ms (4.1%)
+    - Unstaged: 7.18µs (0.0%)
+  - Round 5: 7.58s
+    - Validate ψ_j (П_mod): 7.09s (93.6%)
+    - Validate ф_j (П_fac): 487.26ms (6.4%)
+    - Assemble auxiliary info: 368.54µs (0.0%)
+    - Unstaged: 2.50µs (0.0%)
+
+
+Signing protocol
+Protocol Performance:
+  - Protocol took 4.53s to complete
+In particular:
+  - Stage: 1.19ms
+    - Map t-out-of-n protocol to t-out-of-t: 1.05ms (88.2%)
+    - Retrieve auxiliary data: 107.56µs (9.0%)
+    - Precompute execution id and security params: 2.25µs (0.2%)
+    - Setup networking: 30.54µs (2.6%)
+    - Unstaged: 294.00ns (0.0%)
+  - Round 1: 280.83ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 168.40µs (0.1%)
+    - Encrypt k_i and gamma_i: 50.07ms (17.8%)
+    - Prove ψ0_j: 230.58ms (82.1%)
+    - Unstaged: 4.95µs (0.0%)
+  - Round 2: 391.67µs
+    - Hash received msgs (reliability check): 390.71µs (99.8%)
+    - Unstaged: 961.00ns (0.2%)
+  - Round 3: 2.31s
+    - Assert other parties hashed messages (reliability check): 11.42µs (0.0%)
+    - Verify psi0 proofs: 265.30ms (11.5%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 559.82µs (0.0%)
+    - Encrypt D_ji: 204.29ms (8.8%)
+    - Encrypt F_ji: 98.04ms (4.2%)
+    - Encrypt hat_D_ji: 201.95ms (8.7%)
+    - Encrypt hat_F_ji: 100.37ms (4.3%)
+    - Prove psi_ji: 591.25ms (25.6%)
+    - Prove psiˆ_ji: 605.57ms (26.2%)
+    - Prove psi_prime_ji : 243.52ms (10.5%)
+    - Unstaged: 11.08µs (0.0%)
+  - Round 4: 1.66s
+    - Retrieve auxiliary data: 14.07µs (0.0%)
+    - Validate psi: 471.62ms (28.4%)
+    - Validate hat_psi: 481.08ms (29.0%)
+    - Validate psi_prime: 273.23ms (16.5%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 200.61ms (12.1%)
+    - Prove psi_prime_prime: 231.79ms (14.0%)
+    - Unstaged: 7.70µs (0.0%)
+  - Presig output: 271.62ms
+    - Validate psi_prime_prime: 269.52ms (99.2%)
+    - Calculate presignature: 2.09ms (0.8%)
+    - Unstaged: 1.60µs (0.0%)
+  - Partial signing: 69.68µs
+  - Signature reconstruction: 3.07ms
+
+
+Signers: [1, 4, 2, 0]
+Threshold signing protocol
+Protocol Performance:
+  - Protocol took 3.42s to complete
+In particular:
+  - Stage: 7.56ms
+    - Map t-out-of-n protocol to t-out-of-t: 7.39ms (97.7%)
+    - Retrieve auxiliary data: 138.61µs (1.8%)
+    - Precompute execution id and security params: 2.59µs (0.0%)
+    - Setup networking: 30.22µs (0.4%)
+    - Unstaged: 379.00ns (0.0%)
+  - Round 1: 228.71ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 193.47µs (0.1%)
+    - Encrypt k_i and gamma_i: 50.84ms (22.2%)
+    - Prove ψ0_j: 177.67ms (77.7%)
+    - Unstaged: 4.49µs (0.0%)
+  - Round 2: 311.09µs
+    - Hash received msgs (reliability check): 310.14µs (99.7%)
+    - Unstaged: 945.00ns (0.3%)
+  - Round 3: 1.73s
+    - Assert other parties hashed messages (reliability check): 10.41µs (0.0%)
+    - Verify psi0 proofs: 197.44ms (11.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 533.71µs (0.0%)
+    - Encrypt D_ji: 150.30ms (8.7%)
+    - Encrypt F_ji: 75.25ms (4.3%)
+    - Encrypt hat_D_ji: 149.75ms (8.6%)
+    - Encrypt hat_F_ji: 73.09ms (4.2%)
+    - Prove psi_ji: 447.63ms (25.9%)
+    - Prove psiˆ_ji: 444.93ms (25.7%)
+    - Prove psi_prime_ji : 192.40ms (11.1%)
+    - Unstaged: 8.54µs (0.0%)
+  - Round 4: 1.24s
+    - Retrieve auxiliary data: 13.95µs (0.0%)
+    - Validate psi: 351.77ms (28.3%)
+    - Validate hat_psi: 365.33ms (29.4%)
+    - Validate psi_prime: 202.10ms (16.3%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 149.65ms (12.1%)
+    - Prove psi_prime_prime: 172.69ms (13.9%)
+    - Unstaged: 10.18µs (0.0%)
+  - Presig output: 206.61ms
+    - Validate psi_prime_prime: 203.80ms (98.6%)
+    - Calculate presignature: 2.80ms (1.4%)
+    - Unstaged: 1.90µs (0.0%)
+  - Partial signing: 99.27µs
+  - Signature reconstruction: 3.07ms
+
+
+Signers: [0, 2, 4, 3, 1]
+Hierarchical threshold signing protocol
+Protocol Performance:
+  - Protocol took 4.58s to complete
+In particular:
+  - Stage: 9.99ms
+    - Map t-out-of-n protocol to t-out-of-t: 9.85ms (98.6%)
+    - Retrieve auxiliary data: 109.32µs (1.1%)
+    - Precompute execution id and security params: 2.49µs (0.0%)
+    - Setup networking: 27.00µs (0.3%)
+    - Unstaged: 164.00ns (0.0%)
+  - Round 1: 293.48ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 151.54µs (0.1%)
+    - Encrypt k_i and gamma_i: 49.09ms (16.7%)
+    - Prove ψ0_j: 244.23ms (83.2%)
+    - Unstaged: 5.04µs (0.0%)
+  - Round 2: 393.89µs
+    - Hash received msgs (reliability check): 392.14µs (99.6%)
+    - Unstaged: 1.75µs (0.4%)
+  - Round 3: 2.33s
+    - Assert other parties hashed messages (reliability check): 12.98µs (0.0%)
+    - Verify psi0 proofs: 264.10ms (11.3%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 679.96µs (0.0%)
+    - Encrypt D_ji: 211.90ms (9.1%)
+    - Encrypt F_ji: 104.61ms (4.5%)
+    - Encrypt hat_D_ji: 210.78ms (9.0%)
+    - Encrypt hat_F_ji: 98.23ms (4.2%)
+    - Prove psi_ji: 597.86ms (25.7%)
+    - Prove psiˆ_ji: 597.75ms (25.7%)
+    - Prove psi_prime_ji : 243.76ms (10.5%)
+    - Unstaged: 16.84µs (0.0%)
+  - Round 4: 1.67s
+    - Retrieve auxiliary data: 16.40µs (0.0%)
+    - Validate psi: 485.49ms (29.0%)
+    - Validate hat_psi: 475.42ms (28.4%)
+    - Validate psi_prime: 270.39ms (16.2%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 209.44ms (12.5%)
+    - Prove psi_prime_prime: 231.95ms (13.9%)
+    - Unstaged: 8.50µs (0.0%)
+  - Presig output: 271.36ms
+    - Validate psi_prime_prime: 269.25ms (99.2%)
+    - Calculate presignature: 2.10ms (0.8%)
+    - Unstaged: 1.94µs (0.0%)
+  - Partial signing: 67.82µs
+  - Signature reconstruction: 3.07ms
+
+
+n = 7
+
+Primes generation (avg): 31.641261143s
+
+Non-threshold DKG
+Protocol Performance:
+  - Protocol took 15.32ms to complete
+In particular:
+  - Stage: 27.49µs
+    - Setup networking: 26.91µs (97.9%)
+    - Unstaged: 584.00ns (2.1%)
+  - Round 1: 2.66ms
+    - Sample x_i, rid_i, chain_code: 1.22ms (45.7%)
+    - Sample schnorr commitment: 1.20ms (45.1%)
+    - Commit to public data: 241.89µs (9.1%)
+    - Unstaged: 2.03µs (0.1%)
+  - Round 2: 114.50µs
+    - Hash received msgs (reliability check): 113.68µs (99.3%)
+    - Unstaged: 816.00ns (0.7%)
+  - Round 3: 2.25µs
+    - Assert other parties hashed messages (reliability check): 1.86µs (82.3%)
+    - Unstaged: 399.00ns (17.7%)
+  - Round 4: 1.09ms
+    - Validate decommitments: 1.03ms (94.4%)
+    - Calculate challege rid: 58.64µs (5.4%)
+    - Prove knowledge of `x_i`: 2.08µs (0.2%)
+    - Unstaged: 454.00ns (0.0%)
+  - Round 5: 11.43ms
+    - Validate schnorr proofs: 11.43ms (100.0%)
+    - Unstaged: 508.00ns (0.0%)
+
+
+Threshold DKG
+Protocol Performance:
+  - Protocol took 102.64ms to complete
+In particular:
+  - Stage: 23.92µs
+    - Setup networking: 23.78µs (99.4%)
+    - Unstaged: 139.00ns (0.6%)
+  - Round 1: 7.20ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 6.67ms (92.7%)
+    - Commit to public data: 523.59µs (7.3%)
+    - Unstaged: 1.10µs (0.0%)
+  - Round 2: 101.52µs
+    - Hash received msgs (reliability check): 100.90µs (99.4%)
+    - Unstaged: 622.00ns (0.6%)
+  - Round 3: 2.14µs
+    - Assert other parties hashed messages (reliability check): 1.64µs (76.6%)
+    - Unstaged: 501.00ns (23.4%)
+  - Round 4: 82.11ms
+    - Validate decommitments: 2.96ms (3.6%)
+    - Validate data size: 2.01µs (0.0%)
+    - Validate Feldmann VSS: 38.54ms (46.9%)
+    - Compute rid: 7.75µs (0.0%)
+    - Compute Ys: 39.22ms (47.8%)
+    - Compute sigma: 999.99µs (1.2%)
+    - Calculate challenge: 380.17µs (0.5%)
+    - Prove knowledge of `sigma_i`: 2.38µs (0.0%)
+    - Unstaged: 540.00ns (0.0%)
+  - Round 5: 13.21ms
+    - Validate schnorr proofs: 13.16ms (99.6%)
+    - Derive resulting public key and other data: 48.05µs (0.4%)
+    - Unstaged: 1.08µs (0.0%)
+
+
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 102.62ms to complete
+In particular:
+  - Stage: 26.96µs
+    - Setup networking: 26.77µs (99.3%)
+    - Unstaged: 191.00ns (0.7%)
+  - Round 1: 5.78ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 5.33ms (92.2%)
+    - Commit to public data: 449.06µs (7.8%)
+    - Unstaged: 1.48µs (0.0%)
+  - Round 2: 112.94µs
+    - Hash received msgs (reliability check): 112.13µs (99.3%)
+    - Unstaged: 810.00ns (0.7%)
+  - Round 3: 2.34µs
+    - Assert other parties hashed messages (reliability check): 1.97µs (84.1%)
+    - Unstaged: 372.00ns (15.9%)
+  - Round 4: 83.55ms
+    - Validate decommitments: 2.43ms (2.9%)
+    - Validate data size: 1.68µs (0.0%)
+    - Validate Feldmann VSS: 50.20ms (60.1%)
+    - Compute rid: 7.51µs (0.0%)
+    - Compute Ys: 29.63ms (35.5%)
+    - Compute sigma: 941.51µs (1.1%)
+    - Calculate challenge: 330.48µs (0.4%)
+    - Prove knowledge of `sigma_i`: 1.98µs (0.0%)
+    - Unstaged: 636.00ns (0.0%)
+  - Round 5: 13.15ms
+    - Validate schnorr proofs: 13.09ms (99.6%)
+    - Derive resulting public key and other data: 56.68µs (0.4%)
+    - Unstaged: 1.00µs (0.0%)
+
+
+Auxiliary data generation protocol
+Protocol Performance:
+  - Protocol took 28.42s to complete
+In particular:
+  - Stage: 28.50µs
+    - Retrieve auxiliary data: 667.00ns (2.3%)
+    - Setup networking: 27.51µs (96.5%)
+    - Unstaged: 321.00ns (1.1%)
+  - Round 1: 1.63s
+    - Retrieve primes (p and q): 442.00ns (0.0%)
+    - Compute paillier decryption key (N): 7.78µs (0.0%)
+    - Generate auxiliary params r, λ, t, s: 12.34ms (0.8%)
+    - Prove Πprm (ψˆ_i): 1.61s (99.0%)
+    - Sample random bytes: 3.69µs (0.0%)
+    - Compute hash commitment and sample decommitment: 4.46ms (0.3%)
+    - Unstaged: 1.95µs (0.0%)
+  - Round 2: 118.23µs
+    - Hash received msgs (reliability check): 116.61µs (98.6%)
+    - Unstaged: 1.62µs (1.4%)
+  - Round 3: 3.52µs
+    - Assert other parties hashed messages (reliability check): 2.38µs (67.6%)
+    - Unstaged: 1.14µs (32.4%)
+  - Round 4: 15.54s
+    - Validate round 1 decommitments: 27.01ms (0.2%)
+    - Validate П_prm (ψ_i): 9.80s (63.1%)
+    - Add together shared random bytes: 18.77µs (0.0%)
+    - Compute П_mod (ψ_i): 4.98s (32.0%)
+    - Assemble security params for П_fac (ф_i): 23.67µs (0.0%)
+    - Compute П_fac (ф_i^j): 729.30ms (4.7%)
+    - Unstaged: 11.31µs (0.0%)
+  - Round 5: 11.26s
+    - Validate ψ_j (П_mod): 10.49s (93.1%)
+    - Validate ф_j (П_fac): 773.64ms (6.9%)
+    - Assemble auxiliary info: 535.92µs (0.0%)
+    - Unstaged: 4.42µs (0.0%)
+
+
+Signing protocol
+Protocol Performance:
+  - Protocol took 6.83s to complete
+In particular:
+  - Stage: 1.21ms
+    - Map t-out-of-n protocol to t-out-of-t: 1.07ms (88.6%)
+    - Retrieve auxiliary data: 103.94µs (8.6%)
+    - Precompute execution id and security params: 2.07µs (0.2%)
+    - Setup networking: 31.21µs (2.6%)
+    - Unstaged: 159.00ns (0.0%)
+  - Round 1: 403.61ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 150.29µs (0.0%)
+    - Encrypt k_i and gamma_i: 49.93ms (12.4%)
+    - Prove ψ0_j: 353.52ms (87.6%)
+    - Unstaged: 5.30µs (0.0%)
+  - Round 2: 541.82µs
+    - Hash received msgs (reliability check): 540.68µs (99.8%)
+    - Unstaged: 1.14µs (0.2%)
+  - Round 3: 3.49s
+    - Assert other parties hashed messages (reliability check): 12.27µs (0.0%)
+    - Verify psi0 proofs: 403.83ms (11.6%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 907.10µs (0.0%)
+    - Encrypt D_ji: 306.64ms (8.8%)
+    - Encrypt F_ji: 150.43ms (4.3%)
+    - Encrypt hat_D_ji: 305.45ms (8.7%)
+    - Encrypt hat_F_ji: 149.06ms (4.3%)
+    - Prove psi_ji: 904.90ms (25.9%)
+    - Prove psiˆ_ji: 913.81ms (26.1%)
+    - Prove psi_prime_ji : 359.56ms (10.3%)
+    - Unstaged: 19.78µs (0.0%)
+  - Round 4: 2.52s
+    - Retrieve auxiliary data: 23.39µs (0.0%)
+    - Validate psi: 713.43ms (28.3%)
+    - Validate hat_psi: 727.77ms (28.9%)
+    - Validate psi_prime: 409.87ms (16.3%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 313.56ms (12.5%)
+    - Prove psi_prime_prime: 352.45ms (14.0%)
+    - Unstaged: 10.20µs (0.0%)
+  - Presig output: 410.34ms
+    - Validate psi_prime_prime: 408.23ms (99.5%)
+    - Calculate presignature: 2.11ms (0.5%)
+    - Unstaged: 2.18µs (0.0%)
+  - Partial signing: 69.54µs
+  - Signature reconstruction: 3.07ms
+
+
+Signers: [0, 1, 4, 5, 2, 3, 6]
+Threshold signing protocol
+Protocol Performance:
+  - Protocol took 7.64s to complete
+In particular:
+  - Stage: 9.70ms
+    - Map t-out-of-n protocol to t-out-of-t: 9.56ms (98.5%)
+    - Retrieve auxiliary data: 111.46µs (1.1%)
+    - Precompute execution id and security params: 2.34µs (0.0%)
+    - Setup networking: 29.25µs (0.3%)
+    - Unstaged: 176.00ns (0.0%)
+  - Round 1: 388.97ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 151.58µs (0.0%)
+    - Encrypt k_i and gamma_i: 50.35ms (12.9%)
+    - Prove ψ0_j: 338.47ms (87.0%)
+    - Unstaged: 4.52µs (0.0%)
+  - Round 2: 545.80µs
+    - Hash received msgs (reliability check): 544.69µs (99.8%)
+    - Unstaged: 1.11µs (0.2%)
+  - Round 3: 3.49s
+    - Assert other parties hashed messages (reliability check): 8.96µs (0.0%)
+    - Verify psi0 proofs: 396.49ms (11.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 925.60µs (0.0%)
+    - Encrypt D_ji: 308.40ms (8.8%)
+    - Encrypt F_ji: 150.14ms (4.3%)
+    - Encrypt hat_D_ji: 306.08ms (8.8%)
+    - Encrypt hat_F_ji: 149.82ms (4.3%)
+    - Prove psi_ji: 918.07ms (26.3%)
+    - Prove psiˆ_ji: 907.64ms (26.0%)
+    - Prove psi_prime_ji : 347.99ms (10.0%)
+    - Unstaged: 16.39µs (0.0%)
+  - Round 4: 3.25s
+    - Retrieve auxiliary data: 56.88µs (0.0%)
+    - Validate psi: 917.97ms (28.2%)
+    - Validate hat_psi: 1.01s (31.1%)
+    - Validate psi_prime: 528.48ms (16.3%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 401.39ms (12.3%)
+    - Prove psi_prime_prime: 392.73ms (12.1%)
+    - Unstaged: 17.87µs (0.0%)
+  - Presig output: 504.97ms
+    - Validate psi_prime_prime: 502.03ms (99.4%)
+    - Calculate presignature: 2.94ms (0.6%)
+    - Unstaged: 4.39µs (0.0%)
+  - Partial signing: 125.64µs
+  - Signature reconstruction: 3.06ms
+
+
+Signers: [4, 3, 5, 1, 0, 2]
+Hierarchical threshold signing protocol
+Protocol Performance:
+  - Protocol took 6.25s to complete
+In particular:
+  - Stage: 13.51ms
+    - Map t-out-of-n protocol to t-out-of-t: 13.37ms (98.9%)
+    - Retrieve auxiliary data: 112.56µs (0.8%)
+    - Precompute execution id and security params: 2.59µs (0.0%)
+    - Setup networking: 28.36µs (0.2%)
+    - Unstaged: 164.00ns (0.0%)
+  - Round 1: 346.21ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 165.30µs (0.0%)
+    - Encrypt k_i and gamma_i: 49.01ms (14.2%)
+    - Prove ψ0_j: 297.02ms (85.8%)
+    - Unstaged: 6.36µs (0.0%)
+  - Round 2: 471.01µs
+    - Hash received msgs (reliability check): 468.44µs (99.5%)
+    - Unstaged: 2.57µs (0.5%)
+  - Round 3: 3.37s
+    - Assert other parties hashed messages (reliability check): 10.49µs (0.0%)
+    - Verify psi0 proofs: 338.99ms (10.1%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 973.70µs (0.0%)
+    - Encrypt D_ji: 308.86ms (9.2%)
+    - Encrypt F_ji: 150.35ms (4.5%)
+    - Encrypt hat_D_ji: 291.46ms (8.7%)
+    - Encrypt hat_F_ji: 143.62ms (4.3%)
+    - Prove psi_ji: 883.66ms (26.2%)
+    - Prove psiˆ_ji: 904.22ms (26.8%)
+    - Prove psi_prime_ji : 345.62ms (10.3%)
+    - Unstaged: 23.85µs (0.0%)
+  - Round 4: 2.16s
+    - Retrieve auxiliary data: 22.99µs (0.0%)
+    - Validate psi: 629.26ms (29.2%)
+    - Validate hat_psi: 612.15ms (28.4%)
+    - Validate psi_prime: 352.05ms (16.3%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 261.67ms (12.1%)
+    - Prove psi_prime_prime: 302.62ms (14.0%)
+    - Unstaged: 10.73µs (0.0%)
+  - Presig output: 359.06ms
+    - Validate psi_prime_prime: 356.91ms (99.4%)
+    - Calculate presignature: 2.15ms (0.6%)
+    - Unstaged: 2.08µs (0.0%)
+  - Partial signing: 76.22µs
+  - Signature reconstruction: 3.18ms
+
+
+n = 10
+
+Primes generation (avg): 40.956868012s
+
+Non-threshold DKG
+Protocol Performance:
+  - Protocol took 30.57ms to complete
+In particular:
+  - Stage: 37.50µs
+    - Setup networking: 36.86µs (98.3%)
+    - Unstaged: 642.00ns (1.7%)
+  - Round 1: 3.37ms
+    - Sample x_i, rid_i, chain_code: 1.56ms (46.4%)
+    - Sample schnorr commitment: 1.49ms (44.4%)
+    - Commit to public data: 307.88µs (9.1%)
+    - Unstaged: 2.76µs (0.1%)
+  - Round 2: 212.83µs
+    - Hash received msgs (reliability check): 211.47µs (99.4%)
+    - Unstaged: 1.36µs (0.6%)
+  - Round 3: 13.77µs
+    - Assert other parties hashed messages (reliability check): 13.07µs (94.9%)
+    - Unstaged: 706.00ns (5.1%)
+  - Round 4: 2.52ms
+    - Validate decommitments: 2.41ms (95.5%)
+    - Calculate challege rid: 106.28µs (4.2%)
+    - Prove knowledge of `x_i`: 4.43µs (0.2%)
+    - Unstaged: 1.67µs (0.1%)
+  - Round 5: 24.42ms
+    - Validate schnorr proofs: 24.42ms (100.0%)
+    - Unstaged: 1.97µs (0.0%)
+
+
+Threshold DKG
+Protocol Performance:
+  - Protocol took 223.84ms to complete
+In particular:
+  - Stage: 30.44µs
+    - Setup networking: 30.23µs (99.3%)
+    - Unstaged: 209.00ns (0.7%)
+  - Round 1: 12.54ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 11.72ms (93.5%)
+    - Commit to public data: 815.79µs (6.5%)
+    - Unstaged: 2.18µs (0.0%)
+  - Round 2: 184.25µs
+    - Hash received msgs (reliability check): 183.10µs (99.4%)
+    - Unstaged: 1.15µs (0.6%)
+  - Round 3: 3.15µs
+    - Assert other parties hashed messages (reliability check): 2.38µs (75.5%)
+    - Unstaged: 773.00ns (24.5%)
+  - Round 4: 191.47ms
+    - Validate decommitments: 6.24ms (3.3%)
+    - Validate data size: 2.57µs (0.0%)
+    - Validate Feldmann VSS: 98.62ms (51.5%)
+    - Compute rid: 19.26µs (0.0%)
+    - Compute Ys: 85.27ms (44.5%)
+    - Compute sigma: 938.24µs (0.5%)
+    - Calculate challenge: 360.93µs (0.2%)
+    - Prove knowledge of `sigma_i`: 3.10µs (0.0%)
+    - Unstaged: 1.44µs (0.0%)
+  - Round 5: 19.61ms
+    - Validate schnorr proofs: 19.54ms (99.6%)
+    - Derive resulting public key and other data: 67.14µs (0.3%)
+    - Unstaged: 2.34µs (0.0%)
+
+
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 197.96ms to complete
+In particular:
+  - Stage: 27.45µs
+    - Setup networking: 27.23µs (99.2%)
+    - Unstaged: 219.00ns (0.8%)
+  - Round 1: 8.39ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 7.73ms (92.1%)
+    - Commit to public data: 656.75µs (7.8%)
+    - Unstaged: 1.76µs (0.0%)
+  - Round 2: 164.54µs
+    - Hash received msgs (reliability check): 163.43µs (99.3%)
+    - Unstaged: 1.11µs (0.7%)
+  - Round 3: 3.11µs
+    - Assert other parties hashed messages (reliability check): 2.59µs (83.3%)
+    - Unstaged: 520.00ns (16.7%)
+  - Round 4: 169.68ms
+    - Validate decommitments: 4.19ms (2.5%)
+    - Validate data size: 2.74µs (0.0%)
+    - Validate Feldmann VSS: 102.04ms (60.1%)
+    - Compute rid: 13.60µs (0.0%)
+    - Compute Ys: 61.92ms (36.5%)
+    - Compute sigma: 1.10ms (0.6%)
+    - Calculate challenge: 397.29µs (0.2%)
+    - Prove knowledge of `sigma_i`: 2.85µs (0.0%)
+    - Unstaged: 1.02µs (0.0%)
+  - Round 5: 19.70ms
+    - Validate schnorr proofs: 19.63ms (99.6%)
+    - Derive resulting public key and other data: 72.92µs (0.4%)
+    - Unstaged: 1.65µs (0.0%)
+
+
+Auxiliary data generation protocol
+Protocol Performance:
+  - Protocol took 41.77s to complete
+In particular:
+  - Stage: 34.50µs
+    - Retrieve auxiliary data: 772.00ns (2.2%)
+    - Setup networking: 33.58µs (97.3%)
+    - Unstaged: 149.00ns (0.4%)
+  - Round 1: 1.65s
+    - Retrieve primes (p and q): 420.00ns (0.0%)
+    - Compute paillier decryption key (N): 8.50µs (0.0%)
+    - Generate auxiliary params r, λ, t, s: 12.51ms (0.8%)
+    - Prove Πprm (ψˆ_i): 1.64s (99.0%)
+    - Sample random bytes: 8.13µs (0.0%)
+    - Compute hash commitment and sample decommitment: 4.46ms (0.3%)
+    - Unstaged: 1.48µs (0.0%)
+  - Round 2: 134.22µs
+    - Hash received msgs (reliability check): 133.05µs (99.1%)
+    - Unstaged: 1.17µs (0.9%)
+  - Round 3: 3.06µs
+    - Assert other parties hashed messages (reliability check): 2.55µs (83.2%)
+    - Unstaged: 514.00ns (16.8%)
+  - Round 4: 20.89s
+    - Validate round 1 decommitments: 40.68ms (0.2%)
+    - Validate П_prm (ψ_i): 14.78s (70.8%)
+    - Add together shared random bytes: 26.89µs (0.0%)
+    - Compute П_mod (ψ_i): 4.97s (23.8%)
+    - Assemble security params for П_fac (ф_i): 21.94µs (0.0%)
+    - Compute П_fac (ф_i^j): 1.10s (5.3%)
+    - Unstaged: 12.64µs (0.0%)
+  - Round 5: 19.22s
+    - Validate ψ_j (П_mod): 17.97s (93.5%)
+    - Validate ф_j (П_fac): 1.25s (6.5%)
+    - Assemble auxiliary info: 947.52µs (0.0%)
+    - Unstaged: 3.17µs (0.0%)
+
+
+Signing protocol
+Protocol Performance:
+  - Protocol took 10.48s to complete
+In particular:
+  - Stage: 1.30ms
+    - Map t-out-of-n protocol to t-out-of-t: 1.15ms (88.4%)
+    - Retrieve auxiliary data: 114.77µs (8.9%)
+    - Precompute execution id and security params: 2.36µs (0.2%)
+    - Setup networking: 32.68µs (2.5%)
+    - Unstaged: 269.00ns (0.0%)
+  - Round 1: 631.76ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 181.45µs (0.0%)
+    - Encrypt k_i and gamma_i: 54.77ms (8.7%)
+    - Prove ψ0_j: 576.80ms (91.3%)
+    - Unstaged: 8.04µs (0.0%)
+  - Round 2: 813.96µs
+    - Hash received msgs (reliability check): 812.41µs (99.8%)
+    - Unstaged: 1.55µs (0.2%)
+  - Round 3: 5.35s
+    - Assert other parties hashed messages (reliability check): 12.50µs (0.0%)
+    - Verify psi0 proofs: 614.90ms (11.5%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 1.43ms (0.0%)
+    - Encrypt D_ji: 474.30ms (8.9%)
+    - Encrypt F_ji: 234.25ms (4.4%)
+    - Encrypt hat_D_ji: 481.80ms (9.0%)
+    - Encrypt hat_F_ji: 233.33ms (4.4%)
+    - Prove psi_ji: 1.38s (25.8%)
+    - Prove psiˆ_ji: 1.38s (25.8%)
+    - Prove psi_prime_ji : 551.00ms (10.3%)
+    - Unstaged: 30.38µs (0.0%)
+  - Round 4: 3.86s
+    - Retrieve auxiliary data: 40.48µs (0.0%)
+    - Validate psi: 1.10s (28.5%)
+    - Validate hat_psi: 1.12s (29.1%)
+    - Validate psi_prime: 639.14ms (16.6%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 461.36ms (12.0%)
+    - Prove psi_prime_prime: 537.83ms (13.9%)
+    - Unstaged: 13.06µs (0.0%)
+  - Presig output: 636.07ms
+    - Validate psi_prime_prime: 633.94ms (99.7%)
+    - Calculate presignature: 2.14ms (0.3%)
+    - Unstaged: 2.18µs (0.0%)
+  - Partial signing: 71.40µs
+  - Signature reconstruction: 3.10ms
+
+
+Signers: [8, 1, 3, 7, 4, 2, 0, 5, 6, 9]
+Threshold signing protocol
+Protocol Performance:
+  - Protocol took 11.11s to complete
+In particular:
+  - Stage: 13.39ms
+    - Map t-out-of-n protocol to t-out-of-t: 13.24ms (98.9%)
+    - Retrieve auxiliary data: 113.01µs (0.8%)
+    - Precompute execution id and security params: 2.33µs (0.0%)
+    - Setup networking: 27.02µs (0.2%)
+    - Unstaged: 265.00ns (0.0%)
+  - Round 1: 573.98ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 216.09µs (0.0%)
+    - Encrypt k_i and gamma_i: 54.49ms (9.5%)
+    - Prove ψ0_j: 519.27ms (90.5%)
+    - Unstaged: 7.06µs (0.0%)
+  - Round 2: 774.60µs
+    - Hash received msgs (reliability check): 773.51µs (99.9%)
+    - Unstaged: 1.10µs (0.1%)
+  - Round 3: 5.43s
+    - Assert other parties hashed messages (reliability check): 13.24µs (0.0%)
+    - Verify psi0 proofs: 631.19ms (11.6%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 1.52ms (0.0%)
+    - Encrypt D_ji: 477.82ms (8.8%)
+    - Encrypt F_ji: 230.48ms (4.2%)
+    - Encrypt hat_D_ji: 476.15ms (8.8%)
+    - Encrypt hat_F_ji: 238.19ms (4.4%)
+    - Prove psi_ji: 1.41s (26.0%)
+    - Prove psiˆ_ji: 1.42s (26.1%)
+    - Prove psi_prime_ji : 545.36ms (10.0%)
+    - Unstaged: 35.28µs (0.0%)
+  - Round 4: 4.46s
+    - Retrieve auxiliary data: 55.92µs (0.0%)
+    - Validate psi: 1.31s (29.4%)
+    - Validate hat_psi: 1.32s (29.5%)
+    - Validate psi_prime: 787.61ms (17.7%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 486.54ms (10.9%)
+    - Prove psi_prime_prime: 556.24ms (12.5%)
+    - Unstaged: 13.28µs (0.0%)
+  - Presig output: 626.26ms
+    - Validate psi_prime_prime: 624.11ms (99.7%)
+    - Calculate presignature: 2.15ms (0.3%)
+    - Unstaged: 2.76µs (0.0%)
+  - Partial signing: 71.73µs
+  - Signature reconstruction: 3.07ms
+
+
+Signers: [2, 1, 0, 3, 4, 5]
+Hierarchical threshold signing protocol
+Protocol Performance:
+  - Protocol took 5.80s to complete
+In particular:
+  - Stage: 16.83ms
+    - Map t-out-of-n protocol to t-out-of-t: 16.69ms (99.1%)
+    - Retrieve auxiliary data: 114.48µs (0.7%)
+    - Precompute execution id and security params: 2.78µs (0.0%)
+    - Setup networking: 28.64µs (0.2%)
+    - Unstaged: 346.00ns (0.0%)
+  - Round 1: 338.09ms
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 154.35µs (0.0%)
+    - Encrypt k_i and gamma_i: 49.75ms (14.7%)
+    - Prove ψ0_j: 288.18ms (85.2%)
+    - Unstaged: 4.82µs (0.0%)
+  - Round 2: 491.94µs
+    - Hash received msgs (reliability check): 490.30µs (99.7%)
+    - Unstaged: 1.65µs (0.3%)
+  - Round 3: 2.92s
+    - Assert other parties hashed messages (reliability check): 12.86µs (0.0%)
+    - Verify psi0 proofs: 325.98ms (11.2%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 764.58µs (0.0%)
+    - Encrypt D_ji: 260.42ms (8.9%)
+    - Encrypt F_ji: 122.68ms (4.2%)
+    - Encrypt hat_D_ji: 254.48ms (8.7%)
+    - Encrypt hat_F_ji: 123.81ms (4.2%)
+    - Prove psi_ji: 759.25ms (26.0%)
+    - Prove psiˆ_ji: 741.48ms (25.4%)
+    - Prove psi_prime_ji : 329.16ms (11.3%)
+    - Unstaged: 16.94µs (0.0%)
+  - Round 4: 2.19s
+    - Retrieve auxiliary data: 28.13µs (0.0%)
+    - Validate psi: 667.48ms (30.5%)
+    - Validate hat_psi: 591.62ms (27.1%)
+    - Validate psi_prime: 360.24ms (16.5%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 253.77ms (11.6%)
+    - Prove psi_prime_prime: 312.55ms (14.3%)
+    - Unstaged: 12.91µs (0.0%)
+  - Presig output: 336.17ms
+    - Validate psi_prime_prime: 334.05ms (99.4%)
+    - Calculate presignature: 2.12ms (0.6%)
+    - Unstaged: 3.11µs (0.0%)
+  - Partial signing: 72.23µs
+  - Signature reconstruction: 3.08ms
+
+
