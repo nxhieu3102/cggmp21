@@ -383,8 +383,8 @@ fn validate_vss_key_info<E: Curve>(
                 .collect::<Vec<_>>();
 
             // Check that the first t indices create an accessible set
-            for i in 0..usize::from(t) {
-                if t_highest_ranks[i] > i as u16 {
+            for (i, ith_highest_rank) in t_highest_ranks.iter().enumerate().take(usize::from(t)) {
+                if ith_highest_rank > &(i as u16) {
                     return Err(InvalidShareReason::RankNotAccessible.into());
                 }
             }
@@ -405,7 +405,7 @@ fn validate_vss_key_info<E: Curve>(
             // Get the corresponding I values
             let t_highest_ranked_indexes = t_highest_ranked_indices
                 .iter()
-                .map(|&idx| vss_setup.I[idx].clone())
+                .map(|&idx| vss_setup.I[idx])
                 .collect::<Vec<_>>();
 
             // Interpolate the public key using Birkhoff interpolation

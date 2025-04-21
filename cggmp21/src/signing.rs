@@ -512,7 +512,7 @@ where
 /// The trick is described in more details in the spec.
 ///
 /// S: vector of parties' original indexes, who take part in signing
-/// i: index of the party in keygen (before mapping)
+/// i: index of the party in signing group (after mapping)
 /// key_share: key share of the party
 /// message_to_sign: message to sign
 /// enforce_reliable_broadcast: whether to enforce reliable broadcast
@@ -556,17 +556,14 @@ where
     if S.len() < usize::from(t) {
         return Err(InvalidArgs::MismatchedAmountOfParties.into());
     }
-    if !(i < n) {
+    if !((i as usize) < S.len()) {
         return Err(InvalidArgs::SignerIndexOutOfBounds.into());
     }
     // S_j is the index of the party in the original group
+    // It means S[i] is the original index of the current party
     if S.iter().any(|&S_j| S_j >= n) {
         return Err(InvalidArgs::InvalidS.into());
     }
-
-    // Mapping i (index in keygen) to the index in S (in signing)
-    // TODO: return error if i is not in S
-    let i = PartyIndex::from(S.iter().position(|&S_j| S_j == i).unwrap() as u16);
 
     // Assemble x_i and \vec X
     // x_i: new shares (additive shares), X: vector of public shares
@@ -587,7 +584,7 @@ where
             let X = utils::subset(S, &key_share.core.public_shares).ok_or(Bug::Subset)?;
 
             // ranks: vector of ranks of the parties, who take part in signing
-            let ranks = utils::subset(S, &ranks).ok_or(Bug::Subset)?;
+            let ranks = utils::subset(S, ranks).ok_or(Bug::Subset)?;
 
             // Convert birkhoff shares into additive shares for HTSS
             let birkhoff = birkhoff_coefficient(t, &I, &ranks).map_err(|_| Bug::BirkhoffCoef)?;
@@ -619,7 +616,7 @@ where
                 lagrange_coefficient_at_zero(usize::from(i), &I).ok_or(Bug::LagrangeCoef)?;
             let x_i = (lambda_i * &key_share.core.x).into_secret();
 
-            let lambda = (0..S.len()).map(|j| lagrange_coefficient_at_zero(usize::from(j), &I));
+            let lambda = (0..S.len()).map(|j| lagrange_coefficient_at_zero(j, &I));
             let X = lambda
                 .zip(&X)
                 .map(|(lambda_j, X_j)| Some(lambda_j? * X_j))

@@ -90,7 +90,7 @@ impl<C> Derivative<C> for Polynomial<C> {
             .coefs()
             .iter()
             .enumerate()
-            .skip(d.try_into().unwrap())
+            .skip(d.into())
             .map(|(i, coef)| {
                 let mut factor = P::from(1); // Convert factor to type P
                 let start = (i as i16 - d as i16 + 1) as u16;

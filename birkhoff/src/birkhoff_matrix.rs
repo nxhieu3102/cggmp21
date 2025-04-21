@@ -134,7 +134,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
             for j in 0..other.cells[0].len() {
                 let mut sum = Scalar::from(0);
                 for k in 0..self.cells[0].len() {
-                    sum = sum + self.cells[i][k] * other.cells[k][j];
+                    sum += self.cells[i][k] * other.cells[k][j];
                 }
 
                 result.cells[i][j] = sum;
@@ -238,9 +238,9 @@ impl<E: Curve> BirkhoffMatrix<E> {
 
         for i in 0..self.rows() {
             for j in 0..self.cols() {
-                if i != j && self.cells[i][j] != Scalar::zero() {
-                    return false;
-                } else if i == j && self.cells[i][j] != Scalar::one() {
+                if (i != j && self.cells[i][j] != Scalar::zero())
+                    || (i == j && self.cells[i][j] != Scalar::one())
+                {
                     return false;
                 }
             }
@@ -324,8 +324,8 @@ impl<E: Curve> BirkhoffMatrix<E> {
         let mut cells = vec![vec![Scalar::from(0); rank]; rank];
 
         // Set diagonal elements to 1, others to 0
-        for i in 0..rank {
-            cells[i][i] = Scalar::from(1);
+        for (i, row_i) in cells.iter_mut().enumerate().take(rank) {
+            row_i[i] = Scalar::from(1);
         }
 
         BirkhoffMatrix::new(cells)
@@ -335,15 +335,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
     /// Start from the specified column
     /// Return the index of the non-zero coefficient
     fn get_non_zero_coefficient_by_row(&self, row: usize, col: usize) -> Option<usize> {
-        // Start from the specified column
-        for j in col..self.cols() {
-            if self.cells[row][j] != Scalar::from(0) {
-                return Some(j);
-            }
-        }
-
-        // If no non-zero coefficient is found, return None
-        None
+        (col..self.cols()).find(|&j| self.cells[row][j] != Scalar::from(0))
     }
 
     /// Swaps two rows in the matrix
@@ -453,7 +445,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
 
         match inverse {
             Some(inverse) => Ok(inverse),
-            None => Err(BirkhoffError::ElementNotInvertible { row: row, col: col }),
+            None => Err(BirkhoffError::ElementNotInvertible { row, col }),
         }
     }
 }
