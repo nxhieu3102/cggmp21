@@ -1,6 +1,7 @@
 use digest::Digest;
 use futures::SinkExt;
 use paillier_zk::{
+    fast_paillier,
     no_small_factor::non_interactive as π_fac,
     paillier_blum_modulus as π_mod,
     rug::{Complete, Integer},
@@ -67,6 +68,9 @@ pub struct MsgRound2<L: SecurityLevel> {
     /// $N_i$
     #[udigest(as = utils::encoding::Integer)]
     pub N: Integer,
+    /// $Paillier enc$
+    #[udigest(as = utils::encoding::EncryptionKey)]
+    pub enc: fast_paillier::EncryptionKey,
     /// $s_i$
     #[udigest(as = utils::encoding::Integer)]
     pub s: Integer,
@@ -183,6 +187,8 @@ where
     // -------------
     tracer.protocol_begins();
 
+    std::println!("run_aux_gen: 1");
+
     tracer.stage("Retrieve auxiliary data");
 
     tracer.stage("Setup networking");
@@ -199,6 +205,8 @@ where
     // Round 1
     tracer.round_begins();
 
+    std::println!("run_aux_gen: 2");
+
     // 2 primes p and q
     // N = p * q
     // phi_N = (p - 1) * (q - 1)
@@ -207,6 +215,18 @@ where
     tracer.stage("Compute paillier decryption key (N)");
     let N = (&p * &q).complete();
     let phi_N = (&p - 1u8).complete() * (&q - 1u8).complete();
+
+    std::println!("run_aux_gen: 3");
+
+    // TODO: prove optimized Paillier decryption key
+    // TODO: catch error, remove unwrap() here
+    // TODO: get n size and a size by Security Parameter
+    let n_size = 2048;
+    let a_size = 448;
+    let dec_i = fast_paillier::DecryptionKey::generate(&mut rng, n_size, a_size)
+        .map_err(|_| Bug::PaillierKeyError)?;
+
+    std::println!("run_aux_gen: 4");
 
     tracer.stage("Generate auxiliary params r, λ, t, s");
     // r in Z_N*
@@ -219,6 +239,8 @@ where
     let t = r.square().modulo(&N);
     // s = t^lambda mod N
     let s = t.pow_mod_ref(&lambda, &N).ok_or(Bug::PowMod)?.into();
+
+    std::println!("run_aux_gen: 5");
 
     tracer.stage("Prove Πprm (ψˆ_i)");
     // (N, s, t) is Ring Pedersen Parameters
@@ -236,15 +258,21 @@ where
     )
     .map_err(Bug::PiPrm)?;
 
+    std::println!("run_aux_gen: 6");
+
     tracer.stage("Sample random bytes");
     // rho_i in paper, this signer's share of bytes
     let mut rho_bytes = L::Rid::default();
     rng.fill_bytes(rho_bytes.as_mut());
 
     tracer.stage("Compute hash commitment and sample decommitment");
+
+    std::println!("run_aux_gen: 7");
+
     // V_i and u_i in paper
     let decommitment = MsgRound2 {
         N: N.clone(),
+        enc: dec_i.encryption_key().clone(),
         s: s.clone(),
         t: t.clone(),
         params_proof: hat_psi,
@@ -261,6 +289,8 @@ where
         decommitment: &decommitment,
     });
 
+    std::println!("run_aux_gen: 8");
+
     tracer.send_msg();
     let commitment = MsgRound1 {
         commitment: hash_commit,
@@ -270,6 +300,8 @@ where
         .await
         .map_err(IoError::send_message)?;
     tracer.msg_sent();
+
+    std::println!("run_aux_gen: 9");
 
     // Round 2
     tracer.round_begins();
@@ -319,6 +351,7 @@ where
         }
     }
 
+    std::println!("run_aux_gen: 9");
     tracer.send_msg();
     outgoings
         .send(Outgoing::broadcast(Msg::Round2(decommitment.clone())))
@@ -336,6 +369,7 @@ where
         .map_err(IoError::receive_message)?;
     tracer.msgs_received();
 
+    std::println!("run_aux_gen: 10");
     // validate decommitments
     tracer.stage("Validate round 1 decommitments");
     let blame = collect_blame(&decommitments, &commitments, |j, decomm, comm| {
@@ -349,6 +383,8 @@ where
     if !blame.is_empty() {
         return Err(ProtocolAborted::invalid_decommitment(blame).into());
     }
+
+    std::println!("run_aux_gen: 11");
     // validate parameters and param_proofs
     tracer.stage("Validate П_prm (ψ_i)");
     let blame = collect_blame(&decommitments, &decommitments, |j, d, _| {
@@ -372,6 +408,8 @@ where
         return Err(ProtocolAborted::invalid_ring_pedersen_parameters(blame).into());
     }
 
+    std::println!("run_aux_gen: 12");
+
     tracer.stage("Add together shared random bytes");
     // rho in paper, collective random bytes
     let rho_bytes = decommitments
@@ -380,6 +418,9 @@ where
         .fold(rho_bytes, utils::xor_array);
 
     // common data for messages
+
+    std::println!("run_aux_gen: 13");
+
     tracer.stage("Compute П_mod (ψ_i)");
     let psi = π_mod::non_interactive::prove::<{ crate::security_level::M }, D>(
         &unambiguous::ProofMod {
@@ -395,6 +436,8 @@ where
         &mut rng,
     )
     .map_err(Bug::PiMod)?;
+
+    std::println!("run_aux_gen: 14");
     tracer.stage("Assemble security params for П_fac (ф_i)");
     let π_fac_security = π_fac::SecurityParams {
         l: L::ELL,
@@ -403,6 +446,7 @@ where
     };
     let n_sqrt = utils::sqrt(&N);
 
+    std::println!("run_aux_gen: 15");
     // message to each party
     for (j, _, d) in decommitments.iter_indexed() {
         tracer.send_msg();
@@ -448,6 +492,8 @@ where
     tracer.msg_sent();
 
     // Output
+
+    std::println!("run_aux_gen: 16");
     tracer.round_begins();
 
     tracer.receive_msgs();
@@ -458,6 +504,8 @@ where
     tracer.msgs_received();
 
     tracer.stage("Validate ψ_j (П_mod)");
+
+    std::println!("run_aux_gen: 17");
     // verify mod proofs
     let blame = collect_blame(
         &decommitments,
@@ -484,6 +532,7 @@ where
         return Err(ProtocolAborted::invalid_mod_proof(blame).into());
     }
 
+    std::println!("run_aux_gen: 18");
     tracer.stage("Validate ф_j (П_fac)");
     // verify fac proofs
 
@@ -500,6 +549,8 @@ where
         multiexp: None,
         crt: crt.clone(),
     };
+
+    std::println!("run_aux_gen: 19");
     let blame = collect_blame(
         &decommitments,
         &shares_msg_b,
@@ -527,11 +578,13 @@ where
 
     // verifications passed, compute final key shares
 
+    std::println!("run_aux_gen: 20");
     tracer.stage("Assemble auxiliary info");
     let mut party_auxes = decommitments
         .iter_including_me(&decommitment)
         .map(|d| PartyAux {
             N: d.N.clone(),
+            enc: d.enc.clone(),
             s: d.s.clone(),
             t: d.t.clone(),
             multiexp: None,
@@ -540,8 +593,7 @@ where
         .collect::<Vec<_>>();
     party_auxes[usize::from(i)].crt = crt;
     let mut aux = DirtyAuxInfo {
-        p,
-        q,
+        dec_i,
         parties: party_auxes,
         security_level: std::marker::PhantomData,
     };
@@ -553,10 +605,14 @@ where
             .map_err(Bug::BuildMultiexpTables)?;
     }
 
+    std::println!("run_aux_gen: 21");
     let aux = aux
         .validate()
         .map_err(|err| Bug::InvalidShareGenerated(err.into_error()))?;
 
+    std::println!("run_aux_gen: 22");
     tracer.protocol_ends();
+
+    std::println!("run_aux_gen: 23");
     Ok(aux)
 }

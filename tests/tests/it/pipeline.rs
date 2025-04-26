@@ -23,10 +23,19 @@ where
     E: Curve + cggmp21_tests::CurveParams,
     Point<E>: generic_ec::coords::HasAffineX<E>,
 {
+    std::println!("##### Start");
     let mut rng = DevRng::new();
+
+    std::println!("Run keygen...");
     let incomplete_shares = run_keygen(t, n, hd_enabled, &mut rng);
+
+    std::println!("Run aux gen...");
     let shares = run_aux_gen(incomplete_shares, &mut rng);
+
+    std::println!("Run signing...");
     run_signing(&shares, hd_enabled, &mut rng);
+
+    std::println!("Done!!");
 }
 
 fn run_keygen<E>(t: u16, n: u16, hd_enabled: bool, rng: &mut DevRng) -> Vec<IncompleteKeyShare<E>>

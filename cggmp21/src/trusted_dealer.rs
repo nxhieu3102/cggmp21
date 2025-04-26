@@ -26,6 +26,7 @@ use std::{iter, marker::PhantomData};
 
 use generic_ec::{Curve, NonZero, SecretScalar};
 use paillier_zk::{
+    fast_paillier,
     rug::{Complete, Integer},
     IntegerExt,
 };
@@ -222,9 +223,23 @@ pub fn generate_aux_data_with_primes<L: SecurityLevel, R: RngCore + CryptoRng>(
     enable_multiexp: bool,
     enable_crt: bool,
 ) -> Result<Vec<AuxInfo<L>>, TrustedDealerError> {
+    // TODO: validate dec_i, remove unwrap() here
+    // TODO: get n size and a size by Security Parameter
+    let dec = pregenerated_primes
+        .iter()
+        .map(|_| {
+            let n_size = 2048;
+            let a_size = 448;
+
+            fast_paillier::DecryptionKey::generate(rng, n_size, a_size)
+                .map_err(|e| Reason::PaillierKey(e))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
     let public_aux_data = pregenerated_primes
         .iter()
-        .map(|(p, q)| {
+        .zip(dec.iter())
+        .map(|((p, q), dec_i)| {
             let N = (p * q).complete();
 
             let φ_N = (p - 1u8).complete() * (q - 1u8).complete();
@@ -237,6 +252,7 @@ pub fn generate_aux_data_with_primes<L: SecurityLevel, R: RngCore + CryptoRng>(
 
             let mut aux = PartyAux {
                 N,
+                enc: dec_i.encryption_key().clone(),
                 s,
                 t,
                 multiexp: None,
@@ -253,7 +269,8 @@ pub fn generate_aux_data_with_primes<L: SecurityLevel, R: RngCore + CryptoRng>(
     pregenerated_primes
         .into_iter()
         .enumerate()
-        .map(|(i, (p, q))| {
+        .zip(dec.iter())
+        .map(|((i, (p, q)), dec_i)| {
             let mut public_aux_data = public_aux_data.clone();
             if enable_crt {
                 public_aux_data[i]
@@ -262,8 +279,7 @@ pub fn generate_aux_data_with_primes<L: SecurityLevel, R: RngCore + CryptoRng>(
             }
 
             DirtyAuxInfo {
-                p,
-                q,
+                dec_i: dec_i.clone(),
                 parties: public_aux_data,
                 security_level: PhantomData,
             }
@@ -291,4 +307,6 @@ enum Reason {
     BuildMultiexp(#[source] InvalidKeyShare),
     #[error(transparent)]
     CoreError(#[from] key_share::trusted_dealer::TrustedDealerError),
+    #[error("trusted dealer failed to generate Paillier key")]
+    PaillierKey(#[source] fast_paillier::Error),
 }

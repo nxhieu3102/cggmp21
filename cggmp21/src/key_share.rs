@@ -4,8 +4,8 @@ use std::ops;
 use std::sync::Arc;
 
 use generic_ec::{Curve, NonZero, Point};
-use paillier_zk::paillier_encryption_in_range as π_enc;
 use paillier_zk::rug::{Complete, Integer};
+use paillier_zk::{fast_paillier, paillier_encryption_in_range as π_enc};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -33,10 +33,9 @@ pub type AuxInfo<L = crate::default_choice::SecurityLevel> = Valid<DirtyAuxInfo<
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(bound = "")]
 pub struct DirtyAuxInfo<L: SecurityLevel = crate::default_choice::SecurityLevel> {
-    /// Secret prime $p$
-    pub p: Integer,
-    /// Secret prime $q$
-    pub q: Integer,
+    /// Secret Paillier decryption key
+    pub dec_i: fast_paillier::DecryptionKey,
+
     /// Public auxiliary data of all parties sharing the key
     ///
     /// `parties[i]` corresponds to public auxiliary data of $\ith$ party
@@ -62,8 +61,11 @@ pub struct DirtyKeyShare<E: Curve, L: SecurityLevel = crate::default_choice::Sec
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(bound = "")]
 pub struct PartyAux {
+    // TODO: any new info for optimized Paillier key
     /// $N_i = p_i \cdot q_i$
     pub N: Integer,
+    /// Paillier public key
+    pub enc: fast_paillier::EncryptionKey,
     /// Ring-Perdesten parameter $s_i$
     pub s: Integer,
     /// Ring-Perdesten parameter $t_i$
@@ -82,6 +84,8 @@ impl<L: SecurityLevel> Validate for DirtyAuxInfo<L> {
     type Error = InvalidKeyShare;
 
     fn is_valid(&self) -> Result<(), InvalidKeyShare> {
+        // validate Pederson key
+        // check gcd(s,N) = 1 and gcd(t,N) = 1
         if self.parties.iter().any(|p| {
             p.s.gcd_ref(&p.N).complete() != *Integer::ONE
                 || p.t.gcd_ref(&p.N).complete() != *Integer::ONE
@@ -89,10 +93,18 @@ impl<L: SecurityLevel> Validate for DirtyAuxInfo<L> {
             return Err(InvalidKeyShareReason::StGcdN.into());
         }
 
-        if !crate::security_level::validate_secret_paillier_key_size::<L>(&self.p, &self.q) {
+        // validate optimized Paillier key
+        // check size of p, q
+        if !crate::security_level::validate_secret_paillier_key_size::<L>(
+            &self.dec_i.p(),
+            &self.dec_i.q(),
+        ) {
             return Err(InvalidKeyShareReason::PaillierSkTooSmall.into());
         }
+        // TODO: check size of alpha
+        // TODO: check relation between alpha, q, p...
 
+        // validate size of Paillier public key
         if let Some(invalid_aux) = self
             .parties
             .iter()
@@ -163,7 +175,7 @@ impl<L: SecurityLevel> DirtyAuxInfo<L> {
             .parties
             .get_mut(usize::from(i))
             .ok_or(InvalidKeyShareReason::CrtINotInRange)?;
-        aux_i.precompute_crt(&self.p, &self.q)
+        aux_i.precompute_crt(&self.dec_i.p(), &self.dec_i.q())
     }
 }
 
@@ -255,7 +267,7 @@ impl<E: Curve, L: SecurityLevel> DirtyKeyShare<E, L> {
         }
 
         let N_i = &aux.parties[usize::from(core.i)].N;
-        if *N_i != (&aux.p * &aux.q).complete() {
+        if *N_i != (aux.dec_i.p() * aux.dec_i.q()).complete() {
             return Err(InvalidKeyShareReason::PrimesMul.into());
         }
 

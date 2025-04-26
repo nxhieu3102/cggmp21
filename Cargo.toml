@@ -22,7 +22,8 @@ generic-ec = { version = "0.4.1", default-features = false }
 generic-ec-zkp = { version = "0.4.1", default-features = false } 
 round-based = { version = "0.4.1", default-features = false }
 
-paillier-zk = { git = "https://github.com/nxhieu3102/paillier-zk" }
+# paillier-zk = { git = "https://github.com/nxhieu3102/paillier-zk" }
+paillier-zk = { path = "../paillier-zk" }
 udigest = { version = "0.2.1", default-features = false }
 
 digest = { version = "0.10", default-features = false }
