@@ -400,13 +400,21 @@ dependencies = [
 name = "cggmp21-wasm"
 version = "0.1.0"
 dependencies = [
+ "base64 0.21.4",
+ "cggmp21-keygen",
  "console_error_panic_hook",
+ "digest",
+ "generic-ec",
+ "generic-ec-zkp",
  "getrandom",
+ "hex",
  "js-sys",
  "rand",
+ "rand_chacha",
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
+ "sha2",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "wasm-bindgen-test",

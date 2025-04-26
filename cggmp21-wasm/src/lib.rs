@@ -1,13 +1,10 @@
 use wasm_bindgen::prelude::*;
 use serde::{Serialize, Deserialize};
-use js_sys::Math;
 use rand::Rng;
 use std::cell::RefCell;
 
-// When the `wee_alloc` feature is enabled, use `wee_alloc` as the global allocator.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+// Export the keygen module for WASM
+pub mod keygen;
 
 // Define the message format
 #[derive(Serialize, Deserialize)]
