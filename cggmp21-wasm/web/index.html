@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WASM Protocol Demo</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    h1 {
+      color: #333;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .section {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    
+    .status-section {
+      font-weight: bold;
+    }
+    
+    .logs-section {
+      height: 200px;
+      overflow-y: auto;
+      font-family: monospace;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      padding: 10px;
+      font-size: 14px;
+    }
+    
+    .result-section {
+      font-size: 20px;
+      color: #2196F3;
+    }
+    
+    .error-section {
+      color: #f44336;
+      display: none;
+    }
+    
+    .party-container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    
+    .party {
+      flex: 1;
+      min-width: 300px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 15px;
+    }
+    
+    @media (max-width: 600px) {
+      .party-container {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>WASM Protocol Demo</h1>
+  
+  <div class="container">
+    <div class="section">
+      <h2>Protocol Configuration</h2>
+      <div class="form-group">
+        <label for="party-id">Party ID:</label>
+        <input type="text" id="party-id" placeholder="Enter your party ID">
+      </div>
+      <button id="start-protocol" disabled>Start Protocol</button>
+    </div>
+    
+    <div class="section status-section">
+      <h2>Status</h2>
+      <div id="status">Initializing...</div>
+    </div>
+    
+    <div class="section">
+      <h2>Logs</h2>
+      <div id="logs" class="logs-section"></div>
+    </div>
+    
+    <div class="section result-section">
+      <h2>Result</h2>
+      <div id="result"></div>
+    </div>
+    
+    <div class="section error-section" id="error"></div>
+  </div>
+  
+  <script type="module" src="index.js"></script>
+</body>
+</html> 

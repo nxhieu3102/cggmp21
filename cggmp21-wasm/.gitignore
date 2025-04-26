@@ -1,0 +1,18 @@
+# WASM build output
+/pkg/
+
+# Node.js dependencies
+/node_modules/
+
+# Generated files
+package-lock.json
+ws-server.cjs
+
+# IDE and OS specific files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~ 
+
+/web/node_modules/

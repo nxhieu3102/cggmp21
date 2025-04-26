@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 # Only the crates below have wasm/no_std support
 [dependencies.key-share]
 path = "../../key-share"
@@ -14,3 +17,34 @@ features = ["serde", "hd-wallet", "spof", "udigest"]
 path = "../../cggmp21-keygen"
 default-features = false
 features = ["hd-wallet", "state-machine"]
+
+# Temporarily commented out due to wasm incompatibility issues
+#[dependencies.cggmp21]
+#path = "../../cggmp21"
+#default-features = false
+#features = ["state-machine"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+hex = { version = "0.4", default-features = false }
+js-sys = "0.3"
+generic-ec = { version = "0.4", default-features = false, features = ["curve-secp256k1"] }
+digest = { version = "0.10", default-features = false }
+sha2 = { version = "0.10", default-features = false }
+rand_hash = { version = "0.1", default-features = false }
+# gmp-mpfr-sys = { version = "1.6.5", features = ["force-cross"] }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+
+[dependencies.web-sys]
+features = [
+  "BinaryType",
+  "Blob",
+  "ErrorEvent",
+  "FileReader",
+  "MessageEvent",
+  "ProgressEvent",
+  "WebSocket",
+]
