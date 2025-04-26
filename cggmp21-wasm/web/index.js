@@ -3,20 +3,21 @@
 // Configuration
 const CONFIG = {
   websocketUrl: 'ws://localhost:8080',
-  totalParties: 4,
-  roundTimeoutMs: 15000 // 15 seconds timeout for each round
+  totalParties: 3,
+  roundTimeoutMs: 15000, // 15 seconds timeout for each round
+  sessionId: `session-${Date.now()}`
 };
 
 // Protocol state
 let protocolState = {
-  partyId: '',
+  partyId: 0,
   round: 0,
-  protocolInstance: null,
-  ownNumber: null,
   receivedMessages: [],
-  result: null,
+  keyShare: null,
   worker: null,
-  roundTimerId: null
+  roundTimerId: null,
+  wasmLoaded: false,
+  keygenInitialized: false
 };
 
 // UI elements
@@ -28,26 +29,25 @@ async function init() {
   
   // Generate a unique party ID if not provided
   if (!protocolState.partyId) {
-    protocolState.partyId = `party${Math.floor(Math.random() * 10000)}`;
+    protocolState.partyId = Math.floor(Math.random() * 100) + 1; // Party IDs start from 1
   }
   
-  updateUI('status', `Initializing as ${protocolState.partyId}...`);
+  // Set party ID in input field
+  UI.partyIdInput.value = protocolState.partyId;
+  
+  updateUI('status', `Initializing as Party ${protocolState.partyId}...`);
   
   try {
-    // Load the WASM module
-    const wasmModule = await import('./pkg/cggmp21_wasm.js');
-    await wasmModule.default();
-    
-    // Initialize protocol with party ID
-    protocolState.protocolInstance = new wasmModule.Protocol(protocolState.partyId);
-    
-    updateUI('status', `WASM module loaded. Party ID: ${protocolState.partyId}`);
-    
-    // Setup worker for WebSocket communication
+    // Setup worker for WebSocket communication and WASM execution
     setupWorker();
     
-    // Enable the start button
-    UI.startButton.disabled = false;
+    // Wait for WASM to be loaded
+    setTimeout(() => {
+      // Enable the start button after setup
+      UI.startButton.disabled = false;
+      
+      updateUI('status', `Ready to start protocol. Party ID: ${protocolState.partyId}`);
+    }, 1000);
   } catch (error) {
     updateUI('error', `Failed to initialize: ${error.message}`);
     console.error('Initialization error:', error);
@@ -63,18 +63,21 @@ function setupUI() {
   UI.logsDiv = document.getElementById('logs');
   UI.resultDiv = document.getElementById('result');
   UI.errorDiv = document.getElementById('error');
+  UI.progressFill = document.getElementById('progress-fill');
   
   // Set event listeners
   UI.startButton.addEventListener('click', startProtocol);
   UI.partyIdInput.addEventListener('change', (e) => {
-    protocolState.partyId = e.target.value.trim();
+    protocolState.partyId = parseInt(e.target.value.trim(), 10);
   });
   
   // Set initial values
   if (UI.partyIdInput) {
-    UI.partyIdInput.value = `party${Math.floor(Math.random() * 10000)}`;
-    protocolState.partyId = UI.partyIdInput.value;
+    UI.partyIdInput.value = protocolState.partyId || 1;
   }
+  
+  // Set initial progress
+  updateProgress(0);
 }
 
 // Setup Web Worker for WebSocket communication
@@ -85,6 +88,11 @@ function setupWorker() {
     
     // Set up message handlers for the worker
     protocolState.worker.onmessage = handleWorkerMessage;
+    
+    // Initialize WASM module in worker
+    protocolState.worker.postMessage({
+      type: 'init_wasm'
+    });
     
     // Connect to the WebSocket server
     protocolState.worker.postMessage({
@@ -107,12 +115,12 @@ function setupWorker() {
 
 // Start the protocol execution
 function startProtocol() {
-  if (!protocolState.protocolInstance) {
-    updateUI('error', 'Protocol not initialized. Please reload the page.');
+  if (!protocolState.worker || !protocolState.wasmLoaded) {
+    updateUI('error', 'Worker or WASM module not initialized. Please reload the page.');
     return;
   }
   
-  updateUI('status', 'Starting protocol...');
+  updateUI('status', 'Starting keygen protocol...');
   UI.startButton.disabled = true;
   
   // Clear previous results and errors
@@ -120,32 +128,126 @@ function startProtocol() {
   updateUI('error', '');
   
   // Reset protocol state
-  protocolState.round = 1;
+  protocolState.round = 0;
   protocolState.receivedMessages = [];
+  protocolState.keyShare = null;
   
-  // Start Round 1
+  // Reset progress bar
+  updateProgress(0);
+  
   try {
-    // Generate random number and create message
-    const messageObj = protocolState.protocolInstance.run_round_1();
-    
-    // Get the random number for display
-    protocolState.ownNumber = messageObj.data;
-    
-    updateUI('log', `Round 1: Generated random number ${protocolState.ownNumber}`);
-    
-    // Send message to other parties via the worker
+    // Initialize keygen protocol in worker
     protocolState.worker.postMessage({
-      type: 'send',
-      message: messageObj
+      type: 'init_keygen',
+      partyId: protocolState.partyId,
+      numParties: CONFIG.totalParties,
+      sessionId: CONFIG.sessionId
     });
     
-    updateUI('status', `Round 1: Sent number ${protocolState.ownNumber}. Waiting for other parties...`);
+    updateUI('log', `Initialized keygen protocol with Party ID: ${protocolState.partyId}, Session: ${CONFIG.sessionId}`);
+  } catch (error) {
+    updateUI('error', `Error initializing keygen: ${error.message}`);
+    console.error('Keygen initialization error:', error);
+    resetProtocol();
+  }
+}
+
+// Start round 1 of the keygen protocol
+function startRound1() {
+  try {
+    // Run round 1 in worker
+    protocolState.worker.postMessage({
+      type: 'run_round_1'
+    });
+    
+    // Update protocol state
+    protocolState.round = 1;
+    
+    // Update progress bar (25%)
+    updateProgress(25);
+    
+    updateUI('status', `Round 1: Generating and sending commitments... (${protocolState.round}/${4})`);
     
     // Set timeout for round 1
-    setRoundTimeout(100);
+    setRoundTimeout(1);
   } catch (error) {
     updateUI('error', `Error in Round 1: ${error.message}`);
     console.error('Round 1 error:', error);
+    resetProtocol();
+  }
+}
+
+// Start round 2 of the keygen protocol
+function startRound2() {
+  try {
+    // Run round 2 in worker
+    protocolState.worker.postMessage({
+      type: 'run_round_2',
+      messages: protocolState.receivedMessages
+    });
+    
+    // Update protocol state
+    protocolState.round = 2;
+    
+    // Update progress bar (50%)
+    updateProgress(50);
+    
+    updateUI('status', `Round 2: Processing commitments and sending decommitments... (${protocolState.round}/${4})`);
+    
+    // Set timeout for round 2
+    setRoundTimeout(2);
+  } catch (error) {
+    updateUI('error', `Error in Round 2: ${error.message}`);
+    console.error('Round 2 error:', error);
+    resetProtocol();
+  }
+}
+
+// Start round 3 of the keygen protocol
+function startRound3() {
+  try {
+    // Run round 3 in worker
+    protocolState.worker.postMessage({
+      type: 'run_round_3',
+      messages: protocolState.receivedMessages
+    });
+    
+    // Update protocol state
+    protocolState.round = 3;
+    
+    // Update progress bar (75%)
+    updateProgress(75);
+    
+    updateUI('status', `Round 3: Generating Schnorr proofs... (${protocolState.round}/${4})`);
+    
+    // Set timeout for round 3
+    setRoundTimeout(3);
+  } catch (error) {
+    updateUI('error', `Error in Round 3: ${error.message}`);
+    console.error('Round 3 error:', error);
+    resetProtocol();
+  }
+}
+
+// Finalize the keygen protocol
+function finalizeKeygen() {
+  try {
+    // Finalize keygen in worker
+    protocolState.worker.postMessage({
+      type: 'finalize_keygen',
+      messages: protocolState.receivedMessages
+    });
+    
+    // Update protocol state
+    protocolState.round = 4;
+    
+    // Update progress bar (90%)
+    updateProgress(90);
+    
+    updateUI('status', `Finalizing keygen: Verifying proofs and generating key share... (${protocolState.round}/${4})`);
+  } catch (error) {
+    updateUI('error', `Error finalizing keygen: ${error.message}`);
+    console.error('Keygen finalization error:', error);
     resetProtocol();
   }
 }
@@ -155,29 +257,53 @@ function handleWorkerMessage(event) {
   const data = event.data;
   
   switch (data.type) {
+    case 'wasm_loaded':
+      protocolState.wasmLoaded = true;
+      updateUI('log', 'WASM module loaded successfully');
+      break;
+      
+    case 'keygen_initialized':
+      protocolState.keygenInitialized = true;
+      updateUI('log', `Keygen protocol initialized for Party ${data.partyId}`);
+      
+      // Start round 1 after initialization
+      startRound1();
+      break;
+      
     case 'connection':
       handleConnectionStatus(data);
       break;
       
     case 'message':
-      updateUI('log', `Received message from ${data.sender} (${data.count}/${CONFIG.totalParties - 1})`);
+      updateUI('log', `Received message from Party ${data.sender} for Round ${data.round} (${data.count}/${CONFIG.totalParties - 1})`);
+      break;
+      
+    case 'round_started':
+      updateUI('log', `Started round ${data.round}`);
       break;
       
     case 'round_complete':
       handleRoundComplete(data);
       break;
       
+    case 'keygen_complete':
+      handleKeygenComplete(data);
+      break;
+      
     case 'error':
-      updateUI('error', `Worker error: ${data.error} - ${data.details || ''}`);
-      console.error('Worker error:', data);
+      handleError(data);
       break;
       
     case 'timeout':
-      updateUI('error', `Timeout: Received only ${data.received} of ${data.expected} messages`);
+      updateUI('error', `Timeout: Received only ${data.received} of ${data.expected} messages for Round ${data.round}`);
       break;
       
     case 'system':
       handleSystemMessage(data);
+      break;
+      
+    case 'protocol_state':
+      console.log('Protocol state:', data.state);
       break;
       
     default:
@@ -223,52 +349,67 @@ function handleRoundComplete(data) {
   // Store received messages
   protocolState.receivedMessages = data.messages;
   
-  updateUI('log', `Round ${protocolState.round} complete. Received all ${protocolState.receivedMessages.length} messages.`);
+  updateUI('log', `Round ${data.round} complete. Received all ${protocolState.receivedMessages.length} messages.`);
   
   // Process based on current round
-  if (protocolState.round === 1) {
+  if (data.round === 1) {
     // Move to Round 2
-    proceedToRound2();
+    startRound2();
+  } else if (data.round === 2) {
+    // Move to Round 3
+    startRound3();
+  } else if (data.round === 3) {
+    // Finalize keygen
+    finalizeKeygen();
   }
 }
 
-// Proceed to Round 2
-function proceedToRound2() {
-  protocolState.round = 2;
+// Handle keygen completion
+function handleKeygenComplete(data) {
+  protocolState.keyShare = data.keyShare;
   
-  try {
-    // Calculate sum using Rust WASM
-    const result = protocolState.protocolInstance.run_round_2(protocolState.receivedMessages);
-    protocolState.result = result;
-    
-    updateUI('status', 'Protocol complete!');
-    updateUI('result', `Final result: Sum of all numbers = ${result}`);
-    
-    // Show breakdown of numbers
-    let breakdown = `Own number: ${protocolState.ownNumber}\n`;
-    protocolState.receivedMessages.forEach(msg => {
-      breakdown += `${msg.sender}: ${msg.data}\n`;
-    });
-    
-    updateUI('log', `Number breakdown:\n${breakdown}`);
-    
-    // Reset to allow another run
-    UI.startButton.disabled = false;
-  } catch (error) {
-    updateUI('error', `Error in Round 2: ${error.message}`);
-    console.error('Round 2 error:', error);
-    resetProtocol();
+  // Update progress bar (100%)
+  updateProgress(100);
+  
+  updateUI('status', 'Keygen protocol complete!');
+  updateUI('result', `Key share generated successfully. Party ${protocolState.partyId} key share: ${truncateKeyShare(data.keyShare)}`);
+  
+  // Re-enable start button
+  UI.startButton.disabled = false;
+}
+
+// Handle error messages
+function handleError(data) {
+  updateUI('error', `Error: ${data.error} - ${data.details || ''}`);
+  console.error('Protocol error:', data);
+  
+  // Re-enable start button on error
+  UI.startButton.disabled = false;
+}
+
+// Update progress bar
+function updateProgress(percent) {
+  if (UI.progressFill) {
+    UI.progressFill.style.width = `${percent}%`;
   }
 }
 
-// Set timeout for a round
+// Truncate key share for display
+function truncateKeyShare(keyShare) {
+  if (!keyShare) return '';
+  
+  const str = keyShare.toString();
+  if (str.length <= 20) return str;
+  
+  return str.substring(0, 10) + '...' + str.substring(str.length - 10);
+}
+
+// Set timeout for round
 function setRoundTimeout(round) {
-  // Clear any existing timer
   clearRoundTimeout();
   
-  // Set new timer
   protocolState.roundTimerId = setTimeout(() => {
-    updateUI('error', `Timeout in Round ${round}: Not all messages were received within ${CONFIG.roundTimeoutMs / 1000} seconds`);
+    updateUI('error', `Timeout in round ${round}. Please check if all parties are connected.`);
     resetProtocol();
   }, CONFIG.roundTimeoutMs);
 }
@@ -281,45 +422,43 @@ function clearRoundTimeout() {
   }
 }
 
-// Reset protocol state to allow another run
+// Reset protocol state
 function resetProtocol() {
-  protocolState.round = 0;
-  UI.startButton.disabled = false;
   clearRoundTimeout();
+  
+  // Reset progress bar
+  updateProgress(0);
+  
+  // Re-enable start button
+  UI.startButton.disabled = false;
 }
 
 // Update UI elements
 function updateUI(type, message) {
   switch (type) {
     case 'status':
-      if (UI.statusDiv) UI.statusDiv.textContent = message;
-      console.log('Status:', message);
+      UI.statusDiv.textContent = message;
       break;
       
     case 'log':
-      if (UI.logsDiv) {
-        const logEntry = document.createElement('div');
-        logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-        UI.logsDiv.appendChild(logEntry);
-        UI.logsDiv.scrollTop = UI.logsDiv.scrollHeight;
-      }
-      console.log('Log:', message);
+      const logEntry = document.createElement('div');
+      logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      UI.logsDiv.appendChild(logEntry);
+      
+      // Scroll to bottom
+      UI.logsDiv.scrollTop = UI.logsDiv.scrollHeight;
       break;
       
     case 'result':
-      if (UI.resultDiv) UI.resultDiv.textContent = message;
-      if (message) console.log('Result:', message);
+      UI.resultDiv.textContent = message;
       break;
       
     case 'error':
-      if (UI.errorDiv) {
-        UI.errorDiv.textContent = message;
-        UI.errorDiv.style.display = message ? 'block' : 'none';
-      }
-      if (message) console.error('Error:', message);
+      UI.errorDiv.textContent = message;
+      UI.errorDiv.style.display = message ? 'block' : 'none';
       break;
   }
 }
 
-// Initialize when the page loads
+// Initialize the application when the DOM is loaded
 window.addEventListener('DOMContentLoaded', init); 
