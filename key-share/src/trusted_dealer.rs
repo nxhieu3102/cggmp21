@@ -151,6 +151,7 @@ impl<E: Curve> TrustedDealerBuilder<E> {
         let vss_setup = self.t.map(|t| VssSetup {
             min_signers: t,
             I: key_shares_indexes,
+            ranks: None,
         });
 
         #[cfg(feature = "hd-wallet")]

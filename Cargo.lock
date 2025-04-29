@@ -78,7 +78,7 @@ dependencies = [
  "ark-std",
  "derivative",
  "digest",
- "itertools 0.10.5",
+ "itertools",
  "num-bigint 0.4.3",
  "num-traits",
  "paste",
@@ -211,6 +211,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "birkhoff"
+version = "0.1.0"
+dependencies = [
+ "generic-ec",
+ "generic-ec-zkp",
+ "pretty_assertions",
+ "rand_core",
+]
+
+[[package]]
 name = "bitcoin_hashes"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -316,6 +326,7 @@ name = "cggmp21"
 version = "0.6.0"
 dependencies = [
  "anyhow",
+ "birkhoff",
  "cggmp21-keygen",
  "digest",
  "futures",
@@ -325,13 +336,8 @@ dependencies = [
  "generic-tests",
  "hd-wallet",
  "hex",
- "itertools 0.12.1",
  "key-share",
- "num-bigint 0.4.3",
- "num-integer",
- "num-traits",
  "paillier-zk",
- "pretty_assertions",
  "rand",
  "rand_core",
  "rand_dev",
@@ -349,6 +355,7 @@ dependencies = [
 name = "cggmp21-keygen"
 version = "0.5.0"
 dependencies = [
+ "birkhoff",
  "digest",
  "displaydoc",
  "futures-util",
@@ -523,7 +530,7 @@ dependencies = [
  "clap",
  "criterion-plot",
  "is-terminal",
- "itertools 0.10.5",
+ "itertools",
  "num-traits",
  "once_cell",
  "oorandom",
@@ -544,7 +551,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6b50826342786a51a89e2da3a28f1c32b06e387201bc2d19791f622c673706b1"
 dependencies = [
  "cast",
- "itertools 0.10.5",
+ "itertools",
 ]
 
 [[package]]
@@ -1500,15 +1507,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itertools"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
-dependencies = [
- "either",
-]
-
-[[package]]
 name = "itoa"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1546,6 +1544,7 @@ dependencies = [
 name = "key-share"
 version = "0.6.0"
 dependencies = [
+ "birkhoff",
  "displaydoc",
  "generic-ec",
  "generic-ec-zkp",
@@ -1662,9 +1661,9 @@ dependencies = [
 
 [[package]]
 name = "num-traits"
-version = "0.2.15"
+version = "0.2.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "578ede34cf02f8924ab9447f50c28075b4d3e5b269972345e7e0372b38c6cdcd"
+checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
 ]
