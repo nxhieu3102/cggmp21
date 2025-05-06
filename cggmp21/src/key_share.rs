@@ -98,6 +98,7 @@ impl<L: SecurityLevel> Validate for DirtyAuxInfo<L> {
         if !crate::security_level::validate_secret_paillier_key_size::<L>(
             &self.dec_i.p(),
             &self.dec_i.q(),
+            &self.dec_i.alpha(),
         ) {
             return Err(InvalidKeyShareReason::PaillierSkTooSmall.into());
         }
