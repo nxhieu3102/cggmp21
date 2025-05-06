@@ -1,7 +1,10 @@
 use anyhow::{bail, Context, Result};
-use cggmp21::{key_share::KeyShare, rug::Integer, security_level::SecurityLevel};
+use cggmp21::{
+    fast_paillier, key_share::KeyShare, rug::Integer, security_level::SecurityLevel,
+    PregeneratedPaillierKey,
+};
 use generic_ec::Curve;
-use rand::RngCore;
+use rand::{CryptoRng, RngCore};
 use serde_json::{Map, Value};
 
 /// Wraps a sink to buffer the messages. Used in [`buffer_outgoing`]
@@ -93,8 +96,8 @@ lazy_static::lazy_static! {
         PrecomputedKeyShares::from_serialized(
             include_str!("../../test-data/precomputed_shares.json")
         ).unwrap();
-    pub static ref CACHED_PRIMES: PregeneratedPrimes =
-        PregeneratedPrimes::from_serialized(
+    pub static ref CACHED_PAILLIER_KEYS: PregeneratedPaillierKeys =
+        PregeneratedPaillierKeys::from_serialized(
             include_str!("../../test-data/pregenerated_primes.json")
         ).unwrap();
 }
@@ -157,35 +160,36 @@ impl PrecomputedKeyShares {
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub struct PregeneratedPrimes {
-    // It would be better to use key_refresh::PregeneratedPrimes here, but
+pub struct PregeneratedPaillierKeys {
+    // It would be better to use key_refresh::PregeneratedPaillierKeys here, but
     // adding serialization to that is an enormous pain in the ass
-    primes: Vec<Integer>,
-    bitsize: u32,
+    paillier_keys: Vec<fast_paillier::DecryptionKey>,
+    n_size: u32,
+    a_size: u32,
 }
 
-impl PregeneratedPrimes {
+impl PregeneratedPaillierKeys {
     pub fn from_serialized(repr: &str) -> Result<Self> {
-        serde_json::from_str(repr).context("parse primes")
+        serde_json::from_str(repr).context("parse paillier keys")
     }
 
     pub fn to_serialized(&self) -> Result<String> {
-        serde_json::to_string_pretty(self).context("serialize primes")
+        serde_json::to_string_pretty(self).context("serialize paillier keys")
     }
 
-    /// Iterate over numbers, producing pregenerated pairs for key refresh
-    pub fn iter<L>(&self) -> impl Iterator<Item = cggmp21::key_refresh::PregeneratedPrimes<L>> + '_
+    /// Iterate over numbers, producing pregenerated paillier keys for key refresh
+    pub fn iter<L>(
+        &self,
+    ) -> impl Iterator<Item = cggmp21::key_refresh::PregeneratedPaillierKey<L>> + '_
     where
         L: cggmp21::security_level::SecurityLevel,
     {
-        if self.bitsize != 4 * L::SECURITY_BITS {
-            panic!("Attempting to use generated primes while expecting wrong bit size");
+        if self.n_size != L::N_SIZE || self.a_size != L::A_SIZE {
+            panic!("Attempting to use generated paillier keys while expecting wrong bit size");
         }
-        self.primes.chunks(2).map(|s| {
-            let p = &s[0];
-            let q = &s[1];
-            cggmp21::key_refresh::PregeneratedPrimes::new(p.clone(), q.clone())
-                .expect("primes have wrong bit size")
+        self.paillier_keys.iter().map(|dec| {
+            cggmp21::key_refresh::PregeneratedPaillierKey::new(dec.clone())
+                .expect("paillier keys have wrong bit size")
         })
     }
 
@@ -193,18 +197,24 @@ impl PregeneratedPrimes {
     pub fn generate<R, L>(amount: usize, rng: &mut R) -> Self
     where
         L: cggmp21::security_level::SecurityLevel,
-        R: RngCore,
+        R: RngCore + CryptoRng,
     {
-        let bitsize = 4 * L::SECURITY_BITS;
-        let primes = (0..amount)
-            .flat_map(|_| {
-                let p = generate_blum_prime(rng, bitsize);
-                let q = generate_blum_prime(rng, bitsize);
-                [p, q]
+        let n_size = L::N_SIZE;
+        let a_size = L::A_SIZE;
+
+        let paillier_keys = (0..amount)
+            .into_iter()
+            .map(|_| {
+                let pregented_paillier_key = PregeneratedPaillierKey::<L>::generate(rng).unwrap();
+                pregented_paillier_key.dec().clone()
             })
             .collect();
 
-        Self { primes, bitsize }
+        Self {
+            paillier_keys,
+            n_size,
+            a_size,
+        }
     }
 }
 

@@ -351,7 +351,7 @@ pub mod keygen {
 }
 
 pub use self::{
-    key_refresh::{KeyRefreshError, PregeneratedPrimes},
+    key_refresh::{KeyRefreshError, PregeneratedPaillierKey},
     key_share::{IncompleteKeyShare, KeyShare},
     keygen::KeygenError,
     signing::{DataToSign, PartialSignature, Presignature, Signature, SigningError},
@@ -374,7 +374,7 @@ pub fn aux_info_gen<L>(
     eid: ExecutionId,
     i: u16,
     n: u16,
-    pregenerated: key_refresh::PregeneratedPrimes<L>,
+    pregenerated: PregeneratedPaillierKey<L>,
 ) -> key_refresh::AuxInfoGenerationBuilder<L>
 where
     L: SecurityLevel,
@@ -391,7 +391,7 @@ where
 pub fn key_refresh<'a, E, L>(
     eid: ExecutionId<'a>,
     key_share: &'a impl AnyKeyShare<E>,
-    pregenerated: key_refresh::PregeneratedPrimes<L>,
+    pregenerated: PregeneratedPaillierKey<L>,
 ) -> key_refresh::KeyRefreshBuilder<'a, E, L>
 where
     E: Curve,

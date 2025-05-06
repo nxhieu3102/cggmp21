@@ -1,10 +1,14 @@
 use anyhow::{bail, Context, Result};
+use cggmp21::fast_paillier;
+use cggmp21::security_level::SecurityLevel;
 use cggmp21::supported_curves::{Secp256k1, Secp256r1, Stark};
 use cggmp21::{
     security_level::{KeygenSecurityLevel, SecurityLevel128},
     trusted_dealer,
 };
-use cggmp21_tests::{generate_blum_prime, PrecomputedKeyShares, PregeneratedPrimes};
+use cggmp21_tests::{
+    generate_blum_prime, PrecomputedKeyShares, PregeneratedPaillierKeys, PregeneratedPrimes,
+};
 use generic_ec::Curve;
 use rand::{rngs::OsRng, CryptoRng, RngCore};
 
@@ -12,7 +16,7 @@ fn main() -> Result<()> {
     match args() {
         Operation::GenShares => precompute_shares(),
         Operation::GenOldShares { out_dir } => generate_old_share(&out_dir),
-        Operation::GenPrimes => precompute_primes(),
+        Operation::GenPaillierKeys => precompute_paillier_keys(),
     }
 }
 
@@ -21,15 +25,18 @@ fn main() -> Result<()> {
 enum Operation {
     GenShares,
     GenOldShares { out_dir: std::path::PathBuf },
-    GenPrimes,
+    GenPaillierKeys,
 }
 
 fn args() -> Operation {
     use bpaf::Parser;
     let shares = bpaf::command("shares", bpaf::pure(Operation::GenShares).to_options())
         .help("Pregenerate key shares");
-    let primes = bpaf::command("primes", bpaf::pure(Operation::GenPrimes).to_options())
-        .help("Pregenerate primes for key refresh");
+    let paillier_keys = bpaf::command(
+        "paillier-keys",
+        bpaf::pure(Operation::GenPaillierKeys).to_options(),
+    )
+    .help("Pregenerate paillier keys for key refresh");
 
     let out_dir = bpaf::long("out-dir")
         .help("path to an existing directory where to save generated shares")
@@ -39,7 +46,7 @@ fn args() -> Operation {
         .command("old-shares")
         .help("Generates old shares; see ./test-data/old-shares");
 
-    bpaf::construct!([shares, primes, old_shares])
+    bpaf::construct!([shares, paillier_keys, old_shares])
         .to_options()
         .descr("Pregenerate test data and print it to stdout")
         .run()
@@ -58,9 +65,10 @@ fn precompute_shares() -> Result<()> {
     Ok(())
 }
 
-fn precompute_primes() -> Result<()> {
+fn precompute_paillier_keys() -> Result<()> {
     let mut rng = OsRng;
-    let json = PregeneratedPrimes::generate::<_, SecurityLevel128>(10, &mut rng).to_serialized()?;
+    let json =
+        PregeneratedPaillierKeys::generate::<_, SecurityLevel128>(10, &mut rng).to_serialized()?;
     println!("{json}");
     Ok(())
 }
@@ -80,19 +88,22 @@ fn precompute_shares_for_curve<E: Curve, R: RngCore + CryptoRng>(
                     "t={t:?},n={n},curve={},hd_enabled={hd_enabled}",
                     E::CURVE_NAME
                 );
-                let primes = std::iter::repeat_with(|| {
-                    let p = generate_blum_prime(rng, SecurityLevel128::SECURITY_BITS * 4);
-                    let q = generate_blum_prime(rng, SecurityLevel128::SECURITY_BITS * 4);
-                    (p, q)
+                let n_size = SecurityLevel128::N_SIZE;
+                let a_size = SecurityLevel128::A_SIZE;
+                let paillier_keys = std::iter::repeat_with(|| {
+                    let dec = fast_paillier::DecryptionKey::generate(rng, n_size, a_size).unwrap();
+                    dec
                 })
                 .take(n.into())
                 .collect();
+
                 let shares = trusted_dealer::builder::<E, SecurityLevel128>(n)
                     .set_threshold(t)
-                    .set_pregenerated_primes(primes)
+                    .set_pregenerated_paillier_keys(paillier_keys)
                     .hd_wallet(hd_enabled)
                     .generate_shares(rng)
                     .context("generate shares")?;
+
                 cache
                     .add_shares(t, n, hd_enabled, &shares)
                     .context("add shares")?;

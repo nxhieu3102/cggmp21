@@ -31,7 +31,7 @@ where
     #[cfg(feature = "hd-wallet")]
     assert!(shares[0].chain_code.is_some());
 
-    let mut primes = cggmp21_tests::CACHED_PRIMES.iter::<SecurityLevel128>();
+    let mut paillier_keys = cggmp21_tests::CACHED_PAILLIER_KEYS.iter::<SecurityLevel128>();
 
     // Perform refresh
 
@@ -41,7 +41,7 @@ where
     let key_shares = round_based::sim::run_with_setup(&shares, |_i, party, share| {
         let party = cggmp21_tests::buffer_outgoing(party);
         let mut party_rng = rng.fork();
-        let pregenerated_data = primes.next().expect("Can't fetch primes");
+        let pregenerated_data = paillier_keys.next().expect("Can't fetch paillier keys");
         async move {
             cggmp21::key_refresh(eid, share, pregenerated_data)
                 .enforce_reliable_broadcast(reliable_broadcast)
@@ -131,7 +131,7 @@ where
     let shares = cggmp21_tests::CACHED_SHARES
         .get_shares::<E, SecurityLevel128>(Some(t), n, false)
         .expect("retrieve cached shares");
-    let mut primes = cggmp21_tests::CACHED_PRIMES.iter::<SecurityLevel128>();
+    let mut paillier_keys = cggmp21_tests::CACHED_PAILLIER_KEYS.iter::<SecurityLevel128>();
 
     // Perform refresh
 
@@ -141,7 +141,7 @@ where
     let aux_infos = round_based::sim::run(n, |i, party| {
         let party = cggmp21_tests::buffer_outgoing(party);
         let mut party_rng = rng.fork();
-        let pregenerated_data = primes.next().expect("Can't fetch primes");
+        let pregenerated_data = paillier_keys.next().expect("Can't fetch paillier keys");
         async move {
             cggmp21::aux_info_gen(eid, i, n, pregenerated_data)
                 .enforce_reliable_broadcast(reliable_broadcast)

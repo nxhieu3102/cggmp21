@@ -17,7 +17,7 @@ use round_based::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::{Bug, KeyRefreshError, PregeneratedPrimes, ProtocolAborted};
+use super::{Bug, KeyRefreshError, PregeneratedPaillierKey, ProtocolAborted};
 use crate::{
     errors::IoError,
     key_share::{
@@ -190,7 +190,7 @@ pub async fn run_refresh<R, M, E, L, D>(
     mut rng: &mut R,
     party: M,
     sid: ExecutionId<'_>,
-    pregenerated: PregeneratedPrimes<L>,
+    pregenerated: PregeneratedPaillierKey<L>,
     mut tracer: Option<&mut dyn Tracer>,
     reliable_broadcast_enforced: bool,
     build_multiexp_tables: bool,
@@ -224,17 +224,12 @@ where
     // Round 1
     tracer.round_begins();
 
-    tracer.stage("Retrieve primes (p and q)");
-    let PregeneratedPrimes { p, q, .. } = pregenerated;
-    tracer.stage("Compute paillier decryption key (N)");
-    let N = (&p * &q).complete();
-    let phi_N = (&p - 1u8).complete() * (&q - 1u8).complete();
-
-    // TODO: get n size and a size by Security Parameter
-    let n_size = 2048;
-    let a_size = 448;
-    let dec = fast_paillier::DecryptionKey::generate(&mut rng, n_size, a_size)
-        .map_err(|_| Bug::PaillierKeyError)?;
+    tracer.stage("Retrieve paillier decryption key");
+    let PregeneratedPaillierKey { dec, .. } = pregenerated;
+    let p = dec.p();
+    let q = dec.q();
+    let N = (p * q).complete();
+    let phi_N = (p - 1u8).complete() * (q - 1u8).complete();
 
     // *x_i* in paper
     tracer.stage("Generate secret x_i and public X_i");
@@ -739,7 +734,7 @@ where
         .collect::<Vec<_>>();
     party_auxes[usize::from(i)].crt = crt;
     let mut aux = DirtyAuxInfo {
-        dec_i: dec,
+        dec,
         parties: party_auxes,
         security_level: std::marker::PhantomData,
     };

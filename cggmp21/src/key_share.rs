@@ -34,7 +34,7 @@ pub type AuxInfo<L = crate::default_choice::SecurityLevel> = Valid<DirtyAuxInfo<
 #[serde(bound = "")]
 pub struct DirtyAuxInfo<L: SecurityLevel = crate::default_choice::SecurityLevel> {
     /// Secret Paillier decryption key
-    pub dec_i: fast_paillier::DecryptionKey,
+    pub dec: fast_paillier::DecryptionKey,
 
     /// Public auxiliary data of all parties sharing the key
     ///
@@ -96,9 +96,9 @@ impl<L: SecurityLevel> Validate for DirtyAuxInfo<L> {
         // validate optimized Paillier key
         // check size of p, q
         if !crate::security_level::validate_secret_paillier_key_size::<L>(
-            &self.dec_i.p(),
-            &self.dec_i.q(),
-            &self.dec_i.alpha(),
+            &self.dec.p(),
+            &self.dec.q(),
+            &self.dec.alpha(),
         ) {
             return Err(InvalidKeyShareReason::PaillierSkTooSmall.into());
         }
@@ -176,7 +176,7 @@ impl<L: SecurityLevel> DirtyAuxInfo<L> {
             .parties
             .get_mut(usize::from(i))
             .ok_or(InvalidKeyShareReason::CrtINotInRange)?;
-        aux_i.precompute_crt(&self.dec_i.p(), &self.dec_i.q())
+        aux_i.precompute_crt(&self.dec.p(), &self.dec.q())
     }
 }
 
@@ -268,7 +268,7 @@ impl<E: Curve, L: SecurityLevel> DirtyKeyShare<E, L> {
         }
 
         let N_i = &aux.parties[usize::from(core.i)].N;
-        if *N_i != (aux.dec_i.p() * aux.dec_i.q()).complete() {
+        if *N_i != (aux.dec.p() * aux.dec.q()).complete() {
             return Err(InvalidKeyShareReason::PrimesMul.into());
         }
 

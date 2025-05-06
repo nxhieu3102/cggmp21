@@ -657,7 +657,7 @@ where
     std::println!("signing_t_out_of_n: 4");
 
     // Assemble rest of the data
-    let dec_i = &key_share.aux.dec_i;
+    let dec_i = &key_share.aux.dec;
     let R = utils::subset(S, &key_share.aux.parties).ok_or(Bug::Subset)?;
 
     std::println!("signing_t_out_of_n: 5");
@@ -1701,8 +1701,6 @@ enum InvalidArgs {
 
 #[derive(Debug, Error)]
 enum Bug {
-    #[error("own paillier decryption key is not valid")]
-    InvalidOwnPaillierKey,
     #[error("invalid key share: number of parties exceeds u16")]
     PartiesNumberExceedsU16,
     #[error("couldn't encrypt a scalar with paillier encryption key: {0:?}")]

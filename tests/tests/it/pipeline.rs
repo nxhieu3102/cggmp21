@@ -70,7 +70,7 @@ fn run_aux_gen<E>(shares: Vec<IncompleteKeyShare<E>>, rng: &mut DevRng) -> Vec<K
 where
     E: Curve,
 {
-    let mut primes = cggmp21_tests::CACHED_PRIMES.iter();
+    let mut paillier_keys = cggmp21_tests::CACHED_PAILLIER_KEYS.iter();
     let n = shares.len().try_into().unwrap();
 
     let eid: [u8; 32] = rng.gen();
@@ -79,7 +79,7 @@ where
     let aux_infos = round_based::sim::run(n, |i, party| {
         let party = cggmp21_tests::buffer_outgoing(party);
         let mut party_rng = rng.fork();
-        let pregenerated_data = primes.next().expect("Can't fetch primes");
+        let pregenerated_data = paillier_keys.next().expect("Can't fetch primes");
         async move {
             cggmp21::aux_info_gen(eid, i, n, pregenerated_data)
                 .start(&mut party_rng, party)

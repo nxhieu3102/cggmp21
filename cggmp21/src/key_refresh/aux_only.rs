@@ -25,7 +25,7 @@ use crate::{
     ExecutionId,
 };
 
-use super::{Bug, KeyRefreshError, PregeneratedPrimes, ProtocolAborted};
+use super::{Bug, KeyRefreshError, PregeneratedPaillierKey, ProtocolAborted};
 
 macro_rules! prefixed {
     ($name:tt) => {
@@ -163,7 +163,7 @@ pub async fn run_aux_gen<R, M, L, D>(
     mut rng: &mut R,
     party: M,
     sid: ExecutionId<'_>,
-    pregenerated: PregeneratedPrimes<L>,
+    pregenerated: PregeneratedPaillierKey<L>,
     mut tracer: Option<&mut dyn Tracer>,
     reliable_broadcast_enforced: bool,
     compute_multiexp_table: bool,
@@ -210,21 +210,15 @@ where
     // 2 primes p and q
     // N = p * q
     // phi_N = (p - 1) * (q - 1)
-    tracer.stage("Retrieve primes (p and q)");
-    let PregeneratedPrimes { p, q, .. } = pregenerated;
-    tracer.stage("Compute paillier decryption key (N)");
-    let N = (&p * &q).complete();
-    let phi_N = (&p - 1u8).complete() * (&q - 1u8).complete();
+    tracer.stage("Retrieve data from paillier decryption key");
+    // TODO: prove optimized Paillier decryption key
+    let PregeneratedPaillierKey { dec, .. } = pregenerated;
+    let p = dec.p();
+    let q = dec.q();
 
     std::println!("run_aux_gen: 3");
-
-    // TODO: prove optimized Paillier decryption key
-    // TODO: catch error, remove unwrap() here
-    // TODO: get n size and a size by Security Parameter
-    let n_size = 2048;
-    let a_size = 448;
-    let dec_i = fast_paillier::DecryptionKey::generate(&mut rng, n_size, a_size)
-        .map_err(|_| Bug::PaillierKeyError)?;
+    let N = (p * q).complete();
+    let phi_N = (p - 1u8).complete() * (q - 1u8).complete();
 
     std::println!("run_aux_gen: 4");
 
@@ -272,7 +266,7 @@ where
     // V_i and u_i in paper
     let decommitment = MsgRound2 {
         N: N.clone(),
-        enc: dec_i.encryption_key().clone(),
+        enc: dec.encryption_key().clone(),
         s: s.clone(),
         t: t.clone(),
         params_proof: hat_psi,
@@ -593,7 +587,7 @@ where
         .collect::<Vec<_>>();
     party_auxes[usize::from(i)].crt = crt;
     let mut aux = DirtyAuxInfo {
-        dec_i,
+        dec,
         parties: party_auxes,
         security_level: std::marker::PhantomData,
     };

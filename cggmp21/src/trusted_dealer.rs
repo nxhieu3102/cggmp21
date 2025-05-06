@@ -26,7 +26,7 @@ use std::{iter, marker::PhantomData};
 
 use generic_ec::{Curve, NonZero, SecretScalar};
 use paillier_zk::{
-    fast_paillier,
+    fast_paillier::{self},
     rug::{Complete, Integer},
     IntegerExt,
 };
@@ -56,7 +56,7 @@ type CoreBuilder<E> = key_share::trusted_dealer::TrustedDealerBuilder<E>;
 pub struct TrustedDealerBuilder<E: Curve, L: SecurityLevel> {
     inner: CoreBuilder<E>,
     n: u16,
-    pregenerated_primes: Option<Vec<(Integer, Integer)>>,
+    pregenerated_paillier_keys: Option<Vec<fast_paillier::DecryptionKey>>,
     enable_mulitexp: bool,
     enable_crt: bool,
     _ph: PhantomData<L>,
@@ -70,7 +70,7 @@ impl<E: Curve, L: SecurityLevel> TrustedDealerBuilder<E, L> {
         TrustedDealerBuilder {
             inner: CoreBuilder::new(n),
             n,
-            pregenerated_primes: None,
+            pregenerated_paillier_keys: None,
             enable_mulitexp: false,
             enable_crt: false,
             _ph: PhantomData,
@@ -106,12 +106,15 @@ impl<E: Curve, L: SecurityLevel> TrustedDealerBuilder<E, L> {
         }
     }
 
-    /// Sets pregenerated primes to use
+    /// Sets pregenerated paillier keys to use
     ///
-    /// `primes` should have exactly `n` pairs of primes.
-    pub fn set_pregenerated_primes(self, primes: Vec<(Integer, Integer)>) -> Self {
+    /// `paillier_keys` should have exactly `n` paillier decryption keys
+    pub fn set_pregenerated_paillier_keys(
+        self,
+        paillier_keys: Vec<fast_paillier::DecryptionKey>,
+    ) -> Self {
         Self {
-            pregenerated_primes: Some(primes),
+            pregenerated_paillier_keys: Some(paillier_keys),
             ..self
         }
     }
@@ -172,10 +175,10 @@ impl<E: Curve, L: SecurityLevel> TrustedDealerBuilder<E, L> {
         let enable_multiexp = self.enable_mulitexp;
         let enable_crt = self.enable_crt;
 
-        let primes = self.pregenerated_primes.take();
+        let paillier_keys = self.pregenerated_paillier_keys.take();
         let core_key_shares = self.inner.generate_shares(rng).map_err(Reason::CoreError)?;
-        let aux_data = if let Some(primes) = primes {
-            generate_aux_data_with_primes(rng, primes, enable_multiexp, enable_crt)?
+        let aux_data = if let Some(paillier_keys) = paillier_keys {
+            generate_aux_data_with_paillier_keys(rng, paillier_keys, enable_multiexp, enable_crt)?
         } else {
             generate_aux_data(rng, n, enable_multiexp, enable_crt)?
         };
@@ -203,12 +206,17 @@ pub fn generate_aux_data<L: SecurityLevel, R: RngCore + CryptoRng>(
     enable_multiexp: bool,
     enable_crt: bool,
 ) -> Result<Vec<AuxInfo<L>>, TrustedDealerError> {
-    let primes =
-        iter::repeat_with(|| crate::key_refresh::PregeneratedPrimes::<L>::generate(rng).split())
-            .take(n.into())
-            .collect::<Vec<_>>();
+    // TODO: remove unwrap() here
+    let paillier_keys = iter::repeat_with(|| {
+        crate::key_refresh::PregeneratedPaillierKey::<L>::generate(rng)
+            .unwrap()
+            .dec()
+            .to_owned()
+    })
+    .take(n.into())
+    .collect::<Vec<_>>();
 
-    generate_aux_data_with_primes(rng, primes, enable_multiexp, enable_crt)
+    generate_aux_data_with_paillier_keys(rng, paillier_keys, enable_multiexp, enable_crt)
 }
 
 /// Generates auxiliary data for `n` signers using provided pregenerated primes
@@ -217,30 +225,21 @@ pub fn generate_aux_data<L: SecurityLevel, R: RngCore + CryptoRng>(
 ///
 /// `enable_multiexp` and `enable_crt` flags configure whether to enable [multiexp](TrustedDealerBuilder::enable_multiexp)
 /// and [CRT](TrustedDealerBuilder::enable_crt) optimizations.
-pub fn generate_aux_data_with_primes<L: SecurityLevel, R: RngCore + CryptoRng>(
+pub fn generate_aux_data_with_paillier_keys<L: SecurityLevel, R: RngCore + CryptoRng>(
     rng: &mut R,
-    pregenerated_primes: Vec<(Integer, Integer)>,
+    pregenerated_paillier_keys: Vec<fast_paillier::DecryptionKey>,
     enable_multiexp: bool,
     enable_crt: bool,
 ) -> Result<Vec<AuxInfo<L>>, TrustedDealerError> {
     // TODO: validate dec_i, remove unwrap() here
     // TODO: get n size and a size by Security Parameter
-    let dec = pregenerated_primes
-        .iter()
-        .map(|_| {
-            let n_size = 2048;
-            let a_size = 448;
 
-            fast_paillier::DecryptionKey::generate(rng, n_size, a_size)
-                .map_err(|e| Reason::PaillierKey(e))
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-
-    let public_aux_data = pregenerated_primes
+    let public_aux_data = pregenerated_paillier_keys
         .iter()
-        .zip(dec.iter())
-        .map(|((p, q), dec_i)| {
-            let N = (p * q).complete();
+        .map(|dec| {
+            let p = dec.p();
+            let q = dec.q();
+            let N = dec.n();
 
             let φ_N = (p - 1u8).complete() * (q - 1u8).complete();
 
@@ -251,8 +250,8 @@ pub fn generate_aux_data_with_primes<L: SecurityLevel, R: RngCore + CryptoRng>(
             let s = t.pow_mod_ref(&λ, &N).ok_or(Reason::PowMod)?.into();
 
             let mut aux = PartyAux {
-                N,
-                enc: dec_i.encryption_key().clone(),
+                N: N.clone(),
+                enc: dec.encryption_key().clone(),
                 s,
                 t,
                 multiexp: None,
@@ -266,20 +265,19 @@ pub fn generate_aux_data_with_primes<L: SecurityLevel, R: RngCore + CryptoRng>(
         })
         .collect::<Result<Vec<_>, Reason>>()?;
 
-    pregenerated_primes
+    pregenerated_paillier_keys
         .into_iter()
         .enumerate()
-        .zip(dec.iter())
-        .map(|((i, (p, q)), dec_i)| {
+        .map(|(i, dec_i)| {
             let mut public_aux_data = public_aux_data.clone();
             if enable_crt {
                 public_aux_data[i]
-                    .precompute_crt(&p, &q)
+                    .precompute_crt(dec_i.p(), dec_i.q())
                     .map_err(Reason::BuildCrt)?;
             }
 
             DirtyAuxInfo {
-                dec_i: dec_i.clone(),
+                dec: dec_i.clone(),
                 parties: public_aux_data,
                 security_level: PhantomData,
             }
@@ -307,6 +305,4 @@ enum Reason {
     BuildMultiexp(#[source] InvalidKeyShare),
     #[error(transparent)]
     CoreError(#[from] key_share::trusted_dealer::TrustedDealerError),
-    #[error("trusted dealer failed to generate Paillier key")]
-    PaillierKey(#[source] fast_paillier::Error),
 }

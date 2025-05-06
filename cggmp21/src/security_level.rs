@@ -22,11 +22,11 @@ pub const M: usize = 128;
 
 /// Hardcoded value for parameter $n_size$ of security level
 /// Which is the size of Optimized Paillier public key
-pub const N_SIZE: usize = 3072;
+pub const N_SIZE: u32 = 3072;
 
 /// Hardcoded value for parameter $a_size$ of security level
 /// Which is the size of Optimized Paillier secret key (alpha)
-pub const A_SIZE: usize = 512;
+pub const A_SIZE: u32 = 512;
 
 /// Security level of the CGGMP21 protocol
 ///
@@ -51,12 +51,12 @@ pub trait SecurityLevel: KeygenSecurityLevel {
     /// $n_size$ parameter: size of Optimized Paillier public key
     /// Which is corresponding to $m$
     /// Because $m$ is hardcoded, so $n_size$ is hardcoded too
-    const N_SIZE: usize;
+    const N_SIZE: u32;
 
     /// $a_size$ parameter: size of Optimized Paillier private key
     /// Which is corresponding to $m$
     /// Because $m$ is hardcoded, so $a_size$ is hardcoded too
-    const A_SIZE: usize;
+    const A_SIZE: u32;
 
     /// $q$ parameter
     ///
@@ -196,8 +196,8 @@ macro_rules! define_security_level {
             const ELL: usize = $ell;
             const ELL_PRIME: usize = $ell_prime;
             const M: usize = 128;
-            const N_SIZE: usize = 3072;
-            const A_SIZE: usize = 512;
+            const N_SIZE: u32 = 3072;
+            const A_SIZE: u32 = 512;
 
             fn q() -> $crate::security_level::_internal::Integer {
                 $q

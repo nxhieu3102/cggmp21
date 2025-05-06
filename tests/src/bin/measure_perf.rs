@@ -237,11 +237,13 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
             let eid: [u8; 32] = rng.gen();
             let eid = ExecutionId::new(&eid);
 
-            let mut primes = cggmp21_tests::CACHED_PRIMES.iter::<L>();
+            let mut paillier_keys = cggmp21_tests::CACHED_PAILLIER_KEYS.iter::<L>();
 
             let outputs = round_based::sim::run(n, |i, party| {
                 let mut party_rng = rng.fork();
-                let pregen = primes.next().expect("Can't get pregenerated prime");
+                let pregen = paillier_keys
+                    .next()
+                    .expect("Can't get pregenerated paillier key");
 
                 let mut profiler = PerfProfiler::new();
 
