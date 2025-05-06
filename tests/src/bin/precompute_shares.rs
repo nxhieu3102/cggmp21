@@ -1,14 +1,10 @@
+// cargo run --bin precompute_shares --features="hd-wallet" > logs/precompute-shares/precomputed_paillier_keys.json -- paillier-keys
 use anyhow::{bail, Context, Result};
 use cggmp21::fast_paillier;
 use cggmp21::security_level::SecurityLevel;
 use cggmp21::supported_curves::{Secp256k1, Secp256r1, Stark};
-use cggmp21::{
-    security_level::{KeygenSecurityLevel, SecurityLevel128},
-    trusted_dealer,
-};
-use cggmp21_tests::{
-    generate_blum_prime, PrecomputedKeyShares, PregeneratedPaillierKeys, PregeneratedPrimes,
-};
+use cggmp21::{security_level::SecurityLevel128, trusted_dealer};
+use cggmp21_tests::{PrecomputedKeyShares, PregeneratedPaillierKeys};
 use generic_ec::Curve;
 use rand::{rngs::OsRng, CryptoRng, RngCore};
 
@@ -66,9 +62,10 @@ fn precompute_shares() -> Result<()> {
 }
 
 fn precompute_paillier_keys() -> Result<()> {
+    let amount = 10;
     let mut rng = OsRng;
-    let json =
-        PregeneratedPaillierKeys::generate::<_, SecurityLevel128>(10, &mut rng).to_serialized()?;
+    let json = PregeneratedPaillierKeys::generate::<_, SecurityLevel128>(amount, &mut rng)
+        .to_serialized()?;
     println!("{json}");
     Ok(())
 }
