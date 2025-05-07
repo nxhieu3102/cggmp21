@@ -727,22 +727,27 @@ where
     // Round 1
     tracer.round_begins();
 
-    tracer.stage("Generate local ephemeral secrets (k_i, y_i, p_i, v_i)");
+    tracer.stage("Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i)");
     let gamma_i = SecretScalar::<E>::random(rng);
     let k_i = SecretScalar::<E>::random(rng);
 
-    let v_i = Integer::gen_invertible(N_i, rng);
+    let nu_i = Integer::gen_invertible(N_i, rng);
     let rho_i = Integer::gen_invertible(N_i, rng);
 
     tracer.stage("Encrypt G_i and K_i");
     let G_i = dec_i
-        .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &v_i)
+        .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &nu_i)
         .map_err(|_| Bug::PaillierEnc(BugSource::G_i))?;
     let K_i = dec_i
         .encrypt_with(&utils::scalar_to_bignumber(&k_i), &rho_i)
         .map_err(|_| Bug::PaillierEnc(BugSource::K_i))?;
     runtime.yield_now().await;
 
+    // TODO: sample Y_i <- G; a_i, b_i <- F_q
+    // Set (A_{i,1}, A_{i,2}) = (g^{a_i}, Y_i^{a_i}.g^{k_i})
+    // Set (B_{i,1}, B_{i,2}) = (g^{b_i}, Y_^{b_i}.g^{gamma_i})
+
+    // TODO: broadcast (Y_i, A_{i,1}, A_{i,2}, B_{i,1}, B_{i,2})
     tracer.send_msg();
     outgoings
         .feed(Outgoing::broadcast(Msg::Round1a(MsgRound1a {
@@ -757,10 +762,13 @@ where
         tracer.stage("Prove ψ0_j");
         let R_j = &R[usize::from(j)];
 
+        // TODO: replace pi_enc with pi_enc_elg (batch proof K_i and G_i)
         let psi0 = pi_enc::non_interactive::prove::<D>(
             &unambiguous::ProofEnc { sid, prover: i },
             &R_j.into(),
             pi_enc::Data {
+                // TODO: Does decryption key leak any serious information if it is stored in Data
+                // CGGMP21 does not pass key into Data
                 key: &dec_i,
                 ciphertext: &K_i,
             },
@@ -789,10 +797,12 @@ where
 
     tracer.receive_msgs();
     // Contains G_j, K_j sent by other parties
+    // TODO: round 1a not only contains ciphertexts
     let ciphertexts = rounds
         .complete(round1a)
         .await
         .map_err(IoError::receive_message)?;
+    // TODO: psi0 --> psi (batch proof of enc-elg)
     let psi0 = rounds
         .complete(round1b)
         .await
@@ -805,6 +815,7 @@ where
         let h_i = udigest::hash_iter::<D>(
             ciphertexts
                 .iter_including_me(&MsgRound1a {
+                    // TODO: round 1a not only contains K_i, G_i
                     K: K_i.clone(),
                     G: G_i.clone(),
                 })
@@ -840,6 +851,7 @@ where
     }
 
     // Step 1. Verify proofs
+    // TODO: psi0 --> psi (pi_enc_elg)
     tracer.stage("Verify psi0 proofs");
     {
         let mut faulty_parties = vec![];
@@ -847,6 +859,7 @@ where
             ciphertexts.iter_indexed().zip(psi0.iter_indexed())
         {
             let R_j = &R[usize::from(j)];
+            // TODO: pi_enc --> pi_enc_elg
             if pi_enc::non_interactive::verify::<D>(
                 &unambiguous::ProofEnc { sid, prover: j },
                 &R_i.into(),
@@ -872,6 +885,7 @@ where
 
     // Step 2
     let Gamma_i = Point::generator() * &gamma_i;
+    // TODO: psi_i = pi_elog::prove(Data: (Gamma_i, g, B_{i,1}, B_{i,2}, Y_i), PrivateData: (gamma_i, b_i)))
     let J = (Integer::ONE << L::ELL_PRIME).complete();
 
     let mut beta_sum = Scalar::zero();
@@ -882,6 +896,7 @@ where
         let N_j = &R_j.N;
         let enc_j = fast_paillier::EncryptionKey::from_n(N_j.clone());
 
+        // TODO: N_i or N_j here?
         let r_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
         let hat_r_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
         let s_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
@@ -908,6 +923,7 @@ where
         };
 
         tracer.stage("Encrypt F_ji");
+        // TODO: -beta_ij or beta_ij
         let F_ji = dec_i
             .encrypt_with(&(-&beta_ij).complete(), &r_ij)
             .map_err(|_| Bug::PaillierEnc(BugSource::F_ji))?;
@@ -928,11 +944,13 @@ where
         runtime.yield_now().await;
 
         tracer.stage("Encrypt hat_F_ji");
+        // TODO: -hat_beta_ij or hat_beta_ij
         let hat_F_ji = dec_i
             .encrypt_with(&(-&hat_beta_ij).complete(), &hat_r_ij)
             .map_err(|_| Bug::PaillierEnc(BugSource::hat_F))?;
 
         tracer.stage("Prove psi_ji");
+        // TODO: batch pi_aff_g (psi_ji, hat_psi_ji)
         let psi_ji = pi_aff::non_interactive::prove::<E, D>(
             &unambiguous::ProofPsi {
                 sid,
@@ -987,6 +1005,7 @@ where
         )
         .map_err(|e| Bug::PiAffG(BugSource::hat_psi, e))?;
 
+        // TODO: remove psi_prime_ji
         tracer.stage("Prove psi_prime_ji ");
         let psi_prime_ji = pi_log::non_interactive::prove::<E, D>(
             &unambiguous::ProofLog {
@@ -1003,7 +1022,7 @@ where
             },
             pi_log::PrivateData {
                 x: &utils::scalar_to_bignumber(&gamma_i),
-                nonce: &v_i,
+                nonce: &nu_i,
             },
             &security_params.pi_log,
             &mut *rng,
@@ -1016,6 +1035,8 @@ where
             .feed(Outgoing::p2p(
                 j,
                 Msg::Round2(MsgRound2 {
+                    // remove psi_prime
+                    // add psi(elog)
                     Gamma: Gamma_i,
                     D: D_ji,
                     F: F_ji,
@@ -1054,6 +1075,7 @@ where
         let R_j = &R[usize::from(j)];
         let enc_j = fast_paillier::EncryptionKey::from_n(R_j.N.clone());
 
+        // TODO: batch verify pi_aff_g
         tracer.stage("Validate psi");
         let psi_invalid = pi_aff::non_interactive::verify::<E, D>(
             &unambiguous::ProofPsi {
@@ -1098,6 +1120,7 @@ where
         )
         .err();
 
+        // TODO: replace with validate psi(elog)
         tracer.stage("Validate psi_prime");
         let psi_prime_invalid = pi_log::non_interactive::verify::<E, D>(
             &unambiguous::ProofLog {
@@ -1161,8 +1184,12 @@ where
 
     let delta_i = gamma_i.as_ref() * k_i.as_ref() + alpha_sum + beta_sum;
     let chi_i = x_i * k_i.as_ref() + hat_alpha_sum + hat_beta_sum;
+    // TODO: S_i = Gamma^{Chi_i}
     runtime.yield_now().await;
 
+    // TODO: pi_elog::prove(Data: (Delta_i, Gamma, A_{i,1}, A_{i,2}, Y_i), PrivateData: (k_i, a_i))
+
+    // TODO: remove Prove psi_prime_prime
     for j in utils::iter_peers(i, n) {
         tracer.stage("Prove psi_prime_prime");
         let R_j = &R[usize::from(j)];
@@ -1188,11 +1215,14 @@ where
         )
         .map_err(|e| Bug::PiLog(BugSource::psi_prime_prime, e))?;
 
+        // TODO: send message p2p: (delta_i, S_i, Delta_i, psi_i)
+
         tracer.send_msg();
         outgoings
             .feed(Outgoing::p2p(
                 j,
                 Msg::Round3(MsgRound3 {
+                    // TODO: (delta_i, S_i, Delta_i, psi_i)
                     delta: delta_i,
                     Delta: Delta_i,
                     psi_prime_prime,
@@ -1217,6 +1247,7 @@ where
         .map_err(IoError::receive_message)?;
     tracer.msgs_received();
 
+    // TODO: replace by validate elog
     tracer.stage("Validate psi_prime_prime");
     let mut faulty_parties = vec![];
     for ((j, msg_id, msg_j), (_, ciphertext_id, ciphertext_j)) in
@@ -1267,6 +1298,10 @@ where
         return Err(SigningAborted::MismatchedDelta.into());
     }
 
+    // TODO: check X^delta = pi(S_j)
+    // X is public key
+
+    // TODO: presignature (Gamma, k_i / delta, Chi_i / delta, (Delta_j^(delta^{-1}), S_j^{delta^{-1}})j \in P)
     let R = Gamma * delta.invert().ok_or(Bug::ZeroDelta)?;
     let R = NonZero::from_point(R).ok_or(Bug::ZeroR)?;
     let presig = Presignature {
