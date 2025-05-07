@@ -923,7 +923,7 @@ where
         };
 
         tracer.stage("Encrypt F_ji");
-        // TODO: -beta_ij or beta_ij
+
         let F_ji = dec_i
             .encrypt_with(&(-&beta_ij).complete(), &r_ij)
             .map_err(|_| Bug::PaillierEnc(BugSource::F_ji))?;
@@ -944,7 +944,7 @@ where
         runtime.yield_now().await;
 
         tracer.stage("Encrypt hat_F_ji");
-        // TODO: -hat_beta_ij or hat_beta_ij
+
         let hat_F_ji = dec_i
             .encrypt_with(&(-&hat_beta_ij).complete(), &hat_r_ij)
             .map_err(|_| Bug::PaillierEnc(BugSource::hat_F))?;
