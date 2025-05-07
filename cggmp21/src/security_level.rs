@@ -1,4 +1,4 @@
-//! Security level of CGGMP protocol
+//! Security level of CGGMP protocol with some modifies for Optimized Paillier
 //!
 //! Security level is defined as set of parameters in the CGGMP paper. Higher security level gives more
 //! security but makes protocol execution slower.
@@ -20,6 +20,14 @@ pub use cggmp21_keygen::security_level::SecurityLevel as KeygenSecurityLevel;
 /// once `feature(generic_const_exprs)` is stable.
 pub const M: usize = 128;
 
+/// Hardcoded value for parameter $n_size$ of security level
+/// Which is the size of Optimized Paillier public key
+pub const N_SIZE: u32 = 3072;
+
+/// Hardcoded value for parameter $a_size$ of security level
+/// Which is the size of Optimized Paillier secret key (alpha)
+pub const A_SIZE: u32 = 512;
+
 /// Security level of the CGGMP21 protocol
 ///
 /// You should not implement this trait manually. Use [define_security_level] macro instead.
@@ -39,6 +47,16 @@ pub trait SecurityLevel: KeygenSecurityLevel {
     /// it will produce a compilation error if different value of $m$ is set. We're going to fix that once `generic_const_exprs`
     /// feature is stable.
     const M: usize;
+
+    /// $n_size$ parameter: size of Optimized Paillier public key
+    /// Which is corresponding to $m$
+    /// Because $m$ is hardcoded, so $n_size$ is hardcoded too
+    const N_SIZE: u32;
+
+    /// $a_size$ parameter: size of Optimized Paillier private key
+    /// Which is corresponding to $m$
+    /// Because $m$ is hardcoded, so $a_size$ is hardcoded too
+    const A_SIZE: u32;
 
     /// $q$ parameter
     ///
@@ -143,6 +161,8 @@ macro_rules! define_security_level {
         ell = $ell:expr,
         ell_prime = $ell_prime:expr,
         m = $m:tt,
+        n_size = $n_size:tt,
+        a_size = $a_size:tt,
         q = $q:expr,
     }) => {
         $crate::define_security_level! {
@@ -151,6 +171,8 @@ macro_rules! define_security_level {
                 ell = $ell,
                 ell_prime = $ell_prime,
                 m = $m,
+                n_size = $n_size,
+                a_size = $a_size,
                 q = $q,
             }
         }
@@ -165,6 +187,8 @@ macro_rules! define_security_level {
         ell = $ell:expr,
         ell_prime = $ell_prime:expr,
         m = 128,
+        n_size = 3072,
+        a_size = 512,
         q = $q:expr,
     }) => {
         impl $crate::security_level::SecurityLevel for $struct_name {
@@ -172,6 +196,8 @@ macro_rules! define_security_level {
             const ELL: usize = $ell;
             const ELL_PRIME: usize = $ell_prime;
             const M: usize = 128;
+            const N_SIZE: u32 = 3072;
+            const A_SIZE: u32 = 512;
 
             fn q() -> $crate::security_level::_internal::Integer {
                 $q
@@ -183,6 +209,8 @@ macro_rules! define_security_level {
         ell = $ell:expr,
         ell_prime = $ell_prime:expr,
         m = $m:tt,
+        n_size = $n_size:tt,
+        a_size = $a_size:tt,
         q = $q:expr,
     }) => {
         compile_error!(concat!("Currently, we can not set security parameter M to anything but 128 (you set m=", stringify!($m), ")"));
@@ -199,18 +227,29 @@ define_security_level!(SecurityLevel128{
     ell = 256,
     ell_prime = 848,
     m = 128,
+    n_size = 3072,
+    a_size = 512,
     q = (Integer::ONE << 128_u32).into(),
 });
 
 /// Checks that public paillier key meets security level constraints
 pub(crate) fn validate_public_paillier_key_size<L: SecurityLevel>(N: &Integer) -> bool {
-    N.significant_bits() >= 8 * L::SECURITY_BITS - 1
+    N.significant_bits() >= L::N_SIZE - 3
 }
 
 /// Checks that secret paillier key meets security level constraints
 pub(crate) fn validate_secret_paillier_key_size<L: SecurityLevel>(
     p: &Integer,
     q: &Integer,
+    alpha: &Integer,
 ) -> bool {
-    p.significant_bits() >= 4 * L::SECURITY_BITS && q.significant_bits() >= 4 * L::SECURITY_BITS
+    println!("N_SIZE: {}", L::N_SIZE);
+    println!("A_SIZE: {}", L::A_SIZE);
+    println!("p: {} bits", p.significant_bits());
+    println!("q: {} bits", q.significant_bits());
+    println!("alpha: {} bits", alpha.significant_bits());
+
+    p.significant_bits() >= L::N_SIZE / 2 - 1
+        && q.significant_bits() >= L::N_SIZE / 2 - 1
+        && alpha.significant_bits() >= L::A_SIZE - 1
 }

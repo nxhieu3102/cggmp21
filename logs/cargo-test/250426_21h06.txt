@@ -1,0 +1,1297 @@
+
+running 43 tests
+test birkhoff_coefficient::tests::happy_test_birkhoff_coefficient ... ok
+test birkhoff_coefficient::tests::unhappy_test_birkhoff_coefficient ... ok
+test birkhoff_matrix::tests::happy_test_add_rows ... ok
+test birkhoff_coefficient::tests::test_get_coefficient ... ok
+test birkhoff_coefficient::tests::happy_test_get_linear_equation_coefficient_matrix ... ok
+test birkhoff_matrix::tests::happy_test_get_non_zero_coefficient_by_row ... ok
+test birkhoff_matrix::tests::happy_test_get_row ... ok
+test birkhoff_matrix::tests::happy_test_get_row_non_zero ... ok
+test birkhoff_matrix::tests::happy_test_is_diagonal ... ok
+test birkhoff_matrix::tests::happy_test_is_identity ... ok
+test birkhoff_matrix::tests::happy_test_is_square ... ok
+test birkhoff_matrix::tests::happy_test_multiply_birkhoff_matrix ... ok
+test birkhoff_matrix::tests::happy_test_swap_rows ... ok
+test birkhoff_matrix::tests::test_create_identity_matrix ... ok
+test birkhoff_matrix::tests::happy_test_get_gauss_elimination_identity ... ok
+test birkhoff_matrix::tests::test_new_with_size ... ok
+test birkhoff_matrix::tests::test_transpose ... ok
+test birkhoff_matrix::tests::happy_test_get_gauss_elimination ... ok
+test birkhoff_matrix::tests::test_multiply_scalar ... ok
+test birkhoff_matrix::tests::unhappy_test_add_rows ... ok
+test birkhoff_matrix::tests::test_new ... ok
+test birkhoff_matrix::tests::unhappy_test_get_non_zero_coefficient_by_row ... ok
+test birkhoff_matrix::tests::unhappy_test_get_row ... ok
+test birkhoff_matrix::tests::unhappy_test_get_gauss_elimination_singular ... ok
+test birkhoff_matrix::tests::unhappy_test_is_diagonal ... ok
+test birkhoff_matrix::tests::unhappy_test_get_row_non_zero ... ok
+test birkhoff_matrix::tests::unhappy_test_is_identity ... ok
+test birkhoff_matrix::tests::unhappy_test_inverse_matrix ... ok
+test birkhoff_matrix::tests::unhappy_test_swap_rows ... ok
+test birkhoff_matrix::tests::unhappy_test_multi_inverse_diagonal_1 ... ok
+test birkhoff_matrix::tests::unhappy_test_multiply_birkhoff_matrix ... ok
+test birkhoff_matrix::tests::unhappy_test_is_square ... ok
+test polynomial::tests::test_linearity_of_derivatives ... ok
+test birkhoff_matrix::tests::unhappy_test_pseudo_inverse ... ok
+test birkhoff_matrix::tests::happy_test_multi_inverse_identity ... ok
+test birkhoff_matrix::tests::unhappy_test_mod_inverse_cell ... ok
+test birkhoff_matrix::tests::unhappy_test_multi_inverse_diagonal_2 ... ok
+test birkhoff_matrix::tests::happy_test_pseudo_inverse ... ok
+test birkhoff_matrix::tests::happy_test_mod_inverse_cell ... ok
+test birkhoff_matrix::tests::happy_test_multi_inverse_diagonal ... ok
+test birkhoff_matrix::tests::happy_test_inverse_matrix ... ok
+test birkhoff_matrix::tests::happy_test_inverse_identity ... ok
+test polynomial::tests::test_polynomial_derivatives ... ok
+
+test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 6 tests
+test signing::test::read_write_signature_secp256r1 ... ok
+test signing::test::read_write_signature_secp256k1 ... ok
+test utils::test::test_sqrt ... ok
+test zk::ring_pedersen_parameters::test::failing ... ok
+test zk::ring_pedersen_parameters::test::passing ... ok
+test signing::test::read_write_signature_stark ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 83 tests
+test key_refresh::key_refresh_works::secp256k1::n3 ... FAILED
+test key_refresh::key_refresh_works::stark::n3 ... FAILED
+test key_refresh::aux_gen_works::secp256r1::t2n3 ... FAILED
+test key_refresh::aux_gen_works::secp256k1::t2n3 ... FAILED
+test key_refresh::key_refresh_works::secp256k1::n5 ... FAILED
+test key_refresh::key_refresh_works::secp256r1::n5 ... FAILED
+test key_refresh::aux_gen_works::stark::t3n5 ... FAILED
+test key_refresh::aux_gen_works::secp256k1::t3n5 ... FAILED
+test key_refresh::aux_gen_works::secp256k1::t3n5_reliable ... FAILED
+test key_refresh::key_refresh_works::secp256r1::n5_reliable ... FAILED
+test key_refresh::aux_gen_works::stark::t2n3 ... FAILED
+test key_refresh::key_refresh_works::secp256r1::n3 ... FAILED
+test key_refresh::key_refresh_works::secp256k1::n5_reliable ... FAILED
+test key_refresh::aux_gen_works::stark::t3n5_reliable ... FAILED
+test key_refresh::key_refresh_works::stark::n5_reliable ... FAILED
+test key_refresh::aux_gen_works::secp256r1::t3n5 ... FAILED
+test key_refresh::key_refresh_works::stark::n5 ... FAILED
+test key_refresh::aux_gen_works::secp256r1::t3n5_reliable ... FAILED
+test keygen::keygen_works::secp256k1::n3 ... ok
+test keygen::keygen_works::secp256r1::n3 ... ok
+test keygen::keygen_works::secp256k1::n5 ... ok
+test keygen::keygen_works::secp256k1::n7 ... ok
+test keygen::keygen_works::stark::n3 ... ok
+test keygen::threshold_keygen_works::secp256k1::t2n3 ... ok
+test keygen::keygen_works::secp256r1::n5 ... ok
+test keygen::keygen_works::secp256k1::n10_reliable ... ok
+test keygen::threshold_keygen_sync_works::secp256k1::t3n5 ... ok
+test keygen::keygen_works::stark::n5 ... ok
+test keygen::keygen_works::secp256k1::n10 ... ok
+test keygen::keygen_works::secp256r1::n7 ... ok
+test old_shares::deserialize_old_shares ... ok
+test keygen::threshold_keygen_works::secp256r1::t2n3 ... ok
+test keygen::threshold_keygen_works::secp256k1::t3n5 ... ok
+test keygen::threshold_keygen_works::secp256k1::t3n5_reliable ... ok
+test keygen::keygen_works::stark::n7 ... ok
+test keygen::keygen_works::secp256r1::n10 ... ok
+test keygen::threshold_keygen_sync_works::secp256r1::t3n5 ... ok
+test signing::signing_sync::secp256k1::n3 ... FAILED
+test signing::signing_sync::secp256k1::t3n5 ... FAILED
+test signing::signing_sync::secp256r1::n3 ... FAILED
+test signing::signing_sync::secp256r1::t3n5 ... FAILED
+test signing::signing_sync::stark::n3 ... FAILED
+test signing::signing_sync::stark::t3n5 ... FAILED
+test signing::signing_with_presigs::secp256k1::t3n5 ... FAILED
+test signing::signing_with_presigs::secp256r1::t3n5 ... FAILED
+test signing::signing_with_presigs::stark::t3n5 ... FAILED
+test signing::signing_works::secp256k1::n2 ... FAILED
+test signing::signing_works::secp256k1::n2_reliable ... FAILED
+test signing::signing_works::secp256k1::n3 ... FAILED
+test signing::signing_works::secp256k1::t2n2 ... FAILED
+test signing::signing_works::secp256k1::t2n3 ... FAILED
+test signing::signing_works::secp256k1::t3n3 ... FAILED
+test signing::signing_works::secp256r1::n2 ... FAILED
+test signing::signing_works::secp256r1::n2_reliable ... FAILED
+test signing::signing_works::secp256r1::n3 ... FAILED
+test signing::signing_works::secp256r1::t2n2 ... FAILED
+test signing::signing_works::secp256r1::t2n3 ... FAILED
+test signing::signing_works::secp256r1::t3n3 ... FAILED
+test signing::signing_works::stark::n2 ... FAILED
+test signing::signing_works::stark::n2_reliable ... FAILED
+test signing::signing_works::stark::n3 ... FAILED
+test signing::signing_works::stark::t2n2 ... FAILED
+test signing::signing_works::stark::t2n3 ... FAILED
+test signing::signing_works::stark::t3n3 ... FAILED
+test stark_prehashed::sign_transaction ... FAILED
+test keygen::keygen_works::secp256r1::n10_reliable ... ok
+test keygen::threshold_keygen_works::stark::t2n3 ... ok
+test keygen::threshold_keygen_works::secp256r1::t3n5 ... ok
+test keygen::keygen_works::stark::n10 ... ok
+test keygen::threshold_keygen_works::secp256r1::t3n5_reliable ... ok
+test keygen::keygen_works::stark::n10_reliable ... ok
+test keygen::threshold_keygen_works::stark::t3n5_reliable ... ok
+test keygen::threshold_keygen_sync_works::stark::t3n5 ... ok
+test keygen::threshold_keygen_works::stark::t3n5 ... ok
+test pipeline::full_pipeline_works::secp256k1::t2n3 has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256k1::t3n5 has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256r1::t2n3 has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256r1::t3n5 has been running for over 60 seconds
+test pipeline::full_pipeline_works::stark::t2n3 has been running for over 60 seconds
+test pipeline::full_pipeline_works::stark::t3n5 has been running for over 60 seconds
+test trusted_dealer::trusted_dealer_generates_correct_shares::secp256k1::test has been running for over 60 seconds
+test trusted_dealer::trusted_dealer_generates_correct_shares::secp256r1::test has been running for over 60 seconds
+test trusted_dealer::trusted_dealer_generates_correct_shares::stark::test has been running for over 60 seconds
+test trusted_dealer::trusted_dealer_generates_correct_shares::stark::test ... FAILED
+test trusted_dealer::trusted_dealer_generates_correct_shares::secp256r1::test ... FAILED
+test trusted_dealer::trusted_dealer_generates_correct_shares::secp256k1::test ... FAILED
+test pipeline::full_pipeline_works::stark::t2n3 ... FAILED
+test pipeline::full_pipeline_works::secp256r1::t2n3 ... FAILED
+test pipeline::full_pipeline_works::secp256r1::t3n5 ... FAILED
+test pipeline::full_pipeline_works::secp256k1::t3n5 ... FAILED
+test pipeline::full_pipeline_works::secp256k1::t2n3 ... FAILED
+test pipeline::full_pipeline_works::stark::t3n5 ... FAILED
+
+failures:
+
+---- key_refresh::key_refresh_works::secp256k1::n3 stdout ----
+RUST_TESTS_SEED=c4d5b64a57ff6e747bfe809ac976fc17afc92c236c44488a7b4e28cf3758a828
+
+thread 'key_refresh::key_refresh_works::secp256k1::n3' panicked at tests/tests/it/key_refresh.rs:29:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- key_refresh::key_refresh_works::stark::n3 stdout ----
+RUST_TESTS_SEED=0002dd63330162bbbdefed91cf321f0cfb5b1a1931ed7214654436e8e8381503
+
+thread 'key_refresh::key_refresh_works::stark::n3' panicked at tests/tests/it/key_refresh.rs:29:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::aux_gen_works::secp256r1::t2n3 stdout ----
+RUST_TESTS_SEED=ebc9acc60f4f6425198a924877c7b8b58120d99525265a054b5f1ac46465ad84
+
+thread 'key_refresh::aux_gen_works::secp256r1::t2n3' panicked at tests/tests/it/key_refresh.rs:133:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::aux_gen_works::secp256k1::t2n3 stdout ----
+RUST_TESTS_SEED=77159b9b57bc04dc6fb1122ad94e9969dbf13e6f77e400b1accaa533c2dd8ffa
+
+thread 'key_refresh::aux_gen_works::secp256k1::t2n3' panicked at tests/tests/it/key_refresh.rs:133:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::key_refresh_works::secp256k1::n5 stdout ----
+RUST_TESTS_SEED=f1dd7851391c3ac0d6ed9c7ba77cf618ec455ce4cfdb77f737b556e949b15ebf
+
+thread 'key_refresh::key_refresh_works::secp256k1::n5' panicked at tests/tests/it/key_refresh.rs:29:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::key_refresh_works::secp256r1::n5 stdout ----
+RUST_TESTS_SEED=4bfa73b74431e1630e1f9a6cc1717e0d2c9c5a97636a295f4452873c56d342b9
+
+thread 'key_refresh::key_refresh_works::secp256r1::n5' panicked at tests/tests/it/key_refresh.rs:29:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::aux_gen_works::stark::t3n5 stdout ----
+RUST_TESTS_SEED=0d3d24f78b54a840221bc3cbf90e8fa69407bcbf8806ecb0ef317409fa0d7ce2
+
+thread 'key_refresh::aux_gen_works::stark::t3n5' panicked at tests/tests/it/key_refresh.rs:133:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::aux_gen_works::secp256k1::t3n5 stdout ----
+RUST_TESTS_SEED=0caeb0c01f54e0f34c9e9ca95788a46dc78449e454f9e0ef6596d110cf14ec70
+
+thread 'key_refresh::aux_gen_works::secp256k1::t3n5' panicked at tests/tests/it/key_refresh.rs:133:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::aux_gen_works::secp256k1::t3n5_reliable stdout ----
+RUST_TESTS_SEED=ebcdd6bdf4667657bbdc129bdfc65a1fa1100c87a33a7ff9c4292e2d31662171
+
+thread 'key_refresh::aux_gen_works::secp256k1::t3n5_reliable' panicked at tests/tests/it/key_refresh.rs:133:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::key_refresh_works::secp256r1::n5_reliable stdout ----
+RUST_TESTS_SEED=8364aa3e4fc1f0d01a7f05c027bdcbdf6f65d6488b897a0412d8d4ab69d90d00
+
+thread 'key_refresh::key_refresh_works::secp256r1::n5_reliable' panicked at tests/tests/it/key_refresh.rs:29:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::aux_gen_works::stark::t2n3 stdout ----
+RUST_TESTS_SEED=29884c49a61fa6c52245e9f55b691e2927442912fd009f4913940712e6d01866
+
+thread 'key_refresh::aux_gen_works::stark::t2n3' panicked at tests/tests/it/key_refresh.rs:133:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::key_refresh_works::secp256r1::n3 stdout ----
+RUST_TESTS_SEED=c833a0a29b93b709fb81099ae7b32b0470959b9baf6854cd7f22a83992853fc7
+
+thread 'key_refresh::key_refresh_works::secp256r1::n3' panicked at tests/tests/it/key_refresh.rs:29:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::key_refresh_works::secp256k1::n5_reliable stdout ----
+RUST_TESTS_SEED=cd17e83c5f85a1cca38908177e5fce78ff1d5ee9bb3cddc427f8192a4ac682b1
+
+thread 'key_refresh::key_refresh_works::secp256k1::n5_reliable' panicked at tests/tests/it/key_refresh.rs:29:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::aux_gen_works::stark::t3n5_reliable stdout ----
+RUST_TESTS_SEED=749f711be09f29d690dc80b0b6720f13dd5c33674ea0f2c16a88a8963d30076f
+
+thread 'key_refresh::aux_gen_works::stark::t3n5_reliable' panicked at tests/tests/it/key_refresh.rs:133:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::key_refresh_works::stark::n5_reliable stdout ----
+RUST_TESTS_SEED=0bcbb4be9aa2ae37485bc584a4da8dc0016b7dbc238c9cfdadff6926b360e4af
+
+thread 'key_refresh::key_refresh_works::stark::n5_reliable' panicked at tests/tests/it/key_refresh.rs:29:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::aux_gen_works::secp256r1::t3n5 stdout ----
+RUST_TESTS_SEED=4fdfea4db0c9bb01319dad11038b4f62c6f07893f505a7272f26c6b344df11f3
+
+thread 'key_refresh::aux_gen_works::secp256r1::t3n5' panicked at tests/tests/it/key_refresh.rs:133:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::key_refresh_works::stark::n5 stdout ----
+RUST_TESTS_SEED=68507e40abc79d2b9a01d9928c079426192b193c9bedacd345444fbf63ce289c
+
+thread 'key_refresh::key_refresh_works::stark::n5' panicked at tests/tests/it/key_refresh.rs:29:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- key_refresh::aux_gen_works::secp256r1::t3n5_reliable stdout ----
+RUST_TESTS_SEED=b99134f84062c3b77ef65fe312343c2b0486d300d5445da348b9b55cbb017ef5
+
+thread 'key_refresh::aux_gen_works::secp256r1::t3n5_reliable' panicked at tests/tests/it/key_refresh.rs:133:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_sync::secp256k1::n3 stdout ----
+RUST_TESTS_SEED=61fb28fd0a90c75d41a33e24f95bf94f18cffd04ca970a229be25f7ac3c7daa6
+
+thread 'signing::signing_sync::secp256k1::n3' panicked at tests/tests/it/signing.rs:247:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_sync::secp256k1::t3n5 stdout ----
+RUST_TESTS_SEED=6759f253ec42d0e97e7521cd9a449ad973d0df22517cc09bb0044b30b1df558e
+
+thread 'signing::signing_sync::secp256k1::t3n5' panicked at tests/tests/it/signing.rs:247:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_sync::secp256r1::n3 stdout ----
+RUST_TESTS_SEED=6de834f3723a0f0daa9ea434e3de4a7a8433fb3deb6d013f94ca2476b90c5c86
+
+thread 'signing::signing_sync::secp256r1::n3' panicked at tests/tests/it/signing.rs:247:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_sync::secp256r1::t3n5 stdout ----
+RUST_TESTS_SEED=aee60612f5a791b794358149f0c8d4de71e1efe9b51a4a5c0b3d65756683f1a8
+
+thread 'signing::signing_sync::secp256r1::t3n5' panicked at tests/tests/it/signing.rs:247:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_sync::stark::n3 stdout ----
+RUST_TESTS_SEED=22bd42aeecfbb89be4dd4acc52bba978a71798f2abfd5af68e8a3c59141cbe8e
+
+thread 'signing::signing_sync::stark::n3' panicked at tests/tests/it/signing.rs:247:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_sync::stark::t3n5 stdout ----
+RUST_TESTS_SEED=3d306244b23237b6879654c27282eed83f6bb0c03b40ee1a04588d79eb49f668
+
+thread 'signing::signing_sync::stark::t3n5' panicked at tests/tests/it/signing.rs:247:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_with_presigs::secp256k1::t3n5 stdout ----
+RUST_TESTS_SEED=2fb8abf77d73aa25c62c07b16ad54fd4f46868ec9e34c8a1bb6f4b42a07e7bfe
+
+thread 'signing::signing_with_presigs::secp256k1::t3n5' panicked at tests/tests/it/signing.rs:136:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_with_presigs::secp256r1::t3n5 stdout ----
+RUST_TESTS_SEED=72e434003b7e0fbe8a597238a74f3e15d548f3b2297b135ba58a8846ed557d33
+
+thread 'signing::signing_with_presigs::secp256r1::t3n5' panicked at tests/tests/it/signing.rs:136:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_with_presigs::stark::t3n5 stdout ----
+RUST_TESTS_SEED=ed6c7da82544dbd15a9e66cfb5674f06b2ce14579d77572422d931631cf37a20
+
+thread 'signing::signing_with_presigs::stark::t3n5' panicked at tests/tests/it/signing.rs:136:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256k1::n2 stdout ----
+RUST_TESTS_SEED=86e7ab376ff85e11064a6aa988d81e330277d62e8b01fc89a7c43d8b259f52ad
+
+thread 'signing::signing_works::secp256k1::n2' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256k1::n2_reliable stdout ----
+RUST_TESTS_SEED=e080436a1cbc8274e2345829c8da5943979398387483b50eb6bd0e832b9d7471
+
+thread 'signing::signing_works::secp256k1::n2_reliable' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256k1::n3 stdout ----
+RUST_TESTS_SEED=f8ab7966d7ffb633e7df16986a12f2b39d2e581783dd4f0eb26f6bcfa44a28be
+
+thread 'signing::signing_works::secp256k1::n3' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256k1::t2n2 stdout ----
+RUST_TESTS_SEED=06e19c58f2b559ad38b219da526984a6f302da5fc0ddbb74df6660a44f646658
+
+thread 'signing::signing_works::secp256k1::t2n2' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256k1::t2n3 stdout ----
+RUST_TESTS_SEED=997ec25385cf98e0e293cbc1cd0f02effb18f63aaee3133ff6768efcf001eba8
+
+thread 'signing::signing_works::secp256k1::t2n3' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256k1::t3n3 stdout ----
+RUST_TESTS_SEED=53d1e13a6afc8acb533999e9da97dd2171a6df18be1a1208539edea88ecb314c
+
+thread 'signing::signing_works::secp256k1::t3n3' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256r1::n2 stdout ----
+RUST_TESTS_SEED=574b56ec683254dd75bc3d042b03a90198b3dfb36e27dbb664acbfa99a2e4574
+
+thread 'signing::signing_works::secp256r1::n2' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256r1::n2_reliable stdout ----
+RUST_TESTS_SEED=c55ee904a70346ae70a5711f76aeddf7e0351b4a464414f3ffb5003c5cd7f97e
+
+thread 'signing::signing_works::secp256r1::n2_reliable' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256r1::n3 stdout ----
+RUST_TESTS_SEED=6fcac19c47e322e3b10bbee1480317a9d8d4530f30f532740bbc90f31ac2cc06
+
+thread 'signing::signing_works::secp256r1::n3' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256r1::t2n2 stdout ----
+RUST_TESTS_SEED=481a987694793ca5ce8e238f5e976e1c9d7df63dcf3402b4c288cbe8eda60d6c
+
+thread 'signing::signing_works::secp256r1::t2n2' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256r1::t2n3 stdout ----
+RUST_TESTS_SEED=b5416fd8085deda3ef87b915e082a495272b889a6f6eb1bbac60c77400aee6fa
+
+thread 'signing::signing_works::secp256r1::t2n3' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::secp256r1::t3n3 stdout ----
+RUST_TESTS_SEED=e7ea4d82f10e73ef0343c1bb5a7f361375c3930d95c09ee4682c1eda3578915d
+
+thread 'signing::signing_works::secp256r1::t3n3' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::stark::n2 stdout ----
+RUST_TESTS_SEED=4d1d2d5714c1b8be7113806929f4ba18f789aedd9e7eb43e5b8ab4e15de54048
+
+thread 'signing::signing_works::stark::n2' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::stark::n2_reliable stdout ----
+RUST_TESTS_SEED=944bb1ea1a9c700e90de60becc961f23bfaba7d65cf7041f4eded50491d82760
+
+thread 'signing::signing_works::stark::n2_reliable' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::stark::n3 stdout ----
+RUST_TESTS_SEED=98276f8c285bb0fc12345e40ab0daa699908d8931587bfc8503378599d2e15a7
+
+thread 'signing::signing_works::stark::n3' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::stark::t2n2 stdout ----
+RUST_TESTS_SEED=14e9cc93046e50fd11a55a98519a3ebb18e50fc7e35f97b9331b6fa4b95039dc
+
+thread 'signing::signing_works::stark::t2n2' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::stark::t2n3 stdout ----
+RUST_TESTS_SEED=cad6b22d30700c6209cec9b50572dfe0513313ad0e9320cb422f20cd99b7089f
+
+thread 'signing::signing_works::stark::t2n3' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- signing::signing_works::stark::t3n3 stdout ----
+RUST_TESTS_SEED=47326ffe0923ebfb3ebc14e75529f410011ed175fbe75887d335212405643efa
+
+thread 'signing::signing_works::stark::t3n3' panicked at tests/tests/it/signing.rs:46:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- stark_prehashed::sign_transaction stdout ----
+RUST_TESTS_SEED=4fb169e0cb6915bf813375ddbe091e687913a587d9e4a3fb753d57dc32f25204
+
+thread 'stark_prehashed::sign_transaction' panicked at tests/tests/it/stark_prehashed.rs:15:10:
+retrieve cached shares: parse key shares
+
+Caused by:
+    missing field `enc`
+
+---- trusted_dealer::trusted_dealer_generates_correct_shares::stark::test stdout ----
+RUST_TESTS_SEED=d68587fed109b64bea72a9cf76c4c68772ca01b3d143b586e1ede5b696b19421
+t=None n=2
+
+thread 'trusted_dealer::trusted_dealer_generates_correct_shares::stark::test' panicked at tests/tests/it/trusted_dealer.rs:42:18:
+called `Result::unwrap()` on an `Err` value: TrustedDealerError(InvalidKeyShare(InvalidKeyShare(PrimesMul)))
+
+---- trusted_dealer::trusted_dealer_generates_correct_shares::secp256r1::test stdout ----
+RUST_TESTS_SEED=dde17ca42839975c185f0d9738b90ea8b02dee17edf48c9ed1e277a1f1b44fae
+t=None n=2
+
+thread 'trusted_dealer::trusted_dealer_generates_correct_shares::secp256r1::test' panicked at tests/tests/it/trusted_dealer.rs:42:18:
+called `Result::unwrap()` on an `Err` value: TrustedDealerError(InvalidKeyShare(InvalidKeyShare(PrimesMul)))
+
+---- trusted_dealer::trusted_dealer_generates_correct_shares::secp256k1::test stdout ----
+RUST_TESTS_SEED=32559d425b3733505b4bc5becd63935b334a259fb80ab96e544aca3fc1151cb3
+t=None n=2
+
+thread 'trusted_dealer::trusted_dealer_generates_correct_shares::secp256k1::test' panicked at tests/tests/it/trusted_dealer.rs:42:18:
+called `Result::unwrap()` on an `Err` value: TrustedDealerError(InvalidKeyShare(InvalidKeyShare(PrimesMul)))
+
+---- pipeline::full_pipeline_works::stark::t2n3 stdout ----
+##### Start
+RUST_TESTS_SEED=43d22c6c27634b1368acb3112fc29a90864e8c9b86440f2a76265e341a27d01f
+Run keygen...
+Run aux gen...
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+
+thread 'pipeline::full_pipeline_works::stark::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 1: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 2: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+
+
+---- pipeline::full_pipeline_works::secp256r1::t2n3 stdout ----
+##### Start
+RUST_TESTS_SEED=77e18dab38018797a9308c25edf912d3140a9d564025cb0fa1bead91e298ba06
+Run keygen...
+Run aux gen...
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+
+thread 'pipeline::full_pipeline_works::secp256r1::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 1: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 2: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+
+
+---- pipeline::full_pipeline_works::secp256r1::t3n5 stdout ----
+##### Start
+RUST_TESTS_SEED=4946449cb19395cdf3a2eceec4c10af8efda846ab24fd2428dc8db76247c37d6
+Run keygen...
+Run aux gen...
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+
+thread 'pipeline::full_pipeline_works::secp256r1::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 5 parties returned an error
+Failures:
+- Party 0: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 1: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 2: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 3: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 4: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+
+
+---- pipeline::full_pipeline_works::secp256k1::t3n5 stdout ----
+##### Start
+RUST_TESTS_SEED=e887fc8038433bb254ab6a44cd1f9357ff5269eaadd8aff939e166941afd4526
+Run keygen...
+Run aux gen...
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+
+thread 'pipeline::full_pipeline_works::secp256k1::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 5 parties returned an error
+Failures:
+- Party 0: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 1: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 2: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 3: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 4: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+
+
+---- pipeline::full_pipeline_works::secp256k1::t2n3 stdout ----
+##### Start
+RUST_TESTS_SEED=edfb14d6d723097095d746b8be0121d2d45381ec47ef72e8f661dfc06aff2e07
+Run keygen...
+Run aux gen...
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+
+thread 'pipeline::full_pipeline_works::secp256k1::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 1: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 2: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+
+
+---- pipeline::full_pipeline_works::stark::t3n5 stdout ----
+##### Start
+RUST_TESTS_SEED=fca3db73f2f432643d1dadfb7e1282e2802d4c12a04d841b6e6273944709094e
+Run keygen...
+Run aux gen...
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+
+thread 'pipeline::full_pipeline_works::stark::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 5 parties returned an error
+Failures:
+- Party 0: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 1: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 2: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 3: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+- Party 4: KeyRefreshError(InternalError(InvalidShareGenerated(InvalidKeyShare(PaillierSkTooSmall))))
+
+
+
+failures:
+    key_refresh::aux_gen_works::secp256k1::t2n3
+    key_refresh::aux_gen_works::secp256k1::t3n5
+    key_refresh::aux_gen_works::secp256k1::t3n5_reliable
+    key_refresh::aux_gen_works::secp256r1::t2n3
+    key_refresh::aux_gen_works::secp256r1::t3n5
+    key_refresh::aux_gen_works::secp256r1::t3n5_reliable
+    key_refresh::aux_gen_works::stark::t2n3
+    key_refresh::aux_gen_works::stark::t3n5
+    key_refresh::aux_gen_works::stark::t3n5_reliable
+    key_refresh::key_refresh_works::secp256k1::n3
+    key_refresh::key_refresh_works::secp256k1::n5
+    key_refresh::key_refresh_works::secp256k1::n5_reliable
+    key_refresh::key_refresh_works::secp256r1::n3
+    key_refresh::key_refresh_works::secp256r1::n5
+    key_refresh::key_refresh_works::secp256r1::n5_reliable
+    key_refresh::key_refresh_works::stark::n3
+    key_refresh::key_refresh_works::stark::n5
+    key_refresh::key_refresh_works::stark::n5_reliable
+    pipeline::full_pipeline_works::secp256k1::t2n3
+    pipeline::full_pipeline_works::secp256k1::t3n5
+    pipeline::full_pipeline_works::secp256r1::t2n3
+    pipeline::full_pipeline_works::secp256r1::t3n5
+    pipeline::full_pipeline_works::stark::t2n3
+    pipeline::full_pipeline_works::stark::t3n5
+    signing::signing_sync::secp256k1::n3
+    signing::signing_sync::secp256k1::t3n5
+    signing::signing_sync::secp256r1::n3
+    signing::signing_sync::secp256r1::t3n5
+    signing::signing_sync::stark::n3
+    signing::signing_sync::stark::t3n5
+    signing::signing_with_presigs::secp256k1::t3n5
+    signing::signing_with_presigs::secp256r1::t3n5
+    signing::signing_with_presigs::stark::t3n5
+    signing::signing_works::secp256k1::n2
+    signing::signing_works::secp256k1::n2_reliable
+    signing::signing_works::secp256k1::n3
+    signing::signing_works::secp256k1::t2n2
+    signing::signing_works::secp256k1::t2n3
+    signing::signing_works::secp256k1::t3n3
+    signing::signing_works::secp256r1::n2
+    signing::signing_works::secp256r1::n2_reliable
+    signing::signing_works::secp256r1::n3
+    signing::signing_works::secp256r1::t2n2
+    signing::signing_works::secp256r1::t2n3
+    signing::signing_works::secp256r1::t3n3
+    signing::signing_works::stark::n2
+    signing::signing_works::stark::n2_reliable
+    signing::signing_works::stark::n3
+    signing::signing_works::stark::t2n2
+    signing::signing_works::stark::t2n3
+    signing::signing_works::stark::t3n3
+    stark_prehashed::sign_transaction
+    trusted_dealer::trusted_dealer_generates_correct_shares::secp256k1::test
+    trusted_dealer::trusted_dealer_generates_correct_shares::secp256r1::test
+    trusted_dealer::trusted_dealer_generates_correct_shares::stark::test
+
+test result: FAILED. 28 passed; 55 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1533.98s
+

@@ -1,0 +1,239 @@
+branch: check-protocol
+lasted commit: merge with feat/birkhoff (update index in sign)
+test before modify
+--------------------------
+
+running 43 tests
+test birkhoff_coefficient::tests::happy_test_birkhoff_coefficient ... ok
+test birkhoff_coefficient::tests::unhappy_test_birkhoff_coefficient ... ok
+test birkhoff_matrix::tests::happy_test_add_rows ... ok
+test birkhoff_coefficient::tests::test_get_coefficient ... ok
+test birkhoff_coefficient::tests::happy_test_get_linear_equation_coefficient_matrix ... ok
+test birkhoff_matrix::tests::happy_test_get_row ... ok
+test birkhoff_matrix::tests::happy_test_get_non_zero_coefficient_by_row ... ok
+test birkhoff_matrix::tests::happy_test_get_row_non_zero ... ok
+test birkhoff_matrix::tests::happy_test_is_diagonal ... ok
+test birkhoff_matrix::tests::happy_test_is_identity ... ok
+test birkhoff_matrix::tests::happy_test_is_square ... ok
+test birkhoff_matrix::tests::happy_test_multiply_birkhoff_matrix ... ok
+test birkhoff_matrix::tests::test_transpose ... ok
+test birkhoff_matrix::tests::unhappy_test_add_rows ... ok
+test birkhoff_matrix::tests::test_new_with_size ... ok
+test birkhoff_matrix::tests::test_multiply_scalar ... ok
+test birkhoff_matrix::tests::happy_test_swap_rows ... ok
+test birkhoff_matrix::tests::test_new ... ok
+test birkhoff_matrix::tests::happy_test_get_gauss_elimination_identity ... ok
+test birkhoff_matrix::tests::test_create_identity_matrix ... ok
+test birkhoff_matrix::tests::unhappy_test_get_row ... ok
+test birkhoff_matrix::tests::happy_test_get_gauss_elimination ... ok
+test birkhoff_matrix::tests::unhappy_test_get_gauss_elimination_singular ... ok
+test birkhoff_matrix::tests::unhappy_test_get_non_zero_coefficient_by_row ... ok
+test birkhoff_matrix::tests::unhappy_test_is_identity ... ok
+test birkhoff_matrix::tests::unhappy_test_is_diagonal ... ok
+test birkhoff_matrix::tests::unhappy_test_is_square ... ok
+test birkhoff_matrix::tests::unhappy_test_get_row_non_zero ... ok
+test birkhoff_matrix::tests::unhappy_test_multi_inverse_diagonal_1 ... ok
+test birkhoff_matrix::tests::unhappy_test_multiply_birkhoff_matrix ... ok
+test birkhoff_matrix::tests::unhappy_test_swap_rows ... ok
+test polynomial::tests::test_linearity_of_derivatives ... ok
+test birkhoff_matrix::tests::unhappy_test_pseudo_inverse ... ok
+test birkhoff_matrix::tests::unhappy_test_inverse_matrix ... ok
+test birkhoff_matrix::tests::unhappy_test_mod_inverse_cell ... ok
+test birkhoff_matrix::tests::happy_test_multi_inverse_identity ... ok
+test birkhoff_matrix::tests::unhappy_test_multi_inverse_diagonal_2 ... ok
+test birkhoff_matrix::tests::happy_test_pseudo_inverse ... ok
+test birkhoff_matrix::tests::happy_test_mod_inverse_cell ... ok
+test birkhoff_matrix::tests::happy_test_multi_inverse_diagonal ... ok
+test birkhoff_matrix::tests::happy_test_inverse_identity ... ok
+test birkhoff_matrix::tests::happy_test_inverse_matrix ... ok
+test polynomial::tests::test_polynomial_derivatives ... ok
+
+test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 6 tests
+test signing::test::read_write_signature_secp256k1 ... ok
+test signing::test::read_write_signature_secp256r1 ... ok
+test utils::test::test_sqrt ... ok
+test zk::ring_pedersen_parameters::test::failing ... ok
+test signing::test::read_write_signature_stark ... ok
+test zk::ring_pedersen_parameters::test::passing ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 83 tests
+test key_refresh::aux_gen_works::secp256k1::t2n3 has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256k1::t3n5 has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256k1::t3n5_reliable has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256r1::t2n3 has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256r1::t3n5 has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256r1::t3n5_reliable has been running for over 60 seconds
+test key_refresh::aux_gen_works::stark::t2n3 has been running for over 60 seconds
+test key_refresh::aux_gen_works::stark::t3n5 has been running for over 60 seconds
+test key_refresh::aux_gen_works::stark::t3n5_reliable has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256k1::n3 has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256k1::n5 has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256k1::n5_reliable has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256r1::n3 has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256r1::n5 has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256r1::n5_reliable has been running for over 60 seconds
+test key_refresh::key_refresh_works::stark::n3 has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256r1::t2n3 ... ok
+test key_refresh::aux_gen_works::secp256k1::t2n3 ... ok
+test key_refresh::aux_gen_works::stark::t2n3 ... ok
+test keygen::keygen_works::secp256k1::n10 ... ok
+test keygen::keygen_works::secp256k1::n10_reliable ... ok
+test keygen::keygen_works::secp256k1::n3 ... ok
+test keygen::keygen_works::secp256k1::n5 ... ok
+test keygen::keygen_works::secp256k1::n7 ... ok
+test keygen::keygen_works::secp256r1::n10 ... ok
+test keygen::keygen_works::secp256r1::n10_reliable ... ok
+test keygen::keygen_works::secp256r1::n3 ... ok
+test keygen::keygen_works::secp256r1::n5 ... ok
+test keygen::keygen_works::secp256r1::n7 ... ok
+test keygen::keygen_works::stark::n10 ... ok
+test key_refresh::key_refresh_works::secp256r1::n3 ... ok
+test keygen::keygen_works::stark::n3 ... ok
+test keygen::keygen_works::stark::n5 ... ok
+test keygen::keygen_works::stark::n10_reliable ... ok
+test key_refresh::key_refresh_works::secp256k1::n3 ... ok
+test keygen::threshold_keygen_sync_works::secp256k1::t3n5 ... ok
+test keygen::keygen_works::stark::n7 ... ok
+test keygen::threshold_keygen_works::secp256k1::t2n3 ... ok
+test keygen::threshold_keygen_sync_works::secp256r1::t3n5 ... ok
+test keygen::threshold_keygen_works::secp256k1::t3n5 ... ok
+test keygen::threshold_keygen_works::secp256k1::t3n5_reliable ... ok
+test key_refresh::key_refresh_works::stark::n3 ... ok
+test keygen::threshold_keygen_works::secp256r1::t2n3 ... ok
+test keygen::threshold_keygen_works::secp256r1::t3n5 ... ok
+test keygen::threshold_keygen_works::secp256r1::t3n5_reliable ... ok
+test keygen::threshold_keygen_works::stark::t2n3 ... ok
+test old_shares::deserialize_old_shares ... ok
+test keygen::threshold_keygen_sync_works::stark::t3n5 ... ok
+test keygen::threshold_keygen_works::stark::t3n5 ... ok
+test keygen::threshold_keygen_works::stark::t3n5_reliable ... ok
+test key_refresh::key_refresh_works::stark::n5 has been running for over 60 seconds
+test key_refresh::key_refresh_works::stark::n5_reliable has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256k1::t2n3 has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256k1::t3n5 has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256r1::t2n3 has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256r1::t3n5 has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256k1::t2n3 ... ok
+test pipeline::full_pipeline_works::secp256r1::t2n3 ... ok
+test key_refresh::aux_gen_works::secp256k1::t3n5 ... ok
+test key_refresh::aux_gen_works::secp256r1::t3n5_reliable ... ok
+test key_refresh::aux_gen_works::stark::t3n5 ... ok
+test key_refresh::aux_gen_works::secp256r1::t3n5 ... ok
+test pipeline::full_pipeline_works::stark::t2n3 has been running for over 60 seconds
+test pipeline::full_pipeline_works::stark::t3n5 has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256k1::t3n5_reliable ... ok
+test key_refresh::aux_gen_works::stark::t3n5_reliable ... ok
+test signing::signing_sync::secp256k1::n3 ... ok
+test signing::signing_sync::secp256k1::t3n5 ... ok
+test signing::signing_sync::secp256r1::n3 ... ok
+test signing::signing_sync::secp256r1::t3n5 ... ok
+test signing::signing_works::secp256k1::n2 ... ok
+test signing::signing_sync::stark::n3 ... ok
+test signing::signing_with_presigs::secp256k1::t3n5 ... ok
+test signing::signing_sync::stark::t3n5 ... ok
+test signing::signing_with_presigs::secp256r1::t3n5 ... ok
+test signing::signing_works::secp256k1::n2_reliable ... ok
+test signing::signing_works::secp256k1::t2n2 ... ok
+test signing::signing_with_presigs::stark::t3n5 ... ok
+test signing::signing_works::secp256k1::t2n3 ... ok
+test key_refresh::key_refresh_works::secp256r1::n5 ... ok
+test signing::signing_works::secp256r1::n2 ... ok
+test signing::signing_works::secp256r1::n2_reliable ... ok
+test signing::signing_works::secp256r1::t2n2 ... ok
+test key_refresh::key_refresh_works::secp256k1::n5 ... ok
+test key_refresh::key_refresh_works::secp256k1::n5_reliable ... ok
+test key_refresh::key_refresh_works::secp256r1::n5_reliable ... ok
+test signing::signing_works::secp256r1::t2n3 ... ok
+test signing::signing_works::secp256k1::n3 ... ok
+test signing::signing_works::stark::n2 ... ok
+test signing::signing_works::secp256k1::t3n3 ... ok
+test signing::signing_works::stark::n2_reliable ... ok
+test signing::signing_works::stark::t2n2 ... ok
+test signing::signing_works::stark::t2n3 ... ok
+test stark_prehashed::sign_transaction ... ok
+test signing::signing_works::secp256r1::n3 ... ok
+test signing::signing_works::secp256r1::t3n3 ... ok
+test signing::signing_works::stark::n3 ... ok
+test signing::signing_works::stark::t3n3 ... ok
+test pipeline::full_pipeline_works::stark::t2n3 ... ok
+test trusted_dealer::trusted_dealer_generates_correct_shares::secp256k1::test ... ok
+test trusted_dealer::trusted_dealer_generates_correct_shares::secp256r1::test ... ok
+test trusted_dealer::trusted_dealer_generates_correct_shares::stark::test ... ok
+test pipeline::full_pipeline_works::secp256r1::t3n5 ... ok
+test pipeline::full_pipeline_works::secp256k1::t3n5 ... ok
+test key_refresh::key_refresh_works::stark::n5 ... ok
+test key_refresh::key_refresh_works::stark::n5_reliable ... ok
+test pipeline::full_pipeline_works::stark::t3n5 ... ok
+
+test result: ok. 83 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 559.32s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test birkhoff/src/polynomial.rs - polynomial::Derivative::nth_derivative_at (line 57) ... ok
+test birkhoff/src/polynomial.rs - polynomial (line 8) ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 8 tests
+test cggmp21/src/lib.rs - (line 65) ... ignored
+test cggmp21/src/lib.rs - (line 195) - compile ... ok
+test cggmp21/src/trusted_dealer.rs - trusted_dealer (line 10) - compile ... ok
+test cggmp21/src/lib.rs - (line 126) - compile ... ok
+test cggmp21/src/lib.rs - (line 208) - compile ... ok
+test cggmp21/src/lib.rs - (line 163) - compile ... ok
+test cggmp21/src/security_level.rs - security_level::define_security_level (line 119) ... ok
+test cggmp21/src/lib.rs - (line 79) ... ok
+
+test result: ok. 7 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+
+running 1 test
+test cggmp21-keygen/src/security_level.rs - security_level::define_security_level (line 76) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test key-share/src/trusted_dealer.rs - trusted_dealer (line 9) - compile ... ok
+test key-share/src/valid.rs - valid::ValidateFromParts (line 222) ... ok
+test key-share/src/valid.rs - valid::Valid (line 16) ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+

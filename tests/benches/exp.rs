@@ -1,6 +1,6 @@
 use cggmp21::{
-    fast_paillier::utils::external_rand,
-    rug::{self, Complete},
+    fast_paillier::{utils::external_rand, AnyEncryptionKey},
+    rug::{self},
     security_level::{SecurityLevel, SecurityLevel128},
 };
 use generic_ec::{curves::Secp256k1 as E, Point, Scalar};
@@ -19,12 +19,12 @@ fn criterion_benchmark(c: &mut criterion::Criterion) {
         )
     });
 
-    let primes = cggmp21_tests::CACHED_PRIMES
+    let paillier_key = cggmp21_tests::CACHED_PAILLIER_KEYS
         .iter::<SecurityLevel128>()
         .next()
         .unwrap();
-    let (p, q) = primes.split();
-    let n = p * q;
+    let dec = paillier_key.dec();
+    let n = dec.n();
 
     let bits = [
         256, // something close to the curve order
@@ -53,7 +53,7 @@ fn criterion_benchmark(c: &mut criterion::Criterion) {
         SecurityLevel128::ELL + SecurityLevel128::EPSILON,
         n.significant_bits().try_into().unwrap(),
     ];
-    let nn = (&n * &n).complete();
+    let nn = dec.nn();
     for bits in bits {
         let bits: u32 = bits.try_into().unwrap();
         c.bench_function(&format!("x^e mod N^2, |e| = {bits}"), |b| {
