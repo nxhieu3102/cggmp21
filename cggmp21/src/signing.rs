@@ -1323,6 +1323,8 @@ where
     // Round 1
     let partial_sig = presig.issue_partial_signature(message_to_sign);
 
+    // TODO: calculate r, sigma_i
+
     tracer.send_msg();
     outgoings
         .send(Outgoing::broadcast(Msg::Round4(MsgRound4 {
@@ -1332,6 +1334,7 @@ where
         .map_err(IoError::send_message)?;
     tracer.msg_sent();
 
+    // TODO: erase (Gamma, hat_k_i, hat_Chi_i) from memory
     // Output
     tracer.named_round_begins("Signature reconstruction");
 
@@ -1341,6 +1344,9 @@ where
         .await
         .map_err(IoError::receive_message)?;
     tracer.msgs_received();
+
+    // TODO: check Gamma^{sigma_i} = hat_Delta_j^m * hat_S_j^r (for all j in P)
+
     let sig = {
         let r = NonZero::from_scalar(partial_sig.r);
         let s = NonZero::from_scalar(
