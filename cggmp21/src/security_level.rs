@@ -234,7 +234,7 @@ define_security_level!(SecurityLevel128{
 
 /// Checks that public paillier key meets security level constraints
 pub(crate) fn validate_public_paillier_key_size<L: SecurityLevel>(N: &Integer) -> bool {
-    N.significant_bits() >= L::N_SIZE - 2
+    N.significant_bits() >= L::N_SIZE - 3
 }
 
 /// Checks that secret paillier key meets security level constraints
