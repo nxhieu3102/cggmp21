@@ -140,7 +140,7 @@ pub mod msg {
     #[allow(clippy::large_enum_variant)]
     pub enum Msg<E: Curve, D: Digest> {
         /// Round 1a message
-        Round1a(MsgRound1a),
+        Round1a(MsgRound1a<E>),
         /// Round 1b message
         Round1b(MsgRound1b),
         /// Round 2 message
@@ -156,13 +156,23 @@ pub mod msg {
     /// Message from round 1a
     #[derive(Clone, Serialize, Deserialize, udigest::Digestable)]
     #[udigest(tag = prefixed!("round1"))]
-    pub struct MsgRound1a {
+    pub struct MsgRound1a<E: Curve> {
         /// $K_i$
         #[udigest(as = utils::encoding::Integer)]
         pub K: fast_paillier::Ciphertext,
         /// $G_i$
         #[udigest(as = utils::encoding::Integer)]
         pub G: fast_paillier::Ciphertext,
+        /// $Y_i$
+        pub Y_i: Point<E>,
+        /// $A_{i,1}$
+        pub A_i1: Point<E>,
+        /// $A_{i,2}$
+        pub A_i2: Point<E>,
+        /// $B_{i,1}$
+        pub B_i1: Point<E>,
+        /// $B_{i,2}$
+        pub B_i2: Point<E>,
     }
 
     /// Message from round 1b
@@ -222,6 +232,7 @@ pub mod msg {
 
 mod unambiguous {
     use crate::ExecutionId;
+    use generic_ec::Curve;
 
     #[derive(udigest::Digestable)]
     #[udigest(tag = prefixed!("proof_enc"))]
@@ -248,9 +259,9 @@ mod unambiguous {
 
     #[derive(udigest::Digestable)]
     #[udigest(tag = prefixed!("echo_round"))]
-    pub struct Echo<'a> {
+    pub struct Echo<'a, E: Curve> {
         pub sid: ExecutionId<'a>,
-        pub ciphertexts: &'a super::MsgRound1a,
+        pub msg: &'a super::MsgRound1a<E>,
     }
 }
 
@@ -763,11 +774,24 @@ where
         .map_err(|_| Bug::PaillierEnc(BugSource::G_i))?;
     runtime.yield_now().await;
 
-    // TODO: sample Y_i <- G; a_i, b_i <- F_q
+    // TODO: sample Y_i <- G; a_i, b_i <- F_q (G is elliptic curve point, F_q is field element) (DONE)
+    let Y_i = Point::generator() * SecretScalar::<E>::random(rng);
+    let a_i = SecretScalar::<E>::random(rng);
+    let b_i = SecretScalar::<E>::random(rng);
     // Set (A_{i,1}, A_{i,2}) = (g^{a_i}, Y_i^{a_i}.g^{k_i})
-    // Set (B_{i,1}, B_{i,2}) = (g^{b_i}, Y_^{b_i}.g^{gamma_i})
+    // Set (B_{i,1}, B_{i,2}) = (g^{b_i}, Y_i^{b_i}.g^{gamma_i})
 
-    // TODO: broadcast (Y_i, A_{i,1}, A_{i,2}, B_{i,1}, B_{i,2})
+    // NOTE: elg commit
+    let (A_i1, A_i2) = (
+        Point::generator() * &a_i,
+        Y_i * &a_i + Point::generator() * &k_i,
+    );
+    let (B_i1, B_i2) = (
+        Point::generator() * &b_i,
+        Y_i * &b_i + Point::generator() * &gamma_i,
+    );
+
+    // TODO: broadcast (Y_i, A_{i,1}, A_{i,2}, B_{i,1}, B_{i,2}) (DONE)
     std::println!("signing_n_out_of_n: 6");
 
     tracer.send_msg();
@@ -775,19 +799,23 @@ where
         .feed(Outgoing::broadcast(Msg::Round1a(MsgRound1a {
             K: K_i.clone(),
             G: G_i.clone(),
+            Y_i: Y_i.clone(),
+            A_i1: A_i1.clone(),
+            A_i2: A_i2.clone(),
+            B_i1: B_i1.clone(),
+            B_i2: B_i2.clone(),
         })))
         .await
         .map_err(IoError::send_message)?;
     tracer.msg_sent();
 
     std::println!("signing_n_out_of_n: 7");
-    // TODO: compute elgama commitment
 
     for j in utils::iter_peers(i, n) {
         tracer.stage("Prove ψ0_j");
         let R_j = &R[usize::from(j)];
 
-        // TODO: replace pi_enc with pi_enc_elg (batch proof K_i and G_i)
+        // TODO: replace pi_enc with pi_enc_elg (batch proof K_i and G_i) (go to paillier-zk and create interface for temp solution)
         let psi0 = pi_enc::non_interactive::prove::<D>(
             &unambiguous::ProofEnc { sid, prover: i },
             &R_j.into(),
@@ -824,8 +852,8 @@ where
 
     tracer.receive_msgs();
     // Contains G_j, K_j sent by other parties
-    // TODO: round 1a not only contains ciphertexts
-    let ciphertexts = rounds
+    // TODO: round 1a not only contains ciphertexts, it also contains Y_i, A_{i,1}, A_{i,2}, B_{i,1}, B_{i,2} (DONE)
+    let round1a_msgs = rounds
         .complete(round1a)
         .await
         .map_err(IoError::receive_message)?;
@@ -841,13 +869,18 @@ where
     if enforce_reliable_broadcast {
         tracer.stage("Hash received msgs (reliability check)");
         let h_i = udigest::hash_iter::<D>(
-            ciphertexts
+            round1a_msgs
                 .iter_including_me(&MsgRound1a {
-                    // TODO: round 1a not only contains K_i, G_i
+                    // TODO: round 1a not only contains K_i, G_i (DONE)
                     K: K_i.clone(),
                     G: G_i.clone(),
+                    Y_i: Y_i.clone(),
+                    A_i1: A_i1.clone(),
+                    A_i2: A_i2.clone(),
+                    B_i1: B_i1.clone(),
+                    B_i2: B_i2.clone(),
                 })
-                .map(|ciphertexts| unambiguous::Echo { sid, ciphertexts }),
+                .map(|msg| unambiguous::Echo { sid, msg }),
         );
 
         tracer.send_msg();
@@ -884,7 +917,7 @@ where
     {
         let mut faulty_parties = vec![];
         for ((j, msg1_id, ciphertext), (_, msg2_id, proof)) in
-            ciphertexts.iter_indexed().zip(psi0.iter_indexed())
+            round1a_msgs.iter_indexed().zip(psi0.iter_indexed())
         {
             let R_j = &R[usize::from(j)];
             // TODO: pi_enc --> pi_enc_elg
@@ -924,14 +957,14 @@ where
     // Q: what are beta_sum, hat_beta_sum?
     let mut beta_sum = Scalar::zero();
     let mut hat_beta_sum = Scalar::zero();
-    for (j, _, ciphertext_j) in ciphertexts.iter_indexed() {
+    for (j, _, ciphertext_j) in round1a_msgs.iter_indexed() {
         tracer.stage("Sample random r, hat_r, s, hat_s, beta, hat_beta");
         let R_j = &R[usize::from(j)];
         let N_j = &R_j.N;
         let enc_j = &R_j.enc.clone();
 
         // r_ij, hat_r_ij, s_ij, hat_s_ij in Z_Nj
-        // TODO: N_j or N_i here?
+        // TODO: N_j or N_i here => N_i (DONE)
         let r_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
         let hat_r_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
         let s_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
@@ -1115,7 +1148,7 @@ where
 
     let mut faulty_parties = vec![];
     for ((j, msg_id, msg), (_, ciphertext_msg_id, ciphertexts)) in
-        round2_msgs.iter_indexed().zip(ciphertexts.iter_indexed())
+        round2_msgs.iter_indexed().zip(round1a_msgs.iter_indexed())
     {
         tracer.stage("Retrieve auxiliary data");
         let X_j = X[usize::from(j)];
@@ -1248,7 +1281,8 @@ where
     let delta_i = gamma_i.as_ref() * k_i.as_ref() + alpha_sum + beta_sum;
     // chi_i = x_i * k_i + hat_alpha_sum + hat_beta_sum
     let chi_i = x_i * k_i.as_ref() + hat_alpha_sum + hat_beta_sum;
-    // TODO: S_i = Gamma^{Chi_i}
+    // TODO: S_i = Gamma^{chi_i} (DONE)
+    let S_i = Gamma * chi_i;
     runtime.yield_now().await;
 
     // TODO: pi_elog::prove(Data: (Delta_i, Gamma, A_{i,1}, A_{i,2}, Y_i), PrivateData: (k_i, a_i))
@@ -1317,7 +1351,7 @@ where
     tracer.stage("Validate psi_prime_prime");
     let mut faulty_parties = vec![];
     for ((j, msg_id, msg_j), (_, ciphertext_id, ciphertext_j)) in
-        round3_msgs.iter_indexed().zip(ciphertexts.iter_indexed())
+        round3_msgs.iter_indexed().zip(round1a_msgs.iter_indexed())
     {
         let R_j = &R[usize::from(j)];
         let enc_j = R_j.enc.clone();
