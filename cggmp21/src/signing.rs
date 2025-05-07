@@ -155,6 +155,8 @@ pub mod msg {
 
     /// Message from round 1a
     #[derive(Clone, Serialize, Deserialize, udigest::Digestable)]
+    #[serde(bound = "")]
+    #[udigest(bound = "")]
     #[udigest(tag = prefixed!("round1"))]
     pub struct MsgRound1a<E: Curve> {
         /// $K_i$
@@ -258,6 +260,7 @@ mod unambiguous {
     }
 
     #[derive(udigest::Digestable)]
+    #[udigest(bound = "")] 
     #[udigest(tag = prefixed!("echo_round"))]
     pub struct Echo<'a, E: Curve> {
         pub sid: ExecutionId<'a>,
@@ -739,7 +742,7 @@ where
 
     tracer.stage("Setup networking");
     let mut rounds = RoundsRouter::<Msg<E, D>>::builder();
-    let round1a = rounds.add_round(RoundInput::<MsgRound1a>::broadcast(i, n));
+    let round1a = rounds.add_round(RoundInput::<MsgRound1a<E>>::broadcast(i, n));
     let round1b = rounds.add_round(RoundInput::<MsgRound1b>::p2p(i, n));
     let round1a_sync = rounds.add_round(RoundInput::<MsgReliabilityCheck<D>>::broadcast(i, n));
     let round2 = rounds.add_round(RoundInput::<MsgRound2<E>>::p2p(i, n));
