@@ -1,4 +1,6 @@
 // cargo run --bin precompute_shares --features="hd-wallet" > logs/precompute-shares/precomputed_paillier_keys.json -- paillier-keys
+// cargo run --bin precompute_shares --features="hd-wallet" > logs/precompute-shares/precomputed_shares.json -- shares
+// cargo run --bin precompute_shares --features="hd-wallet" -- old-shares --out-dir=logs/precompute-shares/old-shares
 use anyhow::{bail, Context, Result};
 use cggmp21::fast_paillier;
 use cggmp21::security_level::SecurityLevel;
