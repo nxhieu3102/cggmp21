@@ -13,10 +13,7 @@ use tokio::{
 /// Creates a communication channel for a TCP stream
 fn create_stream_channel<M>(
     stream: TcpStream,
-) -> (
-    tokio::io::ReadHalf<TcpStream>,
-    tokio_mpsc::Sender<M>,
-)
+) -> (tokio::io::ReadHalf<TcpStream>, tokio_mpsc::Sender<M>)
 where
     M: Send + 'static + Serialize,
 {
@@ -44,8 +41,7 @@ async fn handle_messages<M>(
     address: SocketAddr,
     peers_id: Arc<RwLock<HashMap<u16, SocketAddr>>>,
     incoming_tx: mpsc::Sender<Incoming<M>>,
-) 
-where
+) where
     M: Send + 'static + for<'de> serde::de::Deserialize<'de>,
 {
     let mut buffer = [0u8; 1024];
@@ -76,7 +72,10 @@ where
 }
 
 /// Find peer ID corresponding to an address
-async fn find_peer_id(peers_id: &Arc<RwLock<HashMap<u16, SocketAddr>>>, address: SocketAddr) -> u16 {
+async fn find_peer_id(
+    peers_id: &Arc<RwLock<HashMap<u16, SocketAddr>>>,
+    address: SocketAddr,
+) -> u16 {
     peers_id
         .read()
         .await
@@ -98,7 +97,7 @@ where
     let stream = TcpStream::connect(address)
         .await
         .with_context(|| format!("Failed to connect to {}", address))?;
-    
+
     let (reader, tx) = create_stream_channel(stream);
     peers.write().await.insert(address, tx);
 
@@ -126,7 +125,7 @@ pub async fn handle_connection<'a, M>(
     // Clone Arc before moving it into task
     let peers_id_clone = peers_id.clone();
     handle_messages(reader, address, peers_id_clone, incoming_tx).await;
-    
+
     peers.write().await.remove(&address);
 }
 
@@ -145,7 +144,7 @@ where
         MessageDestination::OneParty(peer_id) => {
             let peers_id_read = peers_id.read().await;
             let peers_read = peers.read().await;
-            
+
             peers_id_read
                 .get(&peer_id)
                 .and_then(|addr| peers_read.get(addr))

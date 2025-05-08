@@ -915,7 +915,6 @@ where
     for (j, _, ciphertext_j) in ciphertexts.iter_indexed() {
         tracer.stage("Sample random r, hat_r, s, hat_s, beta, hat_beta");
         let R_j = &R[usize::from(j)];
-        let N_j = &R_j.N;
         let enc_j = &R_j.enc.clone();
 
         // r_ij, hat_r_ij, s_ij, hat_s_ij in Z_Nj
