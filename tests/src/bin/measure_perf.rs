@@ -9,16 +9,15 @@ use cggmp21::{
     signing::DataToSign,
     ExecutionId,
 };
+use rand::prelude::SliceRandom;
 use rand::Rng;
 use rand_dev::DevRng;
 use sha2::Sha256;
-use rand::prelude::SliceRandom;
 
 type E = generic_ec::curves::Secp256k1;
 
 struct Args {
     n: Vec<u16>,
-    bench_primes_gen: bool,
     bench_non_threshold_keygen: bool,
     bench_threshold_keygen: bool,
     bench_hierarchical_threshold_keygen: bool,
@@ -37,7 +36,6 @@ fn args() -> Args {
         .argument::<String>("N")
         .parse(|s| s.split(',').map(std::str::FromStr::from_str).collect())
         .fallback(vec![3, 5, 7, 10]);
-    let bench_primes_gen = bpaf::long("no-bench-primes-gen").switch().map(|b| !b);
     let bench_non_threshold_keygen = bpaf::long("no-bench-non-threshold-keygen")
         .switch()
         .map(|b| !b);
@@ -56,7 +54,6 @@ fn args() -> Args {
 
     bpaf::construct!(Args {
         n,
-        bench_primes_gen,
         bench_non_threshold_keygen,
         bench_threshold_keygen,
         bench_hierarchical_threshold_keygen,
@@ -73,30 +70,18 @@ fn args() -> Args {
 fn main() {
     let args = args();
     if args.custom_sec_level {
-        do_becnhmarks::<CustomSecLevel>(args)
+        do_benchmarks::<CustomSecLevel>(args)
     } else {
-        do_becnhmarks::<SecurityLevel128>(args)
+        do_benchmarks::<SecurityLevel128>(args)
     }
 }
 
-fn do_becnhmarks<L: SecurityLevel>(args: Args) {
+fn do_benchmarks<L: SecurityLevel>(args: Args) {
     let mut rng = DevRng::new();
 
     for n in args.n {
         println!("n = {n}");
         println!();
-
-        if args.bench_primes_gen {
-            let start = std::time::Instant::now();
-            let _primes =
-                std::iter::repeat_with(|| cggmp21::PregeneratedPrimes::<L>::generate(&mut rng))
-                    .take(n.into())
-                    .collect::<Vec<_>>();
-            let took = std::time::Instant::now().duration_since(start);
-
-            println!("Primes generation (avg): {:?}", took / n.into());
-            println!();
-        }
 
         let non_threshold_key_shares: Option<Vec<cggmp21::IncompleteKeyShare<E>>> =
             if args.bench_non_threshold_keygen || args.bench_signing {
@@ -237,11 +222,13 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
             let eid: [u8; 32] = rng.gen();
             let eid = ExecutionId::new(&eid);
 
-            let mut primes = cggmp21_tests::CACHED_PRIMES.iter::<L>();
+            let mut paillier_keys = cggmp21_tests::CACHED_PAILLIER_KEYS.iter::<L>();
 
             let outputs = round_based::sim::run(n, |i, party| {
                 let mut party_rng = rng.fork();
-                let pregen = primes.next().expect("Can't get pregenerated prime");
+                let pregen = paillier_keys
+                    .next()
+                    .expect("Can't get pregenerated paillier key");
 
                 let mut profiler = PerfProfiler::new();
 
@@ -374,24 +361,25 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
             let message_to_sign = b"Dfns rules!";
             let message_to_sign = DataToSign::digest::<Sha256>(message_to_sign);
 
-            let perf_reports = round_based::sim::run_with_setup(participants_shares, |i, party, share| {
-                let mut party_rng = rng.fork();
+            let perf_reports =
+                round_based::sim::run_with_setup(participants_shares, |i, party, share| {
+                    let mut party_rng = rng.fork();
 
-                let mut profiler = PerfProfiler::new();
+                    let mut profiler = PerfProfiler::new();
 
-                async move {
-                    let _signature = cggmp21::signing(eid, i, participants, share)
-                        .set_progress_tracer(&mut profiler)
-                        .sign(&mut party_rng, party, message_to_sign)
-                        .await
-                        .context("threshold signing failed")?;
+                    async move {
+                        let _signature = cggmp21::signing(eid, i, participants, share)
+                            .set_progress_tracer(&mut profiler)
+                            .sign(&mut party_rng, party, message_to_sign)
+                            .await
+                            .context("threshold signing failed")?;
 
-                    profiler.get_report().context("get perf report")
-                }
-            })
-            .unwrap()
-            .expect_ok()
-            .into_vec();
+                        profiler.get_report().context("get perf report")
+                    }
+                })
+                .unwrap()
+                .expect_ok()
+                .into_vec();
 
             println!("Threshold signing protocol");
             println!("{}", perf_reports[0].clone().display_io(false));
@@ -443,24 +431,25 @@ fn do_becnhmarks<L: SecurityLevel>(args: Args) {
             let message_to_sign = b"Dfns rules!";
             let message_to_sign = DataToSign::digest::<Sha256>(message_to_sign);
 
-            let perf_reports = round_based::sim::run_with_setup(participants_shares, |i, party, share| {
-                let mut party_rng = rng.fork();
+            let perf_reports =
+                round_based::sim::run_with_setup(participants_shares, |i, party, share| {
+                    let mut party_rng = rng.fork();
 
-                let mut profiler = PerfProfiler::new();
+                    let mut profiler = PerfProfiler::new();
 
-                async move {
-                    let _signature = cggmp21::signing(eid, i, participants, share)
-                        .set_progress_tracer(&mut profiler)
-                        .sign(&mut party_rng, party, message_to_sign)
-                        .await
-                        .context("htss signing failed")?;
+                    async move {
+                        let _signature = cggmp21::signing(eid, i, participants, share)
+                            .set_progress_tracer(&mut profiler)
+                            .sign(&mut party_rng, party, message_to_sign)
+                            .await
+                            .context("htss signing failed")?;
 
-                    profiler.get_report().context("get perf report")
-                }
-            })
-            .unwrap()
-            .expect_ok()
-            .into_vec();
+                        profiler.get_report().context("get perf report")
+                    }
+                })
+                .unwrap()
+                .expect_ok()
+                .into_vec();
 
             println!("Hierarchical threshold signing protocol");
             println!("{}", perf_reports[0].clone().display_io(false));
@@ -477,5 +466,7 @@ cggmp21::define_security_level!(CustomSecLevel {
     ell = 256,
     ell_prime = 824,
     m = 128,
+    n_size = 3072,
+    a_size = 512,
     q = cggmp21::rug::Integer::ONE.clone() << 128,
 });

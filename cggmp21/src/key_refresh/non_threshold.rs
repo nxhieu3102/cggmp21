@@ -17,7 +17,7 @@ use round_based::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::{Bug, KeyRefreshError, PregeneratedPrimes, ProtocolAborted};
+use super::{Bug, KeyRefreshError, PregeneratedPaillierKey, ProtocolAborted};
 use crate::{
     errors::IoError,
     key_share::{
@@ -79,6 +79,9 @@ pub struct MsgRound2<E: Curve, L: SecurityLevel> {
     /// $N_i$
     #[udigest(as = utils::encoding::Integer)]
     pub N: Integer,
+    /// $Paillier enc$
+    #[udigest(as = utils::encoding::EncryptionKey)]
+    pub enc: fast_paillier::EncryptionKey,
     /// $s_i$
     #[udigest(as = utils::encoding::Integer)]
     pub s: Integer,
@@ -187,7 +190,7 @@ pub async fn run_refresh<R, M, E, L, D>(
     mut rng: &mut R,
     party: M,
     sid: ExecutionId<'_>,
-    pregenerated: PregeneratedPrimes<L>,
+    pregenerated: PregeneratedPaillierKey<L>,
     mut tracer: Option<&mut dyn Tracer>,
     reliable_broadcast_enforced: bool,
     build_multiexp_tables: bool,
@@ -221,14 +224,12 @@ where
     // Round 1
     tracer.round_begins();
 
-    tracer.stage("Retrieve primes (p and q)");
-    let PregeneratedPrimes { p, q, .. } = pregenerated;
-    tracer.stage("Compute paillier decryption key (N)");
-    let N = (&p * &q).complete();
-    let phi_N = (&p - 1u8).complete() * (&q - 1u8).complete();
-    let dec: fast_paillier::DecryptionKey =
-        fast_paillier::DecryptionKey::from_primes(p.clone(), q.clone())
-            .map_err(|_| Bug::PaillierKeyError)?;
+    tracer.stage("Retrieve paillier decryption key");
+    let PregeneratedPaillierKey { dec, .. } = pregenerated;
+    let p = dec.p();
+    let q = dec.q();
+    let N = (p * q).complete();
+    let phi_N = (p - 1u8).complete() * (q - 1u8).complete();
 
     // *x_i* in paper
     tracer.stage("Generate secret x_i and public X_i");
@@ -285,6 +286,7 @@ where
         Xs: Xs.clone(),
         sch_commits_a: As.clone(),
         N: N.clone(),
+        enc: dec.encryption_key().clone(),
         s: s.clone(),
         t: t.clone(),
         params_proof: hat_psi,
@@ -433,7 +435,7 @@ where
     // encryption keys for each party
     let encs = decommitments
         .iter()
-        .map(|d| fast_paillier::EncryptionKey::from_n(d.N.clone()))
+        .map(|d| d.enc.clone())
         .collect::<Vec<_>>();
 
     tracer.stage("Add together shared random bytes");
@@ -723,6 +725,7 @@ where
         .iter_including_me(&decommitment)
         .map(|d| PartyAux {
             N: d.N.clone(),
+            enc: d.enc.clone(),
             s: d.s.clone(),
             t: d.t.clone(),
             multiexp: None,
@@ -731,8 +734,7 @@ where
         .collect::<Vec<_>>();
     party_auxes[usize::from(i)].crt = crt;
     let mut aux = DirtyAuxInfo {
-        p,
-        q,
+        dec,
         parties: party_auxes,
         security_level: std::marker::PhantomData,
     };

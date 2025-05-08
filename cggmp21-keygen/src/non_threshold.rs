@@ -136,6 +136,14 @@ where
     R: RngCore + CryptoRng,
     M: Mpc<ProtocolMessage = Msg<E, L, D>>,
 {
+    // Note 1: all the messages do not include sid and i
+    // The sid is the common value, so we don't need to send it
+    // But the i values are necessary for the protocol
+    // The messages are sorted by the i values, we should have a mechanism to ensure this
+
+    // Note 2: in Schnorr protocol, proof (psi_i) contains commitment (A_i)
+    // This implementation does not follow this
+    // So we can not check the consistency of psi_i(A_i,...) with A_i
     tracer.protocol_begins();
 
     tracer.stage("Setup networking");
@@ -156,6 +164,8 @@ where
     let x_i = NonZero::<SecretScalar<E>>::random(rng);
     let X_i = Point::generator() * &x_i;
 
+    // Q: what is rid?
+    // A: rid ~ rho_i, which is used to generate the challenge in the proof
     let mut rid = L::Rid::default();
     rng.fill_bytes(rid.as_mut());
 
@@ -169,6 +179,11 @@ where
     };
 
     tracer.stage("Sample schnorr commitment");
+    // Q: why commit rng, not x_i?
+    // A: because this is not the step of proving knowledge of x_i,
+    //    it only generates a random number (ephemeral secret ~ a short-term secret) for the proof
+    // prover_commits_ephemeral_secret --> sample rho_i
+    // sch_secret ~ tau_i, sch_commit ~ A_i
     let (sch_secret, sch_commit) = schnorr_pok::prover_commits_ephemeral_secret::<E, _>(rng);
 
     tracer.stage("Commit to public data");
@@ -179,11 +194,13 @@ where
         #[cfg(feature = "hd-wallet")]
         chain_code: chain_code_local,
         decommit: {
+            // nonce ~ u_i
             let mut nonce = L::Rid::default();
             rng.fill_bytes(nonce.as_mut());
             nonce
         },
     };
+    // hash_commit ~ V_i
     let hash_commit = udigest::hash::<D>(&unambiguous::HashCom {
         sid,
         party_index: i,
@@ -194,6 +211,7 @@ where
     };
 
     tracer.send_msg();
+    // do not include: sid, i
     outgoings
         .send(Outgoing::broadcast(Msg::Round1(my_commitment.clone())))
         .await
@@ -249,6 +267,7 @@ where
     }
 
     tracer.send_msg();
+    // do not include: sid, i
     outgoings
         .send(Outgoing::broadcast(Msg::Round2(my_decommitment.clone())))
         .await
@@ -267,6 +286,7 @@ where
 
     tracer.stage("Validate decommitments");
     let blame = utils::collect_blame(&commitments, &decommitments, |j, com, decom| {
+        // recompute V_j to check if it matches the commitment
         let com_expected = udigest::hash::<D>(&unambiguous::HashCom {
             sid,
             party_index: j,
@@ -299,6 +319,7 @@ where
     };
 
     tracer.stage("Calculate challege rid");
+    // rho = rho_1 ^ rho_2 ^ ... ^ rho_n
     let rid = decommitments
         .iter_including_me(&my_decommitment)
         .map(|d| &d.rid)
@@ -311,6 +332,7 @@ where
     let challenge = schnorr_pok::Challenge { nonce: challenge };
 
     tracer.stage("Prove knowledge of `x_i`");
+    // sch_proof ~ psi_i = prove(commitment: tau_i, challenge: rho, secret: x_i)
     let sch_proof = schnorr_pok::prove(&sch_secret, &challenge, &x_i);
 
     tracer.send_msg();
@@ -351,9 +373,12 @@ where
     tracer.protocol_ends();
 
     Ok(DirtyCoreKeyShare {
+        // i is the index of the party
         i,
+        // public key info
         key_info: DirtyKeyInfo {
             curve: Default::default(),
+            // shared_public_key = X = X_1 + X_2 + ... + X_n
             shared_public_key: NonZero::from_point(
                 decommitments
                     .iter_including_me(&my_decommitment)
@@ -361,14 +386,17 @@ where
                     .sum(),
             )
             .ok_or(Bug::ZeroPk)?,
+            // public_shares = { X_1, X_2, ..., X_n }
             public_shares: decommitments
                 .iter_including_me(&my_decommitment)
                 .map(|d| d.X)
                 .collect(),
+            // VSS setup for threshold key generation
             vss_setup: None,
             #[cfg(feature = "hd-wallet")]
             chain_code,
         },
+        // x_i is the secret share of the party i
         x: x_i,
     }
     .validate()

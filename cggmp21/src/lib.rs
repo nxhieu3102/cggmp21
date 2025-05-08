@@ -116,8 +116,8 @@
 //! # let party = round_based::MpcParty::connected(delivery);
 //! #
 //! # use rand_core::OsRng;
-//! // Prime generation can take a while
-//! let pregenerated_primes = cggmp21::PregeneratedPrimes::generate(&mut OsRng);
+//! // Paillier key generation can take a while
+//! let pregenerated_paillier_key = cggmp21::PregeneratedPaillierKey::generate(&mut OsRng)?;
 //!
 //! let eid = cggmp21::ExecutionId::new(b"execution id, unique per protocol execution");
 //! let i = /* signer index, same as at keygen */
@@ -125,7 +125,7 @@
 //! let n = /* number of signers */
 //! # 3;
 //!
-//! let aux_info = cggmp21::aux_info_gen(eid, i, n, pregenerated_primes)
+//! let aux_info = cggmp21::aux_info_gen(eid, i, n, pregenerated_paillier_key)
 //!     .start(&mut OsRng, party)
 //!     .await?;
 //! # Ok(()) }
@@ -351,7 +351,7 @@ pub mod keygen {
 }
 
 pub use self::{
-    key_refresh::{KeyRefreshError, PregeneratedPrimes},
+    key_refresh::{KeyRefreshError, PregeneratedPaillierKey},
     key_share::{IncompleteKeyShare, KeyShare},
     keygen::KeygenError,
     signing::{DataToSign, PartialSignature, Presignature, Signature, SigningError},
@@ -374,7 +374,7 @@ pub fn aux_info_gen<L>(
     eid: ExecutionId,
     i: u16,
     n: u16,
-    pregenerated: key_refresh::PregeneratedPrimes<L>,
+    pregenerated: PregeneratedPaillierKey<L>,
 ) -> key_refresh::AuxInfoGenerationBuilder<L>
 where
     L: SecurityLevel,
@@ -391,7 +391,7 @@ where
 pub fn key_refresh<'a, E, L>(
     eid: ExecutionId<'a>,
     key_share: &'a impl AnyKeyShare<E>,
-    pregenerated: key_refresh::PregeneratedPrimes<L>,
+    pregenerated: PregeneratedPaillierKey<L>,
 ) -> key_refresh::KeyRefreshBuilder<'a, E, L>
 where
     E: Curve,

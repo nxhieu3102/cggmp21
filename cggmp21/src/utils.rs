@@ -217,6 +217,7 @@ pub fn generate_blum_prime(rng: &mut impl rand_core::RngCore, bits_size: u32) ->
 
 /// Unambiguous encoding for different types for which it was not defined
 pub mod encoding {
+    use paillier_zk::fast_paillier::AnyEncryptionKey;
     use paillier_zk::rug;
 
     pub struct Integer;
@@ -226,6 +227,50 @@ pub mod encoding {
             encoder: udigest::encoding::EncodeValue<B>,
         ) {
             encoder.encode_leaf_value(x.to_digits(rug::integer::Order::Msf))
+        }
+    }
+
+    pub struct EncryptionKey;
+    impl udigest::DigestAs<paillier_zk::fast_paillier::EncryptionKey> for EncryptionKey {
+        fn digest_as<B: udigest::Buffer>(
+            x: &paillier_zk::fast_paillier::EncryptionKey,
+            encoder: udigest::encoding::EncodeValue<B>,
+        ) {
+            // Encode as a structured sequence of fields
+            let mut encoder = encoder.encode_struct();
+
+            // Encode unsigned integer fields
+            encoder
+                .add_field("n_size")
+                .encode_leaf_value(x.n_size().to_be_bytes());
+            encoder
+                .add_field("a_size")
+                .encode_leaf_value(x.a_size().to_be_bytes());
+            encoder
+                .add_field("nounce_size")
+                .encode_leaf_value(x.nounce_size().to_be_bytes());
+
+            // Encode rug::Integer fields using most-significant-first byte order
+            encoder
+                .add_field("h")
+                .encode_leaf_value(x.h().to_digits(rug::integer::Order::Msf));
+            encoder
+                .add_field("n")
+                .encode_leaf_value(x.n().to_digits(rug::integer::Order::Msf));
+            encoder
+                .add_field("nn")
+                .encode_leaf_value(x.nn().to_digits(rug::integer::Order::Msf));
+            encoder
+                .add_field("h_pow_n")
+                .encode_leaf_value(x.h_pow_n().to_digits(rug::integer::Order::Msf));
+            encoder
+                .add_field("half_n")
+                .encode_leaf_value(x.half_n().to_digits(rug::integer::Order::Msf));
+            encoder
+                .add_field("neg_half_n")
+                .encode_leaf_value(x.neg_half_n().to_digits(rug::integer::Order::Msf));
+
+            encoder.finish()
         }
     }
 }

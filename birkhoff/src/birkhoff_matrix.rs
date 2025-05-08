@@ -210,11 +210,11 @@ impl<E: Curve> BirkhoffMatrix<E> {
 }
 
 impl<E: Curve> BirkhoffMatrix<E> {
-    fn is_square(&self) -> bool {
+    pub fn is_square(&self) -> bool {
         self.cols() == self.rows()
     }
 
-    fn is_diagonal(&self) -> bool {
+    pub fn is_diagonal(&self) -> bool {
         // check if the matrix is square
         if !self.is_square() {
             return false;
@@ -231,7 +231,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
         true
     }
 
-    fn is_identity(&self) -> bool {
+    pub fn is_identity(&self) -> bool {
         if !self.is_square() {
             return false;
         }

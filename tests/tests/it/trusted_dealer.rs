@@ -14,9 +14,14 @@ define_security_level!(DummyLevel {
     ell = 128,
     ell_prime = 128,
     m = 128,
+    n_size = 3072,
+    a_size = 512,
     q = (cggmp21::rug::Integer::ONE.clone() << 128) - 1,
 });
 
+// These tests are ignored to auto run with `cargo run`
+// because of long time to run
+#[cfg(feature = "run-all-tests")]
 cggmp21_tests::test_suite! {
     test: trusted_dealer_generates_correct_shares,
     generics: all_curves,
