@@ -116,8 +116,8 @@
 //! # let party = round_based::MpcParty::connected(delivery);
 //! #
 //! # use rand_core::OsRng;
-//! // Prime generation can take a while
-//! let pregenerated_primes = cggmp21::PregeneratedPrimes::generate(&mut OsRng);
+//! // Paillier key generation can take a while
+//! let pregenerated_paillier_key = cggmp21::PregeneratedPaillierKey::generate(&mut OsRng)?;
 //!
 //! let eid = cggmp21::ExecutionId::new(b"execution id, unique per protocol execution");
 //! let i = /* signer index, same as at keygen */
@@ -125,7 +125,7 @@
 //! let n = /* number of signers */
 //! # 3;
 //!
-//! let aux_info = cggmp21::aux_info_gen(eid, i, n, pregenerated_primes)
+//! let aux_info = cggmp21::aux_info_gen(eid, i, n, pregenerated_paillier_key)
 //!     .start(&mut OsRng, party)
 //!     .await?;
 //! # Ok(()) }
