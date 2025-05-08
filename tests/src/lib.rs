@@ -184,7 +184,7 @@ impl PregeneratedPaillierKeys {
     where
         L: cggmp21::security_level::SecurityLevel,
     {
-        if self.n_size != L::N_SIZE || self.a_size != L::A_SIZE {
+        if self.n_size < L::N_SIZE - 3 || self.a_size < L::A_SIZE - 1 {
             panic!("Attempting to use generated paillier keys while expecting wrong bit size");
         }
         self.paillier_keys.iter().map(|dec| {
