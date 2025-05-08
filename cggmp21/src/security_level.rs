@@ -32,6 +32,15 @@ pub const A_SIZE: u32 = 512;
 ///
 /// You should not implement this trait manually. Use [define_security_level] macro instead.
 pub trait SecurityLevel: KeygenSecurityLevel {
+    /// Epsilon for the size of the public key N = P * Q. The size of N may be smaller than N_SIZE due to the generation algorithm.
+    const EPSILON_N_SIZE: u32 = 3;
+    /// Epsilon for the size of prime P. The size of P may be smaller than N_SIZE / 2.
+    const EPSILON_P_SIZE: u32 = 1;
+    /// Epsilon for the size of prime Q. The size of Q may be smaller than N_SIZE / 2.
+    const EPSILON_Q_SIZE: u32 = 1;
+    /// Epsilon for the size of the private key alpha. The size of alpha may be smaller than A_SIZE.
+    const EPSILON_A_SIZE: u32 = 1;
+
     /// $\varepsilon$ bits
     const EPSILON: usize;
 
@@ -146,6 +155,8 @@ pub mod _internal {
 ///     ell = 1024,
 ///     ell_prime = 1024,
 ///     m = 128,
+///     n_size = 3072,
+///     a_size = 512,
 ///     q = (Integer::ONE.clone() << 48_u32) - 1,
 /// });
 /// ```
@@ -234,7 +245,7 @@ define_security_level!(SecurityLevel128{
 
 /// Checks that public paillier key meets security level constraints
 pub(crate) fn validate_public_paillier_key_size<L: SecurityLevel>(N: &Integer) -> bool {
-    N.significant_bits() >= L::N_SIZE - 3
+    N.significant_bits() >= L::N_SIZE - L::EPSILON_N_SIZE
 }
 
 /// Checks that secret paillier key meets security level constraints
@@ -249,7 +260,7 @@ pub(crate) fn validate_secret_paillier_key_size<L: SecurityLevel>(
     println!("q: {} bits", q.significant_bits());
     println!("alpha: {} bits", alpha.significant_bits());
 
-    p.significant_bits() >= L::N_SIZE / 2 - 1
-        && q.significant_bits() >= L::N_SIZE / 2 - 1
-        && alpha.significant_bits() >= L::A_SIZE - 1
+    p.significant_bits() >= L::N_SIZE / 2 - L::EPSILON_P_SIZE
+        && q.significant_bits() >= L::N_SIZE / 2 - L::EPSILON_Q_SIZE
+        && alpha.significant_bits() >= L::A_SIZE - L::EPSILON_A_SIZE
 }

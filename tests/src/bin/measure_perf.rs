@@ -18,7 +18,6 @@ type E = generic_ec::curves::Secp256k1;
 
 struct Args {
     n: Vec<u16>,
-    bench_primes_gen: bool,
     bench_non_threshold_keygen: bool,
     bench_threshold_keygen: bool,
     bench_hierarchical_threshold_keygen: bool,
@@ -37,7 +36,6 @@ fn args() -> Args {
         .argument::<String>("N")
         .parse(|s| s.split(',').map(std::str::FromStr::from_str).collect())
         .fallback(vec![3, 5, 7, 10]);
-    let bench_primes_gen = bpaf::long("no-bench-primes-gen").switch().map(|b| !b);
     let bench_non_threshold_keygen = bpaf::long("no-bench-non-threshold-keygen")
         .switch()
         .map(|b| !b);
@@ -56,7 +54,6 @@ fn args() -> Args {
 
     bpaf::construct!(Args {
         n,
-        bench_primes_gen,
         bench_non_threshold_keygen,
         bench_threshold_keygen,
         bench_hierarchical_threshold_keygen,
@@ -85,18 +82,6 @@ fn do_benchmarks<L: SecurityLevel>(args: Args) {
     for n in args.n {
         println!("n = {n}");
         println!();
-
-        // if args.bench_primes_gen {
-        //     let start = std::time::Instant::now();
-        //     let _primes =
-        //         std::iter::repeat_with(|| cggmp21::PregeneratedPrimes::<L>::generate(&mut rng))
-        //             .take(n.into())
-        //             .collect::<Vec<_>>();
-        //     let took = std::time::Instant::now().duration_since(start);
-
-        //     println!("Primes generation (avg): {:?}", took / n.into());
-        //     println!();
-        // }
 
         let non_threshold_key_shares: Option<Vec<cggmp21::IncompleteKeyShare<E>>> =
             if args.bench_non_threshold_keygen || args.bench_signing {
