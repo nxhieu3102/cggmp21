@@ -97,10 +97,9 @@ lazy_static::lazy_static! {
             include_str!("../../test-data/precomputed_shares.json")
         ).unwrap();
     pub static ref CACHED_PAILLIER_KEYS: PregeneratedPaillierKeys =
-        PregeneratedPaillierKeys { paillier_keys: Vec::new(), n_size: 3072, a_size: 512 };
-        // PregeneratedPaillierKeys::from_serialized(
-        //     include_str!("../../test-data/pregenerated_primes.json")
-        // ).unwrap();
+        PregeneratedPaillierKeys::from_serialized(
+            include_str!("../../test-data/precomputed_paillier_keys.json")
+        ).unwrap();
 }
 
 pub struct PrecomputedKeyShares {
@@ -185,7 +184,9 @@ impl PregeneratedPaillierKeys {
     where
         L: cggmp21::security_level::SecurityLevel,
     {
-        if self.n_size != L::N_SIZE || self.a_size != L::A_SIZE {
+        if self.n_size < L::N_SIZE - L::EPSILON_N_SIZE
+            || self.a_size < L::A_SIZE - L::EPSILON_A_SIZE
+        {
             panic!("Attempting to use generated paillier keys while expecting wrong bit size");
         }
         self.paillier_keys.iter().map(|dec| {

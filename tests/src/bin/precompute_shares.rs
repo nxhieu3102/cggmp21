@@ -9,7 +9,7 @@ use cggmp21::{security_level::SecurityLevel128, trusted_dealer};
 use cggmp21_tests::{PrecomputedKeyShares, PregeneratedPaillierKeys};
 use generic_ec::Curve;
 use rand::{rngs::OsRng, CryptoRng, RngCore};
-use rayon::prelude::*; // Add at the top
+use rayon::prelude::*;
 
 fn main() -> Result<()> {
     match args() {
