@@ -146,6 +146,8 @@ pub mod _internal {
 ///     ell = 1024,
 ///     ell_prime = 1024,
 ///     m = 128,
+///     n_size = 3072,
+///     a_size = 512,
 ///     q = (Integer::ONE.clone() << 48_u32) - 1,
 /// });
 /// ```
