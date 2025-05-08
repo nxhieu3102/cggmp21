@@ -390,6 +390,7 @@ dependencies = [
  "pin-project",
  "rand",
  "rand_dev",
+ "rayon",
  "round-based",
  "secp256k1",
  "serde",
@@ -890,12 +891,13 @@ dependencies = [
 [[package]]
 name = "fast-paillier"
 version = "0.1.0"
-source = "git+https://github.com/nxhieu3102/fast-paillier#a3a1c0b0e04d99f59344db9e7f196d6dd0fea7e4"
+source = "git+https://github.com/nxhieu3102/fast-paillier#7178bea7eaa313b4caafa1bc8a155b4fbfa1bcb8"
 dependencies = [
  "bytemuck",
  "rand_core",
  "rug",
  "serde",
+ "serde_json",
  "thiserror 1.0.48",
 ]
 
@@ -1726,6 +1728,7 @@ dependencies = [
 [[package]]
 name = "paillier-zk"
 version = "0.4.2"
+source = "git+https://github.com/nxhieu3102/paillier-zk#333524612d32150d76d65032a5301f5c891af71c"
 dependencies = [
  "digest",
  "fast-paillier",

@@ -9,6 +9,7 @@ use cggmp21::{security_level::SecurityLevel128, trusted_dealer};
 use cggmp21_tests::{PrecomputedKeyShares, PregeneratedPaillierKeys};
 use generic_ec::Curve;
 use rand::{rngs::OsRng, CryptoRng, RngCore};
+use rayon::prelude::*;
 
 fn main() -> Result<()> {
     match args() {
@@ -72,43 +73,50 @@ fn precompute_paillier_keys() -> Result<()> {
     Ok(())
 }
 
-fn precompute_shares_for_curve<E: Curve, R: RngCore + CryptoRng>(
+fn precompute_shares_for_curve<E: Curve, R: RngCore + CryptoRng + Send>(
     rng: &mut R,
     cache: &mut PrecomputedKeyShares,
 ) -> Result<()> {
-    for n in [2, 3, 5, 7, 10] {
-        let threshold_values = [None, Some(2), Some(3), Some(5), Some(7)];
-        for t in threshold_values
-            .into_iter()
-            .filter(|t| t.map(|t| t <= n).unwrap_or(true))
-        {
-            for hd_enabled in [false, true] {
-                eprintln!(
-                    "t={t:?},n={n},curve={},hd_enabled={hd_enabled}",
-                    E::CURVE_NAME
-                );
-                let n_size = SecurityLevel128::N_SIZE;
-                let a_size = SecurityLevel128::A_SIZE;
-                let paillier_keys = std::iter::repeat_with(|| {
-                    let dec = fast_paillier::DecryptionKey::generate(rng, n_size, a_size).unwrap();
-                    dec
+    let mut results: Vec<_> = [2, 3, 5, 7, 10]
+        .into_par_iter() // parallel iterator
+        .flat_map(|n| {
+            let threshold_values = [None, Some(2), Some(3), Some(5), Some(7)];
+            threshold_values
+                .into_par_iter()
+                .filter(move |t| t.map(|t| t <= n).unwrap_or(true))
+                .flat_map(move |t| {
+                    [false, true]
+                        .into_par_iter()
+                        .map(move |hd_enabled| (n, t, hd_enabled))
                 })
-                .take(n.into())
-                .collect();
+                .collect::<Vec<_>>()
+        })
+        .map(|(n, t, hd_enabled)| {
+            let mut rng = OsRng; // Independent rng per thread
+            let n_size = SecurityLevel128::N_SIZE;
+            let a_size = SecurityLevel128::A_SIZE;
 
-                let shares = trusted_dealer::builder::<E, SecurityLevel128>(n)
-                    .set_threshold(t)
-                    .set_pregenerated_paillier_keys(paillier_keys)
-                    .hd_wallet(hd_enabled)
-                    .generate_shares(rng)
-                    .context("generate shares")?;
+            let paillier_keys = std::iter::repeat_with(|| {
+                fast_paillier::DecryptionKey::generate(&mut rng, n_size, a_size).unwrap()
+            })
+            .take(n.into())
+            .collect();
 
-                cache
-                    .add_shares(t, n, hd_enabled, &shares)
-                    .context("add shares")?;
-            }
-        }
+            let shares = trusted_dealer::builder::<E, SecurityLevel128>(n)
+                .set_threshold(t)
+                .set_pregenerated_paillier_keys(paillier_keys)
+                .hd_wallet(hd_enabled)
+                .generate_shares(&mut rng)
+                .context("generate shares")?;
+
+            Ok::<_, anyhow::Error>((t, n, hd_enabled, shares))
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    for (t, n, hd_enabled, shares) in results {
+        cache.add_shares(t, n, hd_enabled, &shares)?;
     }
+
     Ok(())
 }
 
