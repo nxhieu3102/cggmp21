@@ -974,7 +974,7 @@ where
             let R_j = &R[usize::from(j)];
             // TODO: pi_enc --> pi_enc_elg (DONE)
             // TODO: batch proof
-            if pi_enc_el_gamal::non_interactive::verify::<E, D>(
+            let verify_psi0_ji = pi_enc_el_gamal::non_interactive::verify::<E, D>(
                 &unambiguous::ProofEnc { sid, prover: j },
                 &R_i.into(),
                 pi_enc_el_gamal::Data {
@@ -988,10 +988,13 @@ where
                 &round1b_msg.psi0_ji.0,
                 &round1b_msg.psi0_ji.1,
                 &security_params.pi_enc_el_gamal,
-            )
-            .is_err()
-            {
-                faulty_parties.push((j, msg1a_id, msg1b_id))
+            );
+            match verify_psi0_ji {
+                Ok(_) => {}
+                Err(e) => {
+                    println!("line 996: {:?}", e);
+                    faulty_parties.push((j, msg1a_id, msg1b_id))
+                }
             }
 
             if !faulty_parties.is_empty() {
