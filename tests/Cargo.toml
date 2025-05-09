@@ -59,6 +59,7 @@ criterion = "0.5"
 
 [features]
 hd-wallet = ["cggmp21/hd-wallet", "cggmp21/hd-slip10", "cggmp21/hd-stark"]
+run-all-tests = []
 
 [[bin]]
 name = "precompute_shares"
