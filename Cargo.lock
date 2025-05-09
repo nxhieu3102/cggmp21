@@ -913,7 +913,6 @@ dependencies = [
 [[package]]
 name = "fast-paillier"
 version = "0.1.0"
-source = "git+https://github.com/nxhieu3102/fast-paillier#7178bea7eaa313b4caafa1bc8a155b4fbfa1bcb8"
 dependencies = [
  "bytemuck",
  "rand_core",

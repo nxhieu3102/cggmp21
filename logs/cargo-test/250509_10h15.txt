@@ -1,0 +1,6904 @@
+
+running 43 tests
+test birkhoff_coefficient::tests::unhappy_test_birkhoff_coefficient ... ok
+test birkhoff_coefficient::tests::happy_test_get_linear_equation_coefficient_matrix ... ok
+test birkhoff_coefficient::tests::happy_test_birkhoff_coefficient ... ok
+test birkhoff_coefficient::tests::test_get_coefficient ... ok
+test birkhoff_matrix::tests::happy_test_add_rows ... ok
+test birkhoff_matrix::tests::happy_test_get_non_zero_coefficient_by_row ... ok
+test birkhoff_matrix::tests::happy_test_get_row_non_zero ... ok
+test birkhoff_matrix::tests::happy_test_get_row ... ok
+test birkhoff_matrix::tests::happy_test_is_diagonal ... ok
+test birkhoff_matrix::tests::happy_test_is_identity ... ok
+test birkhoff_matrix::tests::happy_test_is_square ... ok
+test birkhoff_matrix::tests::happy_test_multiply_birkhoff_matrix ... ok
+test birkhoff_matrix::tests::happy_test_get_gauss_elimination_identity ... ok
+test birkhoff_matrix::tests::happy_test_swap_rows ... ok
+test birkhoff_matrix::tests::test_new ... ok
+test birkhoff_matrix::tests::happy_test_get_gauss_elimination ... ok
+test birkhoff_matrix::tests::test_create_identity_matrix ... ok
+test birkhoff_matrix::tests::test_new_with_size ... ok
+test birkhoff_matrix::tests::test_multiply_scalar ... ok
+test birkhoff_matrix::tests::unhappy_test_add_rows ... ok
+test birkhoff_matrix::tests::test_transpose ... ok
+test birkhoff_matrix::tests::unhappy_test_get_non_zero_coefficient_by_row ... ok
+test birkhoff_matrix::tests::unhappy_test_get_row ... ok
+test birkhoff_matrix::tests::unhappy_test_get_row_non_zero ... ok
+test birkhoff_matrix::tests::unhappy_test_is_diagonal ... ok
+test birkhoff_matrix::tests::unhappy_test_is_square ... ok
+test birkhoff_matrix::tests::unhappy_test_is_identity ... ok
+test birkhoff_matrix::tests::unhappy_test_get_gauss_elimination_singular ... ok
+test birkhoff_matrix::tests::unhappy_test_multi_inverse_diagonal_1 ... ok
+test birkhoff_matrix::tests::unhappy_test_multiply_birkhoff_matrix ... ok
+test birkhoff_matrix::tests::unhappy_test_swap_rows ... ok
+test polynomial::tests::test_linearity_of_derivatives ... ok
+test birkhoff_matrix::tests::unhappy_test_pseudo_inverse ... ok
+test birkhoff_matrix::tests::unhappy_test_inverse_matrix ... ok
+test birkhoff_matrix::tests::happy_test_mod_inverse_cell ... ok
+test birkhoff_matrix::tests::unhappy_test_multi_inverse_diagonal_2 ... ok
+test birkhoff_matrix::tests::unhappy_test_mod_inverse_cell ... ok
+test birkhoff_matrix::tests::happy_test_pseudo_inverse ... ok
+test birkhoff_matrix::tests::happy_test_multi_inverse_diagonal ... ok
+test birkhoff_matrix::tests::happy_test_multi_inverse_identity ... ok
+test birkhoff_matrix::tests::happy_test_inverse_identity ... ok
+test birkhoff_matrix::tests::happy_test_inverse_matrix ... ok
+test polynomial::tests::test_polynomial_derivatives ... ok
+
+test result: ok. 43 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+
+running 6 tests
+test signing::test::read_write_signature_secp256r1 ... ok
+test signing::test::read_write_signature_secp256k1 ... ok
+test utils::test::test_sqrt ... ok
+test signing::test::read_write_signature_stark ... ok
+test zk::ring_pedersen_parameters::test::failing ... ok
+test zk::ring_pedersen_parameters::test::passing ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 80 tests
+test key_refresh::aux_gen_works::secp256k1::t2n3 has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256k1::t3n5 has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256k1::t3n5_reliable has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256r1::t2n3 has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256r1::t3n5 has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256r1::t3n5_reliable has been running for over 60 seconds
+test key_refresh::aux_gen_works::stark::t2n3 has been running for over 60 seconds
+test key_refresh::aux_gen_works::stark::t3n5 has been running for over 60 seconds
+test key_refresh::aux_gen_works::stark::t3n5_reliable has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256k1::n3 has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256k1::n5 has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256k1::n5_reliable has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256r1::n3 has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256r1::n5 has been running for over 60 seconds
+test key_refresh::key_refresh_works::secp256r1::n5_reliable has been running for over 60 seconds
+test key_refresh::key_refresh_works::stark::n3 has been running for over 60 seconds
+test key_refresh::aux_gen_works::stark::t2n3 ... FAILED
+test key_refresh::aux_gen_works::secp256k1::t2n3 ... FAILED
+test key_refresh::aux_gen_works::secp256r1::t2n3 ... FAILED
+test keygen::keygen_works::secp256k1::n10 ... ok
+test keygen::keygen_works::secp256k1::n10_reliable ... ok
+test keygen::keygen_works::secp256k1::n3 ... ok
+test keygen::keygen_works::secp256k1::n5 ... ok
+test keygen::keygen_works::secp256k1::n7 ... ok
+test key_refresh::key_refresh_works::secp256r1::n3 ... FAILED
+test key_refresh::key_refresh_works::stark::n3 ... FAILED
+test keygen::keygen_works::secp256r1::n10 ... ok
+test keygen::keygen_works::secp256r1::n3 ... ok
+test keygen::keygen_works::secp256r1::n5 ... ok
+test keygen::keygen_works::secp256r1::n10_reliable ... ok
+test keygen::keygen_works::secp256r1::n7 ... ok
+test keygen::keygen_works::stark::n3 ... ok
+test keygen::keygen_works::stark::n5 ... ok
+test key_refresh::key_refresh_works::secp256k1::n3 ... FAILED
+test keygen::keygen_works::stark::n10 ... ok
+test keygen::threshold_keygen_sync_works::secp256k1::t3n5 ... ok
+test keygen::keygen_works::stark::n10_reliable ... ok
+test keygen::keygen_works::stark::n7 ... ok
+test keygen::threshold_keygen_works::secp256k1::t2n3 ... ok
+test keygen::threshold_keygen_sync_works::secp256r1::t3n5 ... ok
+test keygen::threshold_keygen_works::secp256k1::t3n5 ... ok
+test keygen::threshold_keygen_works::secp256k1::t3n5_reliable ... ok
+test keygen::threshold_keygen_works::secp256r1::t2n3 ... ok
+test keygen::threshold_keygen_works::stark::t2n3 ... ok
+test keygen::threshold_keygen_works::secp256r1::t3n5_reliable ... ok
+test keygen::threshold_keygen_works::secp256r1::t3n5 ... ok
+test old_shares::deserialize_old_shares ... ok
+test keygen::threshold_keygen_sync_works::stark::t3n5 ... ok
+test keygen::threshold_keygen_works::stark::t3n5_reliable ... ok
+test keygen::threshold_keygen_works::stark::t3n5 ... ok
+test key_refresh::key_refresh_works::stark::n5 has been running for over 60 seconds
+test key_refresh::key_refresh_works::stark::n5_reliable has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256k1::t2n3 has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256k1::t3n5 has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256r1::t2n3 has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256r1::t3n5 has been running for over 60 seconds
+test pipeline::full_pipeline_works::secp256r1::t2n3 ... FAILED
+test pipeline::full_pipeline_works::secp256k1::t2n3 ... FAILED
+test pipeline::full_pipeline_works::stark::t2n3 has been running for over 60 seconds
+test pipeline::full_pipeline_works::stark::t3n5 has been running for over 60 seconds
+test key_refresh::aux_gen_works::secp256r1::t3n5 ... FAILED
+test key_refresh::aux_gen_works::secp256k1::t3n5 ... FAILED
+test key_refresh::key_refresh_works::secp256k1::n5_reliable ... FAILED
+test key_refresh::aux_gen_works::secp256k1::t3n5_reliable ... FAILED
+test key_refresh::aux_gen_works::stark::t3n5_reliable ... FAILED
+test key_refresh::aux_gen_works::secp256r1::t3n5_reliable ... FAILED
+test signing::signing_sync::secp256k1::n3 ... FAILED
+test signing::signing_sync::secp256r1::n3 ... FAILED
+test key_refresh::aux_gen_works::stark::t3n5 ... FAILED
+test signing::signing_sync::secp256k1::t3n5 ... FAILED
+test signing::signing_sync::secp256r1::t3n5 ... FAILED
+test signing::signing_works::secp256k1::n2 ... FAILED
+test signing::signing_sync::stark::n3 ... FAILED
+test signing::signing_works::secp256k1::n2_reliable ... FAILED
+test signing::signing_with_presigs::secp256k1::t3n5 ... FAILED
+test key_refresh::key_refresh_works::secp256r1::n5_reliable ... FAILED
+test signing::signing_with_presigs::secp256r1::t3n5 ... FAILED
+test signing::signing_works::secp256k1::t2n2 ... FAILED
+test signing::signing_works::secp256r1::n2 ... FAILED
+test key_refresh::key_refresh_works::secp256r1::n5 ... FAILED
+test signing::signing_works::secp256k1::t2n3 ... FAILED
+test signing::signing_works::secp256k1::n3 ... FAILED
+test signing::signing_works::secp256r1::n2_reliable ... FAILED
+test signing::signing_sync::stark::t3n5 ... FAILED
+test signing::signing_works::secp256k1::t3n3 ... FAILED
+test signing::signing_with_presigs::stark::t3n5 ... FAILED
+test signing::signing_works::secp256r1::t2n2 ... FAILED
+test key_refresh::key_refresh_works::secp256k1::n5 ... FAILED
+test signing::signing_works::secp256r1::t2n3 ... FAILED
+test signing::signing_works::stark::n2_reliable ... FAILED
+test signing::signing_works::stark::n2 ... FAILED
+test signing::signing_works::secp256r1::n3 ... FAILED
+test signing::signing_works::stark::t2n2 ... FAILED
+test signing::signing_works::secp256r1::t3n3 ... FAILED
+test signing::signing_works::stark::n3 ... FAILED
+test signing::signing_works::stark::t2n3 ... FAILED
+test stark_prehashed::sign_transaction ... FAILED
+test signing::signing_works::stark::t3n3 ... FAILED
+test pipeline::full_pipeline_works::stark::t2n3 ... FAILED
+test pipeline::full_pipeline_works::secp256k1::t3n5 ... FAILED
+test key_refresh::key_refresh_works::stark::n5_reliable ... FAILED
+test pipeline::full_pipeline_works::secp256r1::t3n5 ... FAILED
+test key_refresh::key_refresh_works::stark::n5 ... FAILED
+test pipeline::full_pipeline_works::stark::t3n5 ... FAILED
+
+failures:
+
+---- key_refresh::aux_gen_works::stark::t2n3 stdout ----
+RUST_TESTS_SEED=8d7cd158843406d8db375d88e2ddddcb44c3106595f11f95ece9f8b0f6a25855
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [2, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::aux_gen_works::stark::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- key_refresh::aux_gen_works::secp256k1::t2n3 stdout ----
+RUST_TESTS_SEED=012f9cac9eee967e1daf0e31d6eea6dba3a65e8e929a59181f5f8ee36b366d53
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [2, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::aux_gen_works::secp256k1::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- key_refresh::aux_gen_works::secp256r1::t2n3 stdout ----
+RUST_TESTS_SEED=a28631c5ec93abd2ce96bbe9bd273e65ded89813bfe8b95b536e97efb4a60509
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [0, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::aux_gen_works::secp256r1::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- key_refresh::key_refresh_works::secp256r1::n3 stdout ----
+RUST_TESTS_SEED=751ad69f960db6889885da6491bb317e44de9b048e224f259809f5790f8cb8ef
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::key_refresh_works::secp256r1::n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- key_refresh::key_refresh_works::stark::n3 stdout ----
+RUST_TESTS_SEED=46a8a98c11fab680c7f09648a83c10947b023e90d3e34946674c39ff4bea6b30
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::key_refresh_works::stark::n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- key_refresh::key_refresh_works::secp256k1::n3 stdout ----
+RUST_TESTS_SEED=655a7bfc03b222e081111421c112d41d26c9f3ca0845dbbeb2713808f3fc90b7
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::key_refresh_works::secp256k1::n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- pipeline::full_pipeline_works::secp256r1::t2n3 stdout ----
+##### Start
+RUST_TESTS_SEED=7a13ee50c494737ae676c3ca78d219376d4cdbb4c36725a8166f9dee0a34cd55
+Run keygen...
+Run aux gen...
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+Run signing...
+Signers: [1, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'pipeline::full_pipeline_works::secp256r1::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- pipeline::full_pipeline_works::secp256k1::t2n3 stdout ----
+##### Start
+RUST_TESTS_SEED=62fae2f5caee267d1f206377422103ee9482b5762afd977002d99d8deb32f73b
+Run keygen...
+Run aux gen...
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+Run signing...
+Signers: [1, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'pipeline::full_pipeline_works::secp256k1::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- key_refresh::aux_gen_works::secp256r1::t3n5 stdout ----
+RUST_TESTS_SEED=fe0c04603c0ffc1d9f628dd6902474e38704a13c9fc8888589441508224129b9
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [3, 0, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::aux_gen_works::secp256r1::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- key_refresh::aux_gen_works::secp256k1::t3n5 stdout ----
+RUST_TESTS_SEED=7f17faac9921e8d837f2897cea1951d698c8adfe04456675096bee56501ffc91
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [0, 4, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::aux_gen_works::secp256k1::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- key_refresh::key_refresh_works::secp256k1::n5_reliable stdout ----
+RUST_TESTS_SEED=cdcdc5db10060f0363527480ed6b839ddd2c3cf0ef6a24f3ad511bf2bbdabd9d
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'key_refresh::key_refresh_works::secp256k1::n5_reliable' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 5 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 8, 12)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 4)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 5)])))
+- Party 3: SigningError(Aborted(EncElgProofOfK([(0, 2, 6)])))
+- Party 4: SigningError(Aborted(EncElgProofOfK([(0, 3, 7)])))
+
+
+---- key_refresh::aux_gen_works::secp256k1::t3n5_reliable stdout ----
+RUST_TESTS_SEED=ab587d0d9c2c586fd99052810dad6c936b7115e9de832aaca7331dea3584ae72
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [0, 3, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'key_refresh::aux_gen_works::secp256k1::t3n5_reliable' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- key_refresh::aux_gen_works::stark::t3n5_reliable stdout ----
+RUST_TESTS_SEED=592cf78c543fe4681f74956b0a7b2bb59c4f5caedca7674f006942b1b3c5454a
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [3, 4, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'key_refresh::aux_gen_works::stark::t3n5_reliable' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- key_refresh::aux_gen_works::secp256r1::t3n5_reliable stdout ----
+RUST_TESTS_SEED=33ff70561cc2229ddb9f871ddfa6f0ce4d0f398404b8ca7cae750bacd372c3e7
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [0, 1, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'key_refresh::aux_gen_works::secp256r1::t3n5_reliable' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_sync::secp256k1::n3 stdout ----
+RUST_TESTS_SEED=681e8c241e4acda9f5d263d3a9c2555e53eb9e039c73bbc4dc6db4fbcd4dd423
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [2, 1, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_sync::secp256k1::n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_sync::secp256r1::n3 stdout ----
+RUST_TESTS_SEED=6f9ba5bad939b1002abc3fc648ed7131fe212242c84b031384ff3f0c21e2b37f
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [2, 1, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_sync::secp256r1::n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- key_refresh::aux_gen_works::stark::t3n5 stdout ----
+RUST_TESTS_SEED=c1c945ea5cdc1573924b7d848011c15accdd7d66718aeb1f2156f596cb8649af
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [3, 4, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::aux_gen_works::stark::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_sync::secp256k1::t3n5 stdout ----
+RUST_TESTS_SEED=6d89b1e36d90c58e0bdd37399157a5669f33b41cfea0146a41f83af4b94f3010
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [3, 4, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_sync::secp256k1::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_sync::secp256r1::t3n5 stdout ----
+RUST_TESTS_SEED=2072dab6aeec3becda8c8b1c5535e3c9b33bb90387e246b305861c740b2bc50b
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [4, 2, 3]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_sync::secp256r1::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_works::secp256k1::n2 stdout ----
+RUST_TESTS_SEED=4881760e367279c291c52c3bbdf703074cc3c569fb32741a43f1e244eed9b86b
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [1, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256k1::n2' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- signing::signing_sync::stark::n3 stdout ----
+RUST_TESTS_SEED=9ff08b923e2a5666969cb7d626672d194c50db120c97dec18b8d341bcbcf04de
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [2, 0, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_sync::stark::n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_works::secp256k1::n2_reliable stdout ----
+RUST_TESTS_SEED=e4c6178115aafbd11320049e72114856041dbb48a4a924ecdc83020a9c83e06f
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [0, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256k1::n2_reliable' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- signing::signing_with_presigs::secp256k1::t3n5 stdout ----
+RUST_TESTS_SEED=9a47b8a3e1418dda6787212cea64b89eaef42a07d7cd325c08c2a67c2f81dd42
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [3, 1, 2]
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_with_presigs::secp256k1::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- key_refresh::key_refresh_works::secp256r1::n5_reliable stdout ----
+RUST_TESTS_SEED=04486c393d3c2698f0643534e9d72a97255e1b7502597a361b6725516746524a
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'key_refresh::key_refresh_works::secp256r1::n5_reliable' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 5 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 8, 12)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 4)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 5)])))
+- Party 3: SigningError(Aborted(EncElgProofOfK([(0, 2, 6)])))
+- Party 4: SigningError(Aborted(EncElgProofOfK([(0, 3, 7)])))
+
+
+---- signing::signing_with_presigs::secp256r1::t3n5 stdout ----
+RUST_TESTS_SEED=bd3f83aa5c279801b5819defba2559ebbafd89d69078a8cc35633667052f0f1d
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [0, 2, 1]
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_with_presigs::secp256r1::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_works::secp256k1::t2n2 stdout ----
+RUST_TESTS_SEED=2c193fee94a9137e12841b623d433c5b21c2e4db9a851eaa44267e13bcc53686
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [1, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256k1::t2n2' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- signing::signing_works::secp256r1::n2 stdout ----
+RUST_TESTS_SEED=8f98d65082a473b26a735a35612bf17bfd030b912875d5ad6d72a33e9c86199c
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [1, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256r1::n2' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- key_refresh::key_refresh_works::secp256r1::n5 stdout ----
+RUST_TESTS_SEED=5b8aeb530aa6c2749db21b6388616def9e30d637d1de28a694181d07237c1bda
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::key_refresh_works::secp256r1::n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 5 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 8, 12)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 4)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 5)])))
+- Party 3: SigningError(Aborted(EncElgProofOfK([(0, 2, 6)])))
+- Party 4: SigningError(Aborted(EncElgProofOfK([(0, 3, 7)])))
+
+
+---- signing::signing_works::secp256k1::t2n3 stdout ----
+RUST_TESTS_SEED=4619cef8e27eb273d3ea7e56e527e7c5d6c33acf0fd9f7916f0484e62ceae831
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+Signers: [2, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256k1::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- signing::signing_works::secp256k1::n3 stdout ----
+RUST_TESTS_SEED=b443df446d0dab6b5b7b830f6abfde936dd7ea5d55cc0ad3b4dc66c4f756fa35
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [0, 1, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256k1::n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_works::secp256r1::n2_reliable stdout ----
+RUST_TESTS_SEED=5e240f1ca3d7d3aadc9ad5fd4ca9f0f2e5d745d2549ae7ab341786f8bc73b7e6
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [1, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256r1::n2_reliable' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- signing::signing_sync::stark::t3n5 stdout ----
+RUST_TESTS_SEED=1f714f5ca7945f4526f3ce68dc0177ac39048f7d084a930be477756f91896007
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [3, 2, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_sync::stark::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_works::secp256k1::t3n3 stdout ----
+RUST_TESTS_SEED=692fbc9fe302c800ef91d7f940f2c5639acb75b58b1a70cbf6bbe483c2f0a5e2
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+Signers: [2, 1, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256k1::t3n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_with_presigs::stark::t3n5 stdout ----
+RUST_TESTS_SEED=ac0c40d59ceea7e84d266445df2489990e90e5b95576ea89db3364dba4ffec35
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [0, 3, 1]
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_with_presigs::stark::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_works::secp256r1::t2n2 stdout ----
+RUST_TESTS_SEED=2dc5a3d4e8db07e293c2bb5d71624ed6641fe0fdff8098f3b931930f7d756ac1
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [0, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256r1::t2n2' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- key_refresh::key_refresh_works::secp256k1::n5 stdout ----
+RUST_TESTS_SEED=75ba00cfdcc96985fcf18cc83ae1f269dc2dc7ec0f2c7594d6acb599a415a75f
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::key_refresh_works::secp256k1::n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 5 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 8, 12)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 4)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 5)])))
+- Party 3: SigningError(Aborted(EncElgProofOfK([(0, 2, 6)])))
+- Party 4: SigningError(Aborted(EncElgProofOfK([(0, 3, 7)])))
+
+
+---- signing::signing_works::secp256r1::t2n3 stdout ----
+RUST_TESTS_SEED=36eda2622f97993493508d6287913da7a52cb567c6b1e89b48c19fadf7d9f397
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [1, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256r1::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- signing::signing_works::stark::n2_reliable stdout ----
+RUST_TESTS_SEED=9d0b814c864d075c1112e0d72c153cc03649acbf588cf88495185a5c65cee133
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+Signers: [1, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::stark::n2_reliable' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- signing::signing_works::stark::n2 stdout ----
+RUST_TESTS_SEED=372b479ddd30a87dda90347db61e2d58c79b27b4f03cda13b501eeebf162dd95
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+Signers: [1, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::stark::n2' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- signing::signing_works::secp256r1::n3 stdout ----
+RUST_TESTS_SEED=a27da93d7913b9b761b40041469d181d46b3d3d94931f137649ff5a560eaf434
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [2, 0, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256r1::n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_works::stark::t2n2 stdout ----
+RUST_TESTS_SEED=4a077c37d85c7b8f4b3fc4e75cd6f94e7221aa40a9203e009ce418d274a756b9
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [1, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::stark::t2n2' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- signing::signing_works::secp256r1::t3n3 stdout ----
+RUST_TESTS_SEED=9b277c2430faf0cf8593c0caf97897842550b1bb13b16b69ca2f26f95578eae7
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+Signers: [1, 2, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::secp256r1::t3n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_works::stark::n3 stdout ----
+RUST_TESTS_SEED=58dc987d7111768e233d18d12ccba0c5766732d949806e5aa1ab11bc4487c994
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [0, 2, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::stark::n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- signing::signing_works::stark::t2n3 stdout ----
+RUST_TESTS_SEED=2094f85471e83e4fe4104c8f982c854d44493af221c0c0de9de2a86070fbc6c6
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [1, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::stark::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- stark_prehashed::sign_transaction stdout ----
+RUST_TESTS_SEED=2062209b159e887a05b515a67c24615287fc61231634023829db92d7908de439
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Signers: [0, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'stark_prehashed::sign_transaction' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- signing::signing_works::stark::t3n3 stdout ----
+RUST_TESTS_SEED=d17986f17a5ea9b592d9e87b7027583a5da646311c7ac527684d26c9b125cd20
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+Signers: [1, 2, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'signing::signing_works::stark::t3n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- pipeline::full_pipeline_works::stark::t2n3 stdout ----
+##### Start
+RUST_TESTS_SEED=e96c97c86a09f56dbc84c6903a20269f6f62f42304c6d5bcad520881803780be
+Run keygen...
+Run aux gen...
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+Run signing...
+Signers: [1, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'pipeline::full_pipeline_works::stark::t2n3' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 2 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 2, 3)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 1)])))
+
+
+---- pipeline::full_pipeline_works::secp256k1::t3n5 stdout ----
+##### Start
+RUST_TESTS_SEED=813eea40e7cc1c4515e6928b580b55b02585b35922a08bf110701343bcf00876
+Run keygen...
+Run aux gen...
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+Run signing...
+Signers: [1, 4, 3]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'pipeline::full_pipeline_works::secp256k1::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- key_refresh::key_refresh_works::stark::n5_reliable stdout ----
+RUST_TESTS_SEED=d15461428e3d43e5cd6fe9b9842fe7b6f70a1e027db0ddaebb276dba7edf7514
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'key_refresh::key_refresh_works::stark::n5_reliable' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 5 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 8, 12)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 4)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 5)])))
+- Party 3: SigningError(Aborted(EncElgProofOfK([(0, 2, 6)])))
+- Party 4: SigningError(Aborted(EncElgProofOfK([(0, 3, 7)])))
+
+
+---- pipeline::full_pipeline_works::secp256r1::t3n5 stdout ----
+##### Start
+RUST_TESTS_SEED=6002356d3221a2635a7b75f93a1cb95e53fcc0cf6e92b0f1946dd7d738e260d0
+Run keygen...
+Run aux gen...
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+Run signing...
+Signers: [4, 1, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'pipeline::full_pipeline_works::secp256r1::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+---- key_refresh::key_refresh_works::stark::n5 stdout ----
+RUST_TESTS_SEED=fb69a075f583210795b8091e99a8500b863a134fdf834091f25344d8035bc302
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+
+thread 'key_refresh::key_refresh_works::stark::n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 5 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 8, 12)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 4)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 5)])))
+- Party 3: SigningError(Aborted(EncElgProofOfK([(0, 2, 6)])))
+- Party 4: SigningError(Aborted(EncElgProofOfK([(0, 3, 7)])))
+
+
+---- pipeline::full_pipeline_works::stark::t3n5 stdout ----
+##### Start
+RUST_TESTS_SEED=4065b6f7730f2319466f393dcbb26948785bf5c8efc9f86cdaa877eb50f9ed45
+Run keygen...
+Run aux gen...
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+Run signing...
+Signers: [1, 3, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+signing_n_out_of_n: 1
+signing_n_out_of_n: 2
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+signing_n_out_of_n: 10
+
+thread 'pipeline::full_pipeline_works::stark::t3n5' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: SigningError(Aborted(EncElgProofOfK([(1, 4, 6)])))
+- Party 1: SigningError(Aborted(EncElgProofOfK([(0, 0, 2)])))
+- Party 2: SigningError(Aborted(EncElgProofOfK([(0, 1, 3)])))
+
+
+
+failures:
+    key_refresh::aux_gen_works::secp256k1::t2n3
+    key_refresh::aux_gen_works::secp256k1::t3n5
+    key_refresh::aux_gen_works::secp256k1::t3n5_reliable
+    key_refresh::aux_gen_works::secp256r1::t2n3
+    key_refresh::aux_gen_works::secp256r1::t3n5
+    key_refresh::aux_gen_works::secp256r1::t3n5_reliable
+    key_refresh::aux_gen_works::stark::t2n3
+    key_refresh::aux_gen_works::stark::t3n5
+    key_refresh::aux_gen_works::stark::t3n5_reliable
+    key_refresh::key_refresh_works::secp256k1::n3
+    key_refresh::key_refresh_works::secp256k1::n5
+    key_refresh::key_refresh_works::secp256k1::n5_reliable
+    key_refresh::key_refresh_works::secp256r1::n3
+    key_refresh::key_refresh_works::secp256r1::n5
+    key_refresh::key_refresh_works::secp256r1::n5_reliable
+    key_refresh::key_refresh_works::stark::n3
+    key_refresh::key_refresh_works::stark::n5
+    key_refresh::key_refresh_works::stark::n5_reliable
+    pipeline::full_pipeline_works::secp256k1::t2n3
+    pipeline::full_pipeline_works::secp256k1::t3n5
+    pipeline::full_pipeline_works::secp256r1::t2n3
+    pipeline::full_pipeline_works::secp256r1::t3n5
+    pipeline::full_pipeline_works::stark::t2n3
+    pipeline::full_pipeline_works::stark::t3n5
+    signing::signing_sync::secp256k1::n3
+    signing::signing_sync::secp256k1::t3n5
+    signing::signing_sync::secp256r1::n3
+    signing::signing_sync::secp256r1::t3n5
+    signing::signing_sync::stark::n3
+    signing::signing_sync::stark::t3n5
+    signing::signing_with_presigs::secp256k1::t3n5
+    signing::signing_with_presigs::secp256r1::t3n5
+    signing::signing_with_presigs::stark::t3n5
+    signing::signing_works::secp256k1::n2
+    signing::signing_works::secp256k1::n2_reliable
+    signing::signing_works::secp256k1::n3
+    signing::signing_works::secp256k1::t2n2
+    signing::signing_works::secp256k1::t2n3
+    signing::signing_works::secp256k1::t3n3
+    signing::signing_works::secp256r1::n2
+    signing::signing_works::secp256r1::n2_reliable
+    signing::signing_works::secp256r1::n3
+    signing::signing_works::secp256r1::t2n2
+    signing::signing_works::secp256r1::t2n3
+    signing::signing_works::secp256r1::t3n3
+    signing::signing_works::stark::n2
+    signing::signing_works::stark::n2_reliable
+    signing::signing_works::stark::n3
+    signing::signing_works::stark::t2n2
+    signing::signing_works::stark::t2n3
+    signing::signing_works::stark::t3n3
+    stark_prehashed::sign_transaction
+
+test result: FAILED. 28 passed; 52 failed; 0 ignored; 0 measured; 0 filtered out; finished in 464.98s
+
