@@ -7,9 +7,7 @@ use generic_ec::{coords::AlwaysHasAffineX, Curve, NonZero, Point, Scalar, Secret
 use generic_ec_zkp::polynomial::lagrange_coefficient_at_zero;
 use paillier_zk::rug::Complete;
 use paillier_zk::{
-    dlog_with_el_gamal_commitment as pi_elog,
-    group_element_vs_paillier_encryption_in_range as pi_log,
-    paillier_affine_operation_in_range as pi_aff, paillier_encryption_in_range as pi_enc,
+    dlog_with_el_gamal_commitment as pi_elog, paillier_affine_operation_in_range as pi_aff,
     paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal, IntegerExt,
 };
 use paillier_zk::{fast_paillier, rug::Integer};
@@ -136,10 +134,7 @@ pub mod msg {
 
     use paillier_zk::fast_paillier;
     use paillier_zk::{
-        dlog_with_el_gamal_commitment as pi_elog,
-        group_element_vs_paillier_encryption_in_range as pi_log,
-        paillier_affine_operation_in_range as pi_aff,
-        // paillier_encryption_in_range as pi_enc,
+        dlog_with_el_gamal_commitment as pi_elog, paillier_affine_operation_in_range as pi_aff,
         paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal,
     };
     use round_based::ProtocolMessage;
@@ -791,11 +786,11 @@ where
     // K_i = enc(k_i, rho_i)
     let K_i = dec_i
         .encrypt_with(&utils::scalar_to_bignumber(&k_i), &rho_i)
-        .map_err(|_| Bug::PaillierEnc(BugSource::K_i))?;
+        .map_err(|e| Bug::PaillierEnc(BugSource::K_i, e))?;
     // G_i = enc(gamma_i, nu_i)
     let G_i = dec_i
         .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &nu_i)
-        .map_err(|_| Bug::PaillierEnc(BugSource::G_i))?;
+        .map_err(|e| Bug::PaillierEnc(BugSource::G_i, e))?;
     runtime.yield_now().await;
 
     // TODO: sample Y_i <- G; a_i, b_i <- F_q (G is elliptic curve point, F_q is field element) (DONE)
@@ -1049,7 +1044,7 @@ where
         },
         &mut *rng,
     )
-    .map_err(|e| Bug::PiELog)?;
+    .map_err(|e| Bug::PiELog(BugSource::psi_i, e))?;
     // J = 2^{ell}
 
     // Q: what are beta_sum, hat_beta_sum?
@@ -1058,7 +1053,6 @@ where
     for (j, _, ciphertext_j) in round1a_msgs.iter_indexed() {
         tracer.stage("Sample random r, hat_r, s, hat_s, beta, hat_beta");
         let R_j = &R[usize::from(j)];
-        let N_j = &R_j.N;
         let enc_j = &R_j.enc.clone();
 
         // r_ij, hat_r_ij, s_ij, hat_s_ij in Z_Nj
@@ -1081,15 +1075,15 @@ where
             // gamma_i * K_j ~ scalar * ciphertext
             let gamma_i_times_K_j = enc_j
                 .omul(&utils::scalar_to_bignumber(&gamma_i), &ciphertext_j.K)
-                .map_err(|_| Bug::PaillierOp(BugSource::gamma_i_times_K_j))?;
+                .map_err(|e| Bug::PaillierOp(BugSource::gamma_i_times_K_j, e))?;
             // enc_j(-beta_ij, s_ij)
             let neg_beta_ij_enc = enc_j
                 .encrypt_with(&(-&beta_ij).complete(), &s_ij)
-                .map_err(|_| Bug::PaillierEnc(BugSource::neg_beta_ij_enc))?;
+                .map_err(|e| Bug::PaillierEnc(BugSource::neg_beta_ij_enc, e))?;
             // D_ji = gamma_i * K_j + enc_j(-beta_ij, s_ij) ~ ciphertext + ciphertext
             enc_j
                 .oadd(&gamma_i_times_K_j, &neg_beta_ij_enc)
-                .map_err(|_| Bug::PaillierOp(BugSource::D_ji))?
+                .map_err(|e| Bug::PaillierOp(BugSource::D_ji, e))?
         };
 
         std::println!("signing_n_out_of_n: 11");
@@ -1098,7 +1092,7 @@ where
         // F_ji = enc_i(beta_ij, r_ij)
         let F_ji = dec_i
             .encrypt_with(&(-&beta_ij).complete(), &r_ij)
-            .map_err(|_| Bug::PaillierEnc(BugSource::F_ji))?;
+            .map_err(|e| Bug::PaillierEnc(BugSource::F_ji, e))?;
 
         tracer.stage("Encrypt hat_D_ji");
         // Dˆ_ji = (x_i * K_j) + enc_j(-hat_beta_ij, hat_s_ij)
@@ -1106,15 +1100,15 @@ where
             // x_i * K_j ~ scalar * ciphertext
             let x_i_times_K_j = enc_j
                 .omul(&utils::scalar_to_bignumber(x_i), &ciphertext_j.K)
-                .map_err(|_| Bug::PaillierOp(BugSource::x_i_times_K_j))?;
+                .map_err(|e| Bug::PaillierOp(BugSource::x_i_times_K_j, e))?;
             // enc_j(-hat_beta_ij, hat_s_ij)
             let neg_hat_beta_ij_enc = enc_j
                 .encrypt_with(&(-&hat_beta_ij).complete(), &hat_s_ij)
-                .map_err(|_| Bug::PaillierEnc(BugSource::hat_beta_ij_enc))?;
+                .map_err(|e| Bug::PaillierEnc(BugSource::hat_beta_ij_enc, e))?;
             // hat_D_ji = x_i * K_j + enc_j(-hat_beta_ij, hat_s_ij) ~ ciphertext + ciphertext
             enc_j
                 .oadd(&x_i_times_K_j, &neg_hat_beta_ij_enc)
-                .map_err(|_| Bug::PaillierOp(BugSource::hat_D))?
+                .map_err(|e| Bug::PaillierOp(BugSource::hat_D, e))?
         };
         runtime.yield_now().await;
 
@@ -1122,7 +1116,7 @@ where
         // Fˆ_ji = enc_i(hat_beta_ij, hat_r_ij)
         let hat_F_ji = dec_i
             .encrypt_with(&(-&hat_beta_ij).complete(), &hat_r_ij)
-            .map_err(|_| Bug::PaillierEnc(BugSource::hat_F))?;
+            .map_err(|e| Bug::PaillierEnc(BugSource::hat_F, e))?;
 
         tracer.stage("Prove psi_ji");
         // TODO: batch pi_aff_g (psi_ji, hat_psi_ji)
@@ -1388,7 +1382,6 @@ where
     std::println!("signing_n_out_of_n: 13");
     for j in utils::iter_peers(i, n) {
         tracer.stage("Prove hat_psi_i");
-        let R_j = &R[usize::from(j)];
         // pi_log: prove K_i = enc(k_i, rho_i) and Delta_i = Gamma * k_i = G * sum(gamma_j) * k_i
         let hat_psi_i = pi_elog::non_interactive::prove::<E, D>(
             &unambiguous::ProofLog {
@@ -1450,9 +1443,6 @@ where
     for ((j, msg_id, msg_j), (_, round1a_msg_id, round1a_msg)) in
         round3_msgs.iter_indexed().zip(round1a_msgs.iter_indexed())
     {
-        let R_j = &R[usize::from(j)];
-        let enc_j = R_j.enc.clone();
-
         let data = pi_elog::Data {
             l: &round1a_msg.A_i1,
             m: &round1a_msg.A_i2,
@@ -1563,7 +1553,7 @@ where
     tracer.msgs_received();
 
     // TODO: check Gamma^{sigma_j} = hat_Delta_j^m * hat_S_j^r (for all j in P)
-    for (j, msg_id, msg_j) in partial_sigs.iter_indexed() {
+    for (j, _msg_id, msg_j) in partial_sigs.iter_indexed() {
         let presig_clone = presig.clone();
         let Gamma = presig_clone.Gamma;
         let hat_Delta_j = presig_clone.hat_Delta_j[usize::from(j)];
@@ -1575,7 +1565,7 @@ where
             return Err(SigningAborted::SignatureInvalid.into());
         }
     }
-    
+
     std::println!("signing_n_out_of_n: 17");
     let sig = {
         let r = NonZero::from_scalar(partial_sigature.r);
@@ -1613,7 +1603,10 @@ where
     ///
     /// **Never reuse presignatures!** If you use the same presignatures to sign two different
     /// messages, it leaks the private key!
-    pub fn issue_partial_signature(self, message_to_sign: DataToSign<E>) -> Result<PartialSignature<E>, Bug> {
+    pub fn issue_partial_signature(
+        self,
+        message_to_sign: DataToSign<E>,
+    ) -> Result<PartialSignature<E>, Bug> {
         let r = self.Gamma.x().to_scalar();
         let m = message_to_sign.to_scalar();
         let sigma_i = self.hat_k_i * m + r * self.hat_chi_i;
@@ -1895,64 +1888,100 @@ enum InvalidArgs {
     InvalidRanks,
 }
 
+/// Bugs while signing
 #[derive(Debug, Error)]
-enum Bug {
+pub enum Bug {
+    /// a
     #[error("invalid key share: number of parties exceeds u16")]
     PartiesNumberExceedsU16,
+    /// a
     #[error("couldn't encrypt a scalar with paillier encryption key: {0:?}")]
-    PaillierEnc(BugSource),
+    PaillierEnc(BugSource, paillier_zk::fast_paillier::Error),
+    /// a
     #[error("paillier addition/multiplication failed: {0:?}")]
-    PaillierOp(BugSource),
+    PaillierOp(BugSource, paillier_zk::fast_paillier::Error),
+    /// a
     #[error("π enc failed to prove statement {0:?}: {1:?}")]
     PiEnc(BugSource, paillier_zk::Error),
+    /// a
     #[error("π aff-g failed to prove statement {0:?}: {1:?}")]
     PiAffG(BugSource, paillier_zk::Error),
+    /// a
     #[error("π log* failed to prove statement: {0:?}")]
     PiLog(BugSource, paillier_zk::Error),
+    /// a
+    #[error("pi_elog::prove failed to prove statement: {0:?}")]
+    PiELog(BugSource, paillier_zk::Error),
+    /// a
     #[error("couldn't decrypt a message: {0:?}")]
     PaillierDec(BugSource),
+    /// a
     #[error("delta is zero")]
     ZeroDelta,
+    /// a
     #[error("R is zero")]
     ZeroR,
+    /// a
     #[error("unexpected protocol output")]
     UnexpectedProtocolOutput,
+    /// a
     #[error("derive lagrange coef")]
     LagrangeCoef,
+    /// a
     #[error("derive birkhoff coef")]
     BirkhoffCoef,
+    /// a
     #[error("subset function returned error")]
     Subset,
+    /// a
     #[error("derived child key is zero - probability of that is negligible")]
     DerivedChildKeyZero,
+    /// a
     #[error("derived child share is zero - probability of that is negligible")]
     DerivedChildShareZero,
-    #[error("pi_elog::prove failed")]
-    PiELog,
+    /// a
     #[error("Gamma is zero")]
     ZeroGamma,
 }
 
+/// Bug source in signing protocol
 #[derive(Debug)]
 #[allow(non_camel_case_types)]
-enum BugSource {
+pub enum BugSource {
+    /// Source is from $G_i$
     G_i,
+    /// Source is from $K_i$
     K_i,
+    /// Source is from $gamma_i_times_K_j$
     gamma_i_times_K_j,
+    /// Source is from $neg_beta_ij_enc$
     neg_beta_ij_enc,
+    /// Source is from $D_ji$
     D_ji,
+    /// Source is from $F_ji$
     F_ji,
+    /// Source is from $x_i_times_K_j$
     x_i_times_K_j,
+    /// Source is from $hat_beta_ij_enc$
     hat_beta_ij_enc,
+    /// Source is from $hat_D$
     hat_D,
+    /// Source is from $hat_F$
     hat_F,
+    /// Source is from $psi0$
     psi0,
+    /// Source is from $psi$
     psi,
+    /// Source is from $hat_psi$
     hat_psi,
-    psi_prime,
+    /// Source is from $alpha$
     alpha,
+    /// Source is from $hat_alpha$
     hat_alpha,
+    /// Source is from $psi_prime_prime$
     psi_prime_prime,
+    /// Source is from $psi_i$
+    psi_i,
 }
 
 /// Error indicating that signature is not valid for given public key and message
