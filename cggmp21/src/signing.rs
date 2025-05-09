@@ -169,21 +169,21 @@ pub mod msg {
     #[udigest(bound = "")]
     #[udigest(tag = prefixed!("round1"))]
     pub struct MsgRound1a<E: Curve> {
-        /// $K_i$
+        /// $K_i = enc(k_i, rho_i)$
         #[udigest(as = utils::encoding::Integer)]
         pub K: fast_paillier::Ciphertext,
-        /// $G_i$
+        /// $G_i = enc(gamma_i, nu_i)$
         #[udigest(as = utils::encoding::Integer)]
         pub G: fast_paillier::Ciphertext,
-        /// $Y_i$
+        /// $Y_i$: EC point
         pub Y_i: Point<E>,
-        /// $A_{i,1}$
+        /// $A_{i,1} = g^{a_i}$
         pub A_i1: Point<E>,
-        /// $A_{i,2}$
+        /// $A_{i,2} = Y_i^{a_i} * g^{k_i}$
         pub A_i2: Point<E>,
-        /// $B_{i,1}$
+        /// $B_{i,1} = g^{b_i}$
         pub B_i1: Point<E>,
-        /// $B_{i,2}$
+        /// $B_{i,2} = Y_i^{b_i} * g^{gamma_i}$
         pub B_i2: Point<E>,
     }
 
@@ -191,32 +191,31 @@ pub mod msg {
     #[derive(Clone, Serialize, Deserialize)]
     #[serde(bound = "")]
     pub struct MsgRound1b<E: Curve> {
-        /// $\psi^0_{j,i}$
-        pub psi0: (pi_enc_el_gamal::Commitment<E>, pi_enc_el_gamal::Proof<E>),
-        /// $\psi^1_{j,i}$
-        pub psi1: (pi_enc_el_gamal::Commitment<E>, pi_enc_el_gamal::Proof<E>),
+        /// $\psi^0_{j,i}$: pi_enc_el_gamal provement for K_i
+        pub psi0_ji: (pi_enc_el_gamal::Commitment<E>, pi_enc_el_gamal::Proof<E>),
+        /// $\psi^1_{j,i}$: pi_enc_el_gamal provement for G_i
+        pub psi1_ji: (pi_enc_el_gamal::Commitment<E>, pi_enc_el_gamal::Proof<E>),
     }
 
     /// Message from round 2
     #[derive(Clone, Serialize, Deserialize)]
     #[serde(bound = "")]
-
     pub struct MsgRound2<E: Curve> {
-        /// $\Gamma_i$
-        pub Gamma: Point<E>,
-        /// $\psi_{j,i}$
+        /// $\Gamma_i = g^{gamma_i}$
+        pub Gamma_i: Point<E>,
+        /// $\psi_{j,i}$: pi_elog provement for $Gamma_i$
         pub psi_i: (pi_elog::Commitment<E>, pi_elog::Proof<E>),
-        /// $D_{j,i}$
+        /// $D_{j,i} = enc(gamma_i * k_j - beta_ij)$
         pub D: fast_paillier::Ciphertext,
-        /// $F_{j,i}$
+        /// $F_{j,i} = enc(-beta_ij, r_ij)$
         pub F: fast_paillier::Ciphertext,
-        /// $\hat D_{j,i}$
+        /// $\hat D_{j,i} = enc(x_i * k_j - hat_beta_ij)$
         pub hat_D: fast_paillier::Ciphertext,
-        /// $\hat F_{j,i}$
+        /// $\hat F_{j,i} = enc(-hat_beta_ij, r_ij)$
         pub hat_F: fast_paillier::Ciphertext,
-        /// $\psi_{j,i}$
+        /// $\psi_{j,i}$: pi_aff_g provement for $Gamma_i$
         pub psi_ji: (pi_aff::Commitment<E>, pi_aff::Proof),
-        /// $\hat \psi_{j,i}$
+        /// $\hat \psi_{j,i}$: pi_aff_g provement for $X_i$ - public share of party i
         pub hat_psi_ji: (pi_aff::Commitment<E>, pi_aff::Proof),
     }
 
@@ -837,7 +836,7 @@ where
 
         // TODO: replace pi_enc with pi_enc_elg (DONE)
         // TODO: Batch proof
-        let psi0 = pi_enc_el_gamal::non_interactive::prove::<E, D>(
+        let psi0_ji = pi_enc_el_gamal::non_interactive::prove::<E, D>(
             &unambiguous::ProofEnc { sid, prover: i },
             &R_j.into(),
             pi_enc_el_gamal::Data {
@@ -859,7 +858,7 @@ where
         )
         .map_err(|e| Bug::PiEnc(BugSource::psi0, e))?;
 
-        let psi1 = pi_enc_el_gamal::non_interactive::prove::<E, D>(
+        let psi1_ji = pi_enc_el_gamal::non_interactive::prove::<E, D>(
             &unambiguous::ProofEnc { sid, prover: i },
             &R_j.into(),
             pi_enc_el_gamal::Data {
@@ -883,7 +882,10 @@ where
 
         tracer.send_msg();
         outgoings
-            .feed(Outgoing::p2p(j, Msg::Round1b(MsgRound1b { psi0, psi1 })))
+            .feed(Outgoing::p2p(
+                j,
+                Msg::Round1b(MsgRound1b { psi0_ji, psi1_ji }),
+            ))
             .await
             .map_err(IoError::send_message)?;
         tracer.msg_sent();
@@ -980,14 +982,17 @@ where
                     b: &A_i1,
                     x: &A_i2,
                 },
-                &proof.psi0.0,
-                &proof.psi0.1,
+                &proof.psi0_ji.0,
+                &proof.psi0_ji.1,
                 &security_params.pi_enc_el_gamal,
             )
             .is_err()
             {
-                faulty_parties.push((j, msg1_id, msg2_id));
-                continue;
+                faulty_parties.push((j, msg1_id, msg2_id))
+            }
+
+            if !faulty_parties.is_empty() {
+                return Err(SigningAborted::EncElgProofOfK(faulty_parties).into());
             }
 
             if pi_enc_el_gamal::non_interactive::verify::<E, D>(
@@ -1000,18 +1005,18 @@ where
                     b: &B_i1,
                     x: &B_i2,
                 },
-                &proof.psi1.0,
-                &proof.psi1.1,
+                &proof.psi1_ji.0,
+                &proof.psi1_ji.1,
                 &security_params.pi_enc_el_gamal,
             )
             .is_err()
             {
                 faulty_parties.push((j, msg1_id, msg2_id))
             }
-        }
 
-        if !faulty_parties.is_empty() {
-            return Err(SigningAborted::EncProofOfK(faulty_parties).into());
+            if !faulty_parties.is_empty() {
+                return Err(SigningAborted::EncElgProofOfG(faulty_parties).into());
+            }
         }
     }
     runtime.yield_now().await;
@@ -1209,7 +1214,7 @@ where
                 Msg::Round2(MsgRound2 {
                     // remove psi_prime
                     // add psi(elog)
-                    Gamma: Gamma_i,
+                    Gamma_i: Gamma_i,
                     psi_i: psi_i.clone(),
                     D: D_ji,
                     F: F_ji,
@@ -1262,7 +1267,7 @@ where
                 c: &K_i,
                 d: &msg.D,
                 y: &msg.F,
-                x: &msg.Gamma,
+                x: &msg.Gamma_i,
             },
             &msg.psi_ji.0,
             &security_params.pi_aff,
@@ -1304,7 +1309,7 @@ where
                 l: &round1a_msg.B_i1,
                 m: &round1a_msg.B_i2,
                 x: &round1a_msg.Y_i,
-                y: &msg.Gamma,
+                y: &msg.Gamma_i,
                 h: &Point::<E>::generator().to_point(),
             },
             &msg.psi_i.0,
@@ -1332,7 +1337,7 @@ where
     // Step 2
     tracer.stage("Compute Gamma, Delta_i, delta_i, chi_i");
     // Gamma = sum(Gamma_i)
-    let Gamma = Gamma_i + round2_msgs.iter().map(|msg| msg.Gamma).sum::<Point<E>>();
+    let Gamma = Gamma_i + round2_msgs.iter().map(|msg| msg.Gamma_i).sum::<Point<E>>();
     // Delta_i = Gamma * k_i
     let Delta_i = Gamma * &k_i;
 
@@ -1852,7 +1857,9 @@ enum Reason {
 #[derive(Debug, Error)]
 enum SigningAborted {
     #[error("pi_enc::verify(K) failed")]
-    EncProofOfK(Vec<(PartyIndex, MsgId, MsgId)>),
+    EncElgProofOfK(Vec<(PartyIndex, MsgId, MsgId)>),
+    #[error("pi_enc::verify(G) failed")]
+    EncElgProofOfG(Vec<(PartyIndex, MsgId, MsgId)>),
     #[error("ψ, ψˆ, or ψ' proofs are invalid")]
     InvalidPsi(
         Vec<(
