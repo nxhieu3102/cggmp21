@@ -115,6 +115,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
+    #[allow(non_snake_case)]
     fn test_polynomial_derivatives() {
         // Setup: Create a polynomial and its corresponding point polynomial
         // f(x) = 1 + 2x + 3x^2
