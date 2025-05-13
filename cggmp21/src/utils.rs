@@ -33,6 +33,7 @@ impl SecurityParams {
             pi_enc_el_gamal: pi_enc_el_gamal::SecurityParams {
                 l: L::ELL,
                 epsilon: L::EPSILON,
+                q: L::q(),
             },
         }
     }

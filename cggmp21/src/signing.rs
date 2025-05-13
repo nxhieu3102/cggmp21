@@ -1485,13 +1485,13 @@ where
         .map(|m| m.Delta_i * delta_inv)
         .collect::<Vec<_>>();
 
-    hat_Delta_j.insert((i - 1) as usize, Delta_i * delta_inv);
+    hat_Delta_j.insert(i as usize, Delta_i * delta_inv);
 
     let mut hat_S_j = round3_msgs
         .iter()
         .map(|m| m.S_i * delta_inv)
         .collect::<Vec<_>>();
-    hat_S_j.insert((i - 1) as usize, S_i * delta_inv);
+    hat_S_j.insert(i as usize, S_i * delta_inv);
 
     let presig = Presignature {
         Gamma: NonZero::from_point(Gamma).ok_or(Bug::ZeroGamma)?,
