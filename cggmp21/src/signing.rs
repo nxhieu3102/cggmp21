@@ -6,12 +6,11 @@ use futures::SinkExt;
 use generic_ec::{coords::AlwaysHasAffineX, Curve, NonZero, Point, Scalar, SecretScalar};
 use generic_ec_zkp::polynomial::lagrange_coefficient_at_zero;
 use paillier_zk::rug::Complete;
-use paillier_zk::{fast_paillier, rug::Integer};
 use paillier_zk::{
-    group_element_vs_paillier_encryption_in_range as pi_log,
-    paillier_affine_operation_in_range as pi_aff, paillier_encryption_in_range as pi_enc,
-    IntegerExt,
+    dlog_with_el_gamal_commitment as pi_elog, paillier_affine_operation_in_range as pi_aff,
+    paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal, IntegerExt,
 };
+use paillier_zk::{fast_paillier, rug::Integer};
 use rand_core::{CryptoRng, RngCore};
 use round_based::{
     rounds_router::{simple_store::RoundInput, RoundsRouter},
@@ -77,13 +76,24 @@ impl<E: Curve> DataToSign<E> {
 /// [Threshold](crate::key_share::AnyKeyShare::min_signers) amount of partial signatures (from different signers) can be [combined](PartialSignature::combine) into regular signature
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(bound = "")]
+
+// let delta_inv = delta.invert().ok_or(Bug::ZeroDelta)?;
+// let hat_k_i = k_i * delta_inv;
+// let hat_chi_i = chi_i * delta_inv;
+// let hat_Delta_j = round3_msgs.iter().map(|m| m.Delta_i * delta_inv).collect::<Vec<_>>();
+// let hat_S_j = round3_msgs.iter().map(|m| m.S_i * delta_inv).collect::<Vec<_>>();
+
 pub struct Presignature<E: Curve> {
-    /// $R$ component of presignature
-    pub R: NonZero<Point<E>>,
-    /// $k$ component of presignaure
-    pub k: SecretScalar<E>,
-    /// $\chi$ component of presignature
-    pub chi: SecretScalar<E>,
+    /// $\Gamma$ component, where $\Gamma = G \cdot \gamma$
+    pub Gamma: NonZero<Point<E>>,
+    /// Scaled secret share of $k_i$: $k_i \cdot \delta^{-1}$
+    pub hat_k_i: Scalar<E>,
+    /// Scaled secret share of $\chi_i$: $\chi_i \cdot \delta^{-1}$
+    pub hat_chi_i: Scalar<E>,
+    /// Vector of scaled $\Delta_j$ points: $\Delta_j \cdot \delta^{-1}$
+    pub hat_Delta_j: Vec<Point<E>>,
+    /// Vector of scaled $S_j$ points: $S_j \cdot \delta^{-1}$
+    pub hat_S_j: Vec<Point<E>>,
 }
 
 /// Partial signature issued by signer for given message
@@ -97,7 +107,7 @@ pub struct PartialSignature<E: Curve> {
     /// $r$ component of partial signature
     pub r: Scalar<E>,
     /// $\sigma$ component of partial signature
-    pub sigma: Scalar<E>,
+    pub sigma_i: Scalar<E>,
 }
 
 /// ECDSA signature
@@ -124,8 +134,8 @@ pub mod msg {
 
     use paillier_zk::fast_paillier;
     use paillier_zk::{
-        group_element_vs_paillier_encryption_in_range as pi_log,
-        paillier_affine_operation_in_range as pi_aff, paillier_encryption_in_range as pi_enc,
+        dlog_with_el_gamal_commitment as pi_elog, paillier_affine_operation_in_range as pi_aff,
+        paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal,
     };
     use round_based::ProtocolMessage;
     use serde::{Deserialize, Serialize};
@@ -140,9 +150,9 @@ pub mod msg {
     #[allow(clippy::large_enum_variant)]
     pub enum Msg<E: Curve, D: Digest> {
         /// Round 1a message
-        Round1a(MsgRound1a),
+        Round1a(MsgRound1a<E>),
         /// Round 1b message
-        Round1b(MsgRound1b),
+        Round1b(MsgRound1b<E>),
         /// Round 2 message
         Round2(MsgRound2<E>),
         /// Round 3 message
@@ -155,43 +165,58 @@ pub mod msg {
 
     /// Message from round 1a
     #[derive(Clone, Serialize, Deserialize, udigest::Digestable)]
+    #[serde(bound = "")]
+    #[udigest(bound = "")]
     #[udigest(tag = prefixed!("round1"))]
-    pub struct MsgRound1a {
-        /// $K_i$
+    pub struct MsgRound1a<E: Curve> {
+        /// $K_i = enc(k_i, rho_i)$
         #[udigest(as = utils::encoding::Integer)]
-        pub K: fast_paillier::Ciphertext,
-        /// $G_i$
+        pub K_i: fast_paillier::Ciphertext,
+        /// $G_i = enc(gamma_i, nu_i)$
         #[udigest(as = utils::encoding::Integer)]
-        pub G: fast_paillier::Ciphertext,
+        pub G_i: fast_paillier::Ciphertext,
+        /// $Y_i$: EC point
+        pub Y_i: Point<E>,
+        /// $A_{i,1} = g^{a_i}$
+        pub A_i1: Point<E>,
+        /// $A_{i,2} = Y_i^{a_i} * g^{k_i}$
+        pub A_i2: Point<E>,
+        /// $B_{i,1} = g^{b_i}$
+        pub B_i1: Point<E>,
+        /// $B_{i,2} = Y_i^{b_i} * g^{gamma_i}$
+        pub B_i2: Point<E>,
     }
 
     /// Message from round 1b
     #[derive(Clone, Serialize, Deserialize)]
-    pub struct MsgRound1b {
-        /// $\psi^0_{j,i}$
-        pub psi0: (pi_enc::Commitment, pi_enc::Proof),
+    #[serde(bound = "")]
+    pub struct MsgRound1b<E: Curve> {
+        /// $\psi^0_{j,i}$: pi_enc_el_gamal provement for K_i
+        pub psi0_ji: (pi_enc_el_gamal::Commitment<E>, pi_enc_el_gamal::Proof<E>),
+        /// $\psi^1_{j,i}$: pi_enc_el_gamal provement for G_i
+        pub psi1_ji: (pi_enc_el_gamal::Commitment<E>, pi_enc_el_gamal::Proof<E>),
     }
 
     /// Message from round 2
     #[derive(Clone, Serialize, Deserialize)]
     #[serde(bound = "")]
     pub struct MsgRound2<E: Curve> {
-        /// $\Gamma_i$
-        pub Gamma: Point<E>,
-        /// $D_{j,i}$
-        pub D: fast_paillier::Ciphertext,
-        /// $F_{j,i}$
-        pub F: fast_paillier::Ciphertext,
-        /// $\hat D_{j,i}$
-        pub hat_D: fast_paillier::Ciphertext,
-        /// $\hat F_{j,i}$
-        pub hat_F: fast_paillier::Ciphertext,
-        /// $\psi_{j,i}$
-        pub psi: (pi_aff::Commitment<E>, pi_aff::Proof),
-        /// $\hat \psi_{j,i}$
-        pub hat_psi: (pi_aff::Commitment<E>, pi_aff::Proof),
-        /// $\psi'_{j,i}$
-        pub psi_prime: (pi_log::Commitment<E>, pi_log::Proof),
+        /// $\Gamma_i = g^{gamma_i}$
+        pub Gamma_i: Point<E>,
+        /// $\psi_{j,i}$: pi_elog provement for $Gamma_i$
+        pub psi_i: (pi_elog::Commitment<E>, pi_elog::Proof<E>),
+        /// $D_{j,i} = enc(gamma_i * k_j - beta_ij)$
+        pub D_ji: fast_paillier::Ciphertext,
+        /// $F_{j,i} = enc(-beta_ij, r_ij)$
+        pub F_ji: fast_paillier::Ciphertext,
+        /// $\hat D_{j,i} = enc(x_i * k_j - hat_beta_ij)$
+        pub hat_D_ji: fast_paillier::Ciphertext,
+        /// $\hat F_{j,i} = enc(-hat_beta_ij, r_ij)$
+        pub hat_F_ji: fast_paillier::Ciphertext,
+        /// $\psi_{j,i}$: pi_aff_g provement for $Gamma_i$
+        pub psi_ji: (pi_aff::Commitment<E>, pi_aff::Proof),
+        /// $\hat \psi_{j,i}$: pi_aff_g provement for $X_i$ - public share of party i
+        pub hat_psi_ji: (pi_aff::Commitment<E>, pi_aff::Proof),
     }
 
     /// Message from round 3
@@ -199,11 +224,13 @@ pub mod msg {
     #[serde(bound = "")]
     pub struct MsgRound3<E: Curve> {
         /// $\delta_i$
-        pub delta: Scalar<E>,
+        pub delta_i: Scalar<E>,
+        /// $S_i$
+        pub S_i: Point<E>,
         /// $\Delta_i$
-        pub Delta: Point<E>,
+        pub Delta_i: Point<E>,
         /// $\psi''_{j,i}$
-        pub psi_prime_prime: (pi_log::Commitment<E>, pi_log::Proof),
+        pub hat_psi_i: (pi_elog::Commitment<E>, pi_elog::Proof<E>),
     }
 
     /// Message from round 4
@@ -211,7 +238,7 @@ pub mod msg {
     #[serde(bound = "")]
     pub struct MsgRound4<E: Curve> {
         /// $\sigma_i$
-        pub sigma: Scalar<E>,
+        pub sigma_i: Scalar<E>,
     }
 
     /// Message from auxiliary round for reliability check
@@ -222,6 +249,7 @@ pub mod msg {
 
 mod unambiguous {
     use crate::ExecutionId;
+    use generic_ec::Curve;
 
     #[derive(udigest::Digestable)]
     #[udigest(tag = prefixed!("proof_enc"))]
@@ -247,10 +275,11 @@ mod unambiguous {
     }
 
     #[derive(udigest::Digestable)]
+    #[udigest(bound = "")]
     #[udigest(tag = prefixed!("echo_round"))]
-    pub struct Echo<'a> {
+    pub struct Echo<'a, E: Curve> {
         pub sid: ExecutionId<'a>,
-        pub ciphertexts: &'a super::MsgRound1a,
+        pub msg: &'a super::MsgRound1a<E>,
     }
 }
 
@@ -565,7 +594,7 @@ where
     // S_j is the index of the party in the original group
     // It means S[i] is the original index of the current party
     if S.iter().any(|&S_j| S_j >= n) {
-        return Err(InvalidArgs::InvalidS.into());
+        return Err(InvalidArgs::InvalidSubIndex.into());
     }
 
     std::println!("signing_t_out_of_n: 2");
@@ -728,8 +757,8 @@ where
 
     tracer.stage("Setup networking");
     let mut rounds = RoundsRouter::<Msg<E, D>>::builder();
-    let round1a = rounds.add_round(RoundInput::<MsgRound1a>::broadcast(i, n));
-    let round1b = rounds.add_round(RoundInput::<MsgRound1b>::p2p(i, n));
+    let round1a = rounds.add_round(RoundInput::<MsgRound1a<E>>::broadcast(i, n));
+    let round1b = rounds.add_round(RoundInput::<MsgRound1b<E>>::p2p(i, n));
     let round1a_sync = rounds.add_round(RoundInput::<MsgReliabilityCheck<D>>::broadcast(i, n));
     let round2 = rounds.add_round(RoundInput::<MsgRound2<E>>::p2p(i, n));
     let round3 = rounds.add_round(RoundInput::<MsgRound3<E>>::p2p(i, n));
@@ -743,66 +772,122 @@ where
 
     tracer.stage("Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i)");
     // k_i, gamma_i in F_q
-    let k_i = SecretScalar::<E>::random(rng);
-    let gamma_i = SecretScalar::<E>::random(rng);
+    let k_i = Scalar::<E>::random(rng);
+    let gamma_i = Scalar::<E>::random(rng);
 
-    // rho_i, nu_i in Z_N*
+    // rho_i, nu_i in Z_{N_i}*
     let rho_i = Integer::gen_invertible(N_i, rng);
     let nu_i = Integer::gen_invertible(N_i, rng);
 
     std::println!("signing_n_out_of_n: 5");
 
     tracer.stage("Encrypt k_i and gamma_i");
-    // K_i = enc(k_i, rho_i)
+    // K_i = enc_i(k_i, rho_i)
     let K_i = dec_i
         .encrypt_with(&utils::scalar_to_bignumber(&k_i), &rho_i)
-        .map_err(|_| Bug::PaillierEnc(BugSource::K_i))?;
-    // G_i = enc(gamma_i, nu_i)
+        .map_err(|e| Bug::PaillierEnc(BugSource::K_i, e))?;
+    // G_i = enc_i(gamma_i, nu_i)
     let G_i = dec_i
         .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &nu_i)
-        .map_err(|_| Bug::PaillierEnc(BugSource::G_i))?;
+        .map_err(|e| Bug::PaillierEnc(BugSource::G_i, e))?;
     runtime.yield_now().await;
 
+    // TODO: sample Y_i <- G; a_i, b_i <- F_q (G is elliptic curve point, F_q is field element) (DONE)
+    let Y_i = Point::generator() * Scalar::<E>::random(rng);
+
+    let a_i = Scalar::random(rng);
+    let b_i = Scalar::random(rng);
+    // Set (A_{i,1}, A_{i,2}) = (g^{a_i}, Y_i^{a_i}.g^{k_i})
+    // Set (B_{i,1}, B_{i,2}) = (g^{b_i}, Y_i^{b_i}.g^{gamma_i})
+
+    // NOTE: elg commit
+    let (A_i1, A_i2) = (
+        Point::generator() * &a_i,
+        Y_i * &a_i + Point::generator() * &k_i,
+    );
+    let (B_i1, B_i2) = (
+        Point::generator() * &b_i,
+        Y_i * &b_i + Point::generator() * &gamma_i,
+    );
+
+    // TODO: broadcast (Y_i, A_{i,1}, A_{i,2}, B_{i,1}, B_{i,2}) (DONE)
     std::println!("signing_n_out_of_n: 6");
 
     tracer.send_msg();
     outgoings
         .feed(Outgoing::broadcast(Msg::Round1a(MsgRound1a {
-            K: K_i.clone(),
-            G: G_i.clone(),
+            K_i: K_i.clone(),
+            G_i: G_i.clone(),
+            Y_i: Y_i.clone(),
+            A_i1: A_i1.clone(),
+            A_i2: A_i2.clone(),
+            B_i1: B_i1.clone(),
+            B_i2: B_i2.clone(),
         })))
         .await
         .map_err(IoError::send_message)?;
     tracer.msg_sent();
 
     std::println!("signing_n_out_of_n: 7");
-    // TODO: compute elgama commitment
 
     for j in utils::iter_peers(i, n) {
-        tracer.stage("Prove ψ0_j");
+        tracer.stage("Prove ψ0_ji");
         let R_j = &R[usize::from(j)];
 
-        // TODO: replace pi_enc by py_enc-elg
-        // Pi_enc: prove K_i = enc(k_i, rho_i)
-        let psi0 = pi_enc::non_interactive::prove::<D>(
+        // TODO: replace pi_enc with pi_enc_elg (DONE)
+        // TODO: Batch proof
+        let psi0_ji = pi_enc_el_gamal::non_interactive::prove::<E, D>(
             &unambiguous::ProofEnc { sid, prover: i },
             &R_j.into(),
-            pi_enc::Data {
+            pi_enc_el_gamal::Data {
+                // TODO: Does decryption key leak any serious information if it is stored in Data
+                // CGGMP21 does not pass key into Data
                 key: dec_i,
                 ciphertext: &K_i,
+                a: &Y_i,
+                b: &A_i1,
+                x: &A_i2,
             },
-            pi_enc::PrivateData {
+            pi_enc_el_gamal::PrivateData {
                 plaintext: &utils::scalar_to_bignumber(&k_i),
                 nonce: &rho_i,
+                b: &a_i,
             },
-            &security_params.pi_enc,
+            &security_params.pi_enc_el_gamal,
             &mut *rng,
         )
-        .map_err(|e| Bug::PiEnc(BugSource::psi0, e))?;
+        .map_err(|e| Bug::PiEncElg(BugSource::psi0_ji, e))?;
+
+        tracer.stage("Prove ψ1_ji");
+
+        let psi1_ji = pi_enc_el_gamal::non_interactive::prove::<E, D>(
+            &unambiguous::ProofEnc { sid, prover: i },
+            &R_j.into(),
+            pi_enc_el_gamal::Data {
+                // TODO: Does decryption key leak any serious information if it is stored in Data
+                // CGGMP21 does not pass key into Data
+                key: dec_i,
+                ciphertext: &G_i,
+                a: &Y_i,
+                b: &B_i1,
+                x: &B_i2,
+            },
+            pi_enc_el_gamal::PrivateData {
+                plaintext: &utils::scalar_to_bignumber(&gamma_i),
+                nonce: &nu_i,
+                b: &b_i,
+            },
+            &security_params.pi_enc_el_gamal,
+            &mut *rng,
+        )
+        .map_err(|e| Bug::PiEncElg(BugSource::psi1_ji, e))?;
 
         tracer.send_msg();
         outgoings
-            .feed(Outgoing::p2p(j, Msg::Round1b(MsgRound1b { psi0 })))
+            .feed(Outgoing::p2p(
+                j,
+                Msg::Round1b(MsgRound1b { psi0_ji, psi1_ji }),
+            ))
             .await
             .map_err(IoError::send_message)?;
         tracer.msg_sent();
@@ -818,11 +903,14 @@ where
 
     tracer.receive_msgs();
     // Contains G_j, K_j sent by other parties
-    let ciphertexts = rounds
+    // TODO: round 1a not only contains ciphertexts, it also contains Y_i, A_{i,1}, A_{i,2}, B_{i,1}, B_{i,2} (DONE)
+    let round1a_msgs = rounds
         .complete(round1a)
         .await
         .map_err(IoError::receive_message)?;
-    let psi0 = rounds
+
+    // TODO: (psi0_ji, psi1_ji) --> psi_ji (batch proof of enc-elg)
+    let round1b_msgs = rounds
         .complete(round1b)
         .await
         .map_err(IoError::receive_message)?;
@@ -833,12 +921,18 @@ where
     if enforce_reliable_broadcast {
         tracer.stage("Hash received msgs (reliability check)");
         let h_i = udigest::hash_iter::<D>(
-            ciphertexts
+            round1a_msgs
                 .iter_including_me(&MsgRound1a {
-                    K: K_i.clone(),
-                    G: G_i.clone(),
+                    // TODO: round 1a not only contains K_i, G_i (DONE)
+                    K_i: K_i.clone(),
+                    G_i: G_i.clone(),
+                    Y_i: Y_i.clone(),
+                    A_i1: A_i1.clone(),
+                    A_i2: A_i2.clone(),
+                    B_i1: B_i1.clone(),
+                    B_i2: B_i2.clone(),
                 })
-                .map(|ciphertexts| unambiguous::Echo { sid, ciphertexts }),
+                .map(|msg| unambiguous::Echo { sid, msg }),
         );
 
         tracer.send_msg();
@@ -870,55 +964,107 @@ where
     }
     std::println!("signing_n_out_of_n: 10");
     // Step 1. Verify proofs
-    tracer.stage("Verify psi0 proofs");
+    // TODO: pi_enc --> pi_enc_elg (DONE)
+    tracer.stage("Verify psi0_ji and psi1_ji proofs");
     {
         let mut faulty_parties = vec![];
-        for ((j, msg1_id, ciphertext), (_, msg2_id, proof)) in
-            ciphertexts.iter_indexed().zip(psi0.iter_indexed())
+        for ((j, msg1a_id, round1a_msg), (_, msg1b_id, round1b_msg)) in
+            round1a_msgs.iter_indexed().zip(round1b_msgs.iter_indexed())
         {
             let R_j = &R[usize::from(j)];
-            if pi_enc::non_interactive::verify::<D>(
+            // TODO: pi_enc --> pi_enc_elg (DONE)
+            // TODO: batch proof
+            let verify_psi0_ji = pi_enc_el_gamal::non_interactive::verify::<E, D>(
                 &unambiguous::ProofEnc { sid, prover: j },
                 &R_i.into(),
-                pi_enc::Data {
+                pi_enc_el_gamal::Data {
+                    // data of party j (from round1a_msg and round1b_msg)
                     key: &R_j.enc.clone(),
-                    ciphertext: &ciphertext.K,
+                    ciphertext: &round1a_msg.K_i,
+                    a: &round1a_msg.Y_i,
+                    b: &round1a_msg.A_i1,
+                    x: &round1a_msg.A_i2,
                 },
-                &proof.psi0.0,
-                &security_params.pi_enc,
-                &proof.psi0.1,
+                &round1b_msg.psi0_ji.0,
+                &round1b_msg.psi0_ji.1,
+                &security_params.pi_enc_el_gamal,
+            );
+            match verify_psi0_ji {
+                Ok(_) => {}
+                Err(e) => {
+                    println!("line 996: {:?}", e);
+                    faulty_parties.push((j, msg1a_id, msg1b_id))
+                }
+            }
+
+            if !faulty_parties.is_empty() {
+                return Err(SigningAborted::EncElgProofOfK(faulty_parties).into());
+            }
+
+            if pi_enc_el_gamal::non_interactive::verify::<E, D>(
+                &unambiguous::ProofEnc { sid, prover: j },
+                &R_i.into(),
+                pi_enc_el_gamal::Data {
+                    key: &R_j.enc.clone(),
+                    ciphertext: &round1a_msg.G_i,
+                    a: &round1a_msg.Y_i,
+                    b: &round1a_msg.B_i1,
+                    x: &round1a_msg.B_i2,
+                },
+                &round1b_msg.psi1_ji.0,
+                &round1b_msg.psi1_ji.1,
+                &security_params.pi_enc_el_gamal,
             )
             .is_err()
             {
-                faulty_parties.push((j, msg1_id, msg2_id))
+                faulty_parties.push((j, msg1a_id, msg1b_id))
             }
-        }
 
-        if !faulty_parties.is_empty() {
-            return Err(SigningAborted::EncProofOfK(faulty_parties).into());
+            if !faulty_parties.is_empty() {
+                return Err(SigningAborted::EncElgProofOfG(faulty_parties).into());
+            }
         }
     }
     runtime.yield_now().await;
 
-    // Q: why do not prove G_i = enc(gamma_i, nu_i) here?
-    // A: because we will prove it later in pi_log
-
     // Step 2
     // Gamma_i = G * gamma_i
     let Gamma_i = Point::generator() * &gamma_i;
-    // J = 2^{ell}
     let J = (Integer::ONE << L::ELL_PRIME).complete();
+
+    // TODO: psi_i = pi_elog::prove(Data: (Gamma_i, g, B_{i,1}, B_{i,2}, Y_i), PrivateData: (gamma_i, b_i))) (DONE)
+    let psi_i = pi_elog::non_interactive::prove::<E, D>(
+        &unambiguous::ProofLog {
+            sid,
+            prover: i,
+            prime_prime: false,
+        },
+        pi_elog::Data {
+            l: &B_i1,
+            m: &B_i2,
+            x: &Y_i,
+            y: &Gamma_i,
+            h: &Point::<E>::generator().to_point(),
+        },
+        pi_elog::PrivateData {
+            y: &gamma_i,
+            lambda: &b_i,
+        },
+        &mut *rng,
+    )
+    .map_err(|e| Bug::PiELog(BugSource::psi_i, e))?;
+    // J = 2^{ell}
 
     // Q: what are beta_sum, hat_beta_sum?
     let mut beta_sum = Scalar::zero();
     let mut hat_beta_sum = Scalar::zero();
-    for (j, _, ciphertext_j) in ciphertexts.iter_indexed() {
+    for (j, _, round1a_msg) in round1a_msgs.iter_indexed() {
         tracer.stage("Sample random r, hat_r, s, hat_s, beta, hat_beta");
         let R_j = &R[usize::from(j)];
         let enc_j = &R_j.enc.clone();
 
         // r_ij, hat_r_ij, s_ij, hat_s_ij in Z_Nj
-        // TODO: N_j or N_i here?
+        // TODO: N_j or N_i here => N_i (DONE)
         let r_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
         let hat_r_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
         let s_ij = N_i.random_below_ref(&mut utils::external_rand(rng)).into();
@@ -936,16 +1082,16 @@ where
         let D_ji = {
             // gamma_i * K_j ~ scalar * ciphertext
             let gamma_i_times_K_j = enc_j
-                .omul(&utils::scalar_to_bignumber(&gamma_i), &ciphertext_j.K)
-                .map_err(|_| Bug::PaillierOp(BugSource::gamma_i_times_K_j))?;
+                .omul(&utils::scalar_to_bignumber(&gamma_i), &round1a_msg.K_i)
+                .map_err(|e| Bug::PaillierOp(BugSource::gamma_i_times_K_j, e))?;
             // enc_j(-beta_ij, s_ij)
             let neg_beta_ij_enc = enc_j
                 .encrypt_with(&(-&beta_ij).complete(), &s_ij)
-                .map_err(|_| Bug::PaillierEnc(BugSource::neg_beta_ij_enc))?;
+                .map_err(|e| Bug::PaillierEnc(BugSource::neg_beta_ij_enc, e))?;
             // D_ji = gamma_i * K_j + enc_j(-beta_ij, s_ij) ~ ciphertext + ciphertext
             enc_j
                 .oadd(&gamma_i_times_K_j, &neg_beta_ij_enc)
-                .map_err(|_| Bug::PaillierOp(BugSource::D_ji))?
+                .map_err(|e| Bug::PaillierOp(BugSource::D_ji, e))?
         };
 
         std::println!("signing_n_out_of_n: 11");
@@ -954,23 +1100,23 @@ where
         // F_ji = enc_i(beta_ij, r_ij)
         let F_ji = dec_i
             .encrypt_with(&(-&beta_ij).complete(), &r_ij)
-            .map_err(|_| Bug::PaillierEnc(BugSource::F_ji))?;
+            .map_err(|e| Bug::PaillierEnc(BugSource::F_ji, e))?;
 
         tracer.stage("Encrypt hat_D_ji");
         // Dˆ_ji = (x_i * K_j) + enc_j(-hat_beta_ij, hat_s_ij)
         let hat_D_ji = {
             // x_i * K_j ~ scalar * ciphertext
             let x_i_times_K_j = enc_j
-                .omul(&utils::scalar_to_bignumber(x_i), &ciphertext_j.K)
-                .map_err(|_| Bug::PaillierOp(BugSource::x_i_times_K_j))?;
+                .omul(&utils::scalar_to_bignumber(x_i), &round1a_msg.K_i)
+                .map_err(|e| Bug::PaillierOp(BugSource::x_i_times_K_j, e))?;
             // enc_j(-hat_beta_ij, hat_s_ij)
             let neg_hat_beta_ij_enc = enc_j
                 .encrypt_with(&(-&hat_beta_ij).complete(), &hat_s_ij)
-                .map_err(|_| Bug::PaillierEnc(BugSource::hat_beta_ij_enc))?;
+                .map_err(|e| Bug::PaillierEnc(BugSource::neg_hat_beta_ij_enc, e))?;
             // hat_D_ji = x_i * K_j + enc_j(-hat_beta_ij, hat_s_ij) ~ ciphertext + ciphertext
             enc_j
                 .oadd(&x_i_times_K_j, &neg_hat_beta_ij_enc)
-                .map_err(|_| Bug::PaillierOp(BugSource::hat_D))?
+                .map_err(|e| Bug::PaillierOp(BugSource::hat_D_ji, e))?
         };
         runtime.yield_now().await;
 
@@ -978,10 +1124,10 @@ where
         // Fˆ_ji = enc_i(hat_beta_ij, hat_r_ij)
         let hat_F_ji = dec_i
             .encrypt_with(&(-&hat_beta_ij).complete(), &hat_r_ij)
-            .map_err(|_| Bug::PaillierEnc(BugSource::hat_F))?;
+            .map_err(|e| Bug::PaillierEnc(BugSource::hat_F_ji, e))?;
 
         tracer.stage("Prove psi_ji");
-        // pi_aff-g: range proof for D_ji, F_ji in affine operation
+        // TODO: batch pi_aff_g (psi_ji, hat_psi_ji)
         let psi_ji = pi_aff::non_interactive::prove::<E, D>(
             &unambiguous::ProofPsi {
                 sid,
@@ -992,7 +1138,7 @@ where
             pi_aff::Data {
                 key0: enc_j,
                 key1: dec_i,
-                c: &ciphertext_j.K,
+                c: &round1a_msg.K_i, // K_j
                 d: &D_ji,
                 y: &F_ji,
                 x: &Gamma_i, // MtA(k, gamma)
@@ -1006,7 +1152,7 @@ where
             &security_params.pi_aff,
             &mut *rng,
         )
-        .map_err(|e| Bug::PiAffG(BugSource::psi, e))?;
+        .map_err(|e| Bug::PiAffG(BugSource::psi_ji, e))?;
         runtime.yield_now().await;
 
         tracer.stage("Prove psiˆ_ji");
@@ -1021,7 +1167,7 @@ where
             pi_aff::Data {
                 key0: enc_j,
                 key1: dec_i,
-                c: &ciphertext_j.K,
+                c: &round1a_msg.K_i, // K_j
                 d: &hat_D_ji,
                 y: &hat_F_ji,
                 x: &(Point::generator() * x_i), // MtA(k, x)
@@ -1035,32 +1181,7 @@ where
             &security_params.pi_aff,
             &mut *rng,
         )
-        .map_err(|e| Bug::PiAffG(BugSource::hat_psi, e))?;
-
-        tracer.stage("Prove psi_prime_ji ");
-        // pi_log: prove G_i = enc(gamma_i, nu_i) and Gamma_i = G * gamma_i
-        // and gamma_i in range
-        let psi_prime_ji = pi_log::non_interactive::prove::<E, D>(
-            &unambiguous::ProofLog {
-                sid,
-                prover: i,
-                prime_prime: false,
-            },
-            &R_j.into(),
-            pi_log::Data {
-                key0: dec_i,
-                c: &G_i,
-                x: &Gamma_i,
-                b: &Point::<E>::generator().to_point(),
-            },
-            pi_log::PrivateData {
-                x: &utils::scalar_to_bignumber(&gamma_i),
-                nonce: &nu_i,
-            },
-            &security_params.pi_log,
-            &mut *rng,
-        )
-        .map_err(|e| Bug::PiLog(BugSource::psi_prime, e))?;
+        .map_err(|e| Bug::PiAffG(BugSource::hat_psi_ji, e))?;
         runtime.yield_now().await;
 
         tracer.send_msg();
@@ -1068,14 +1189,16 @@ where
             .feed(Outgoing::p2p(
                 j,
                 Msg::Round2(MsgRound2 {
-                    Gamma: Gamma_i,
-                    D: D_ji,
-                    F: F_ji,
-                    hat_D: hat_D_ji,
-                    hat_F: hat_F_ji,
-                    psi: psi_ji,
-                    hat_psi: hat_psi_ji,
-                    psi_prime: psi_prime_ji,
+                    // remove psi_prime
+                    // add psi(elog)
+                    Gamma_i,
+                    psi_i: psi_i.clone(),
+                    D_ji,
+                    F_ji,
+                    hat_D_ji,
+                    hat_F_ji,
+                    psi_ji,
+                    hat_psi_ji,
                 }),
             ))
             .await
@@ -1098,16 +1221,17 @@ where
     tracer.msgs_received();
 
     let mut faulty_parties = vec![];
-    for ((j, msg_id, msg), (_, ciphertext_msg_id, ciphertexts)) in
-        round2_msgs.iter_indexed().zip(ciphertexts.iter_indexed())
+    for ((j, msg_id, msg), (_, round1a_msg_id, round1a_msg)) in
+        round2_msgs.iter_indexed().zip(round1a_msgs.iter_indexed())
     {
         tracer.stage("Retrieve auxiliary data");
         let X_j = X[usize::from(j)];
         let R_j = &R[usize::from(j)];
         let enc_j = R_j.enc.clone();
 
-        tracer.stage("Validate psi");
-        let psi_invalid = pi_aff::non_interactive::verify::<E, D>(
+        // TODO: batch verify pi_aff_g
+        tracer.stage("Validate psi_ji");
+        let psi_ji_invalid = pi_aff::non_interactive::verify::<E, D>(
             &unambiguous::ProofPsi {
                 sid,
                 prover: j,
@@ -1115,21 +1239,21 @@ where
             },
             &R_i.into(),
             pi_aff::Data {
-                key0: dec_i,
-                key1: &enc_j,
-                c: &K_i,
-                d: &msg.D,
-                y: &msg.F,
-                x: &msg.Gamma,
+                key0: dec_i,  // verifier key
+                key1: &enc_j, // prover key
+                c: &K_i,      // from verifier
+                d: &msg.D_ji,
+                y: &msg.F_ji,
+                x: &msg.Gamma_i,
             },
-            &msg.psi.0,
+            &msg.psi_ji.0,
             &security_params.pi_aff,
-            &msg.psi.1,
+            &msg.psi_ji.1,
         )
         .err();
 
-        tracer.stage("Validate hat_psi");
-        let hat_psi_invalid = pi_aff::non_interactive::verify::<E, D>(
+        tracer.stage("Validate hat_psi_ji");
+        let hat_psi_ji_invalid = pi_aff::non_interactive::verify::<E, D>(
             &unambiguous::ProofPsi {
                 sid,
                 prover: j,
@@ -1137,45 +1261,45 @@ where
             },
             &R_i.into(),
             pi_aff::Data {
-                key0: dec_i,
-                key1: &enc_j,
-                c: &K_i,
-                d: &msg.hat_D,
-                y: &msg.hat_F,
+                key0: dec_i,  // verifier key
+                key1: &enc_j, // prover key
+                c: &K_i,      // from verifier
+                d: &msg.hat_D_ji,
+                y: &msg.hat_F_ji,
                 x: &X_j,
             },
-            &msg.hat_psi.0,
+            &msg.hat_psi_ji.0,
             &security_params.pi_aff,
-            &msg.hat_psi.1,
+            &msg.hat_psi_ji.1,
         )
         .err();
 
-        tracer.stage("Validate psi_prime");
-        let psi_prime_invalid = pi_log::non_interactive::verify::<E, D>(
+        // TODO: replace with validate psi(elog)
+        tracer.stage("Validate psi_j");
+        let psi_j_invalid = pi_elog::non_interactive::verify::<E, D>(
             &unambiguous::ProofLog {
                 sid,
                 prover: j,
                 prime_prime: false,
             },
-            &R_i.into(),
-            pi_log::Data {
-                key0: &enc_j,
-                c: &ciphertexts.G,
-                x: &msg.Gamma,
-                b: &Point::<E>::generator().to_point(),
+            pi_elog::Data {
+                l: &round1a_msg.B_i1,
+                m: &round1a_msg.B_i2,
+                x: &round1a_msg.Y_i,
+                y: &msg.Gamma_i,
+                h: &Point::<E>::generator().to_point(),
             },
-            &msg.psi_prime.0,
-            &security_params.pi_log,
-            &msg.psi_prime.1,
+            &msg.psi_i.0,
+            &msg.psi_i.1,
         )
         .err();
 
-        if psi_invalid.is_some() || hat_psi_invalid.is_some() || psi_prime_invalid.is_some() {
+        if psi_ji_invalid.is_some() || hat_psi_ji_invalid.is_some() || psi_j_invalid.is_some() {
             faulty_parties.push((
                 j,
-                ciphertext_msg_id,
+                round1a_msg_id,
                 msg_id,
-                (psi_invalid, hat_psi_invalid, psi_prime_invalid),
+                (psi_ji_invalid, hat_psi_ji_invalid, psi_j_invalid),
             ))
         }
         runtime.yield_now().await;
@@ -1190,7 +1314,7 @@ where
     // Step 2
     tracer.stage("Compute Gamma, Delta_i, delta_i, chi_i");
     // Gamma = sum(Gamma_i)
-    let Gamma = Gamma_i + round2_msgs.iter().map(|msg| msg.Gamma).sum::<Point<E>>();
+    let Gamma = Gamma_i + round2_msgs.iter().map(|msg| msg.Gamma_i).sum::<Point<E>>();
     // Delta_i = Gamma * k_i
     let Delta_i = Gamma * &k_i;
 
@@ -1202,11 +1326,11 @@ where
     let alpha_sum =
         round2_msgs
             .iter()
-            .map(|msg| &msg.D)
+            .map(|msg| &msg.D_ji)
             .try_fold(Scalar::<E>::zero(), |sum, D_ij| {
                 let alpha_ij = dec_i
                     .decrypt(D_ij)
-                    .map_err(|_| Bug::PaillierDec(BugSource::alpha))?;
+                    .map_err(|e| Bug::PaillierDec(BugSource::alpha_ij, e))?;
                 Ok::<_, Bug>(sum + alpha_ij.to_scalar())
             })?;
 
@@ -1218,11 +1342,11 @@ where
     let hat_alpha_sum =
         round2_msgs
             .iter()
-            .map(|msg| &msg.hat_D)
+            .map(|msg| &msg.hat_D_ji)
             .try_fold(Scalar::zero(), |sum, hat_D_ij| {
                 let hat_alpha_ij = dec_i
                     .decrypt(hat_D_ij)
-                    .map_err(|_| Bug::PaillierDec(BugSource::hat_alpha))?;
+                    .map_err(|e| Bug::PaillierDec(BugSource::hat_alpha_ij, e))?;
                 Ok::<_, Bug>(sum + hat_alpha_ij.to_scalar())
             })?;
 
@@ -1230,42 +1354,48 @@ where
     let delta_i = gamma_i.as_ref() * k_i.as_ref() + alpha_sum + beta_sum;
     // chi_i = x_i * k_i + hat_alpha_sum + hat_beta_sum
     let chi_i = x_i * k_i.as_ref() + hat_alpha_sum + hat_beta_sum;
+    // TODO: S_i = Gamma^{chi_i} (DONE)
+    let S_i = Gamma * chi_i;
     runtime.yield_now().await;
+
+    // TODO: pi_elog::prove(Data: (Delta_i, Gamma, A_{i,1}, A_{i,2}, Y_i), PrivateData: (k_i, a_i)) (DONE)
+    // TODO: remove Prove psi_prime_prime (DONE)
     std::println!("signing_n_out_of_n: 13");
     for j in utils::iter_peers(i, n) {
-        tracer.stage("Prove psi_prime_prime");
-        let R_j = &R[usize::from(j)];
+        tracer.stage("Prove hat_psi_i");
         // pi_log: prove K_i = enc(k_i, rho_i) and Delta_i = Gamma * k_i = G * sum(gamma_j) * k_i
-        let psi_prime_prime = pi_log::non_interactive::prove::<E, D>(
+        let hat_psi_i = pi_elog::non_interactive::prove::<E, D>(
             &unambiguous::ProofLog {
                 sid,
                 prover: i,
-                prime_prime: true,
+                prime_prime: false,
             },
-            &R_j.into(),
-            pi_log::Data {
-                key0: dec_i,
-                c: &K_i,
-                x: &Delta_i,
-                b: &Gamma,
+            pi_elog::Data {
+                l: &A_i1,
+                m: &A_i2,
+                x: &Y_i,
+                y: &Delta_i,
+                h: &Gamma,
             },
-            pi_log::PrivateData {
-                x: &utils::scalar_to_bignumber(&k_i),
-                nonce: &rho_i,
+            pi_elog::PrivateData {
+                y: &k_i,
+                lambda: &a_i,
             },
-            &security_params.pi_log,
             &mut *rng,
         )
-        .map_err(|e| Bug::PiLog(BugSource::psi_prime_prime, e))?;
+        .map_err(|e| Bug::PiELog(BugSource::hat_psi_i, e))?;
 
+        // TODO: send message p2p: (delta_i, S_i, Delta_i, psi_i) (DONE)
         tracer.send_msg();
         outgoings
             .feed(Outgoing::p2p(
                 j,
                 Msg::Round3(MsgRound3 {
-                    delta: delta_i,
-                    Delta: Delta_i,
-                    psi_prime_prime,
+                    // TODO: (delta_i, S_i, Delta_i, hat_psi_i) (DONE)
+                    delta_i,
+                    S_i,
+                    Delta_i,
+                    hat_psi_i,
                 }),
             ))
             .await
@@ -1287,50 +1417,48 @@ where
         .map_err(IoError::receive_message)?;
     tracer.msgs_received();
 
-    tracer.stage("Validate psi_prime_prime");
+    // TODO: replace by validate elog (DONE)
+    tracer.stage("Validate hat_psi_j");
     let mut faulty_parties = vec![];
-    for ((j, msg_id, msg_j), (_, ciphertext_id, ciphertext_j)) in
-        round3_msgs.iter_indexed().zip(ciphertexts.iter_indexed())
+    for ((j, msg_id, msg_j), (_, round1a_msg_id, round1a_msg)) in
+        round3_msgs.iter_indexed().zip(round1a_msgs.iter_indexed())
     {
-        let R_j = &R[usize::from(j)];
-        let enc_j = R_j.enc.clone();
-
-        let data = pi_log::Data {
-            key0: &enc_j,
-            c: &ciphertext_j.K,
-            x: &msg_j.Delta,
-            b: &Gamma,
+        let data = pi_elog::Data {
+            l: &round1a_msg.A_i1,
+            m: &round1a_msg.A_i2,
+            x: &round1a_msg.Y_i,
+            y: &msg_j.Delta_i,
+            h: &Gamma,
         };
 
-        if pi_log::non_interactive::verify::<E, D>(
+        if pi_elog::non_interactive::verify::<E, D>(
             &unambiguous::ProofLog {
                 sid,
                 prover: j,
-                prime_prime: true,
+                prime_prime: false,
             },
-            &R_i.into(),
             data,
-            &msg_j.psi_prime_prime.0,
-            &security_params.pi_log,
-            &msg_j.psi_prime_prime.1,
+            &msg_j.hat_psi_i.0,
+            &msg_j.hat_psi_i.1,
         )
         .is_err()
         {
-            faulty_parties.push((j, ciphertext_id, msg_id))
+            faulty_parties.push((j, round1a_msg_id, msg_id))
         }
     }
     runtime.yield_now().await;
 
+    // TODO: error here (DONE)
     if !faulty_parties.is_empty() {
-        return Err(SigningAborted::InvalidPsiPrimePrime(faulty_parties).into());
+        return Err(SigningAborted::InvalidHatPsi(faulty_parties).into());
     }
     std::println!("signing_n_out_of_n: 15");
     // Step 2
     tracer.stage("Calculate presignature");
     // delta = delta_i + sum(delta_j) = gamma * k
-    let delta = delta_i + round3_msgs.iter().map(|m| m.delta).sum::<Scalar<E>>();
+    let delta = delta_i + round3_msgs.iter().map(|m| m.delta_i).sum::<Scalar<E>>();
     // Delta = Gamma * k = G * gamma * k
-    let Delta = Delta_i + round3_msgs.iter().map(|m| m.Delta).sum::<Point<E>>();
+    let Delta = Delta_i + round3_msgs.iter().map(|m| m.Delta_i).sum::<Point<E>>();
 
     if Point::generator() * delta != Delta {
         // Following the protocol, party should broadcast additional proofs
@@ -1339,14 +1467,38 @@ where
         return Err(SigningAborted::MismatchedDelta.into());
     }
 
-    // R = Gamma * delta^{-1} = (G * gamma) * (k * gamma)^{-1} = G * k^{-1}
-    // R = x-coordinate of G * k^{-1}
-    let R = Gamma * delta.invert().ok_or(Bug::ZeroDelta)?;
-    let R = NonZero::from_point(R).ok_or(Bug::ZeroR)?;
+    // TODO: check X^delta = pi(S_j) = (S1 * S2 * S3 ... * Sn) (DONE)
+    // X is public key
+    let X = pk;
+    let S = S_i + round3_msgs.iter().map(|m| m.S_i).sum::<Point<E>>();
+    if X * delta != S {
+        return Err(SigningAborted::MismatchedS.into());
+    }
+
+    // TODO: presignature (Gamma, k_i / delta, Chi_i / delta, (Delta_j^(delta^{-1}), S_j^{delta^{-1}})j \in P) (DONE)
+
+    let delta_inv = delta.invert().ok_or(Bug::ZeroDelta)?;
+    let hat_k_i = k_i * delta_inv;
+    let hat_chi_i = chi_i * delta_inv;
+    let mut hat_Delta_j = round3_msgs
+        .iter()
+        .map(|m| m.Delta_i * delta_inv)
+        .collect::<Vec<_>>();
+
+    hat_Delta_j.insert(i as usize, Delta_i * delta_inv);
+
+    let mut hat_S_j = round3_msgs
+        .iter()
+        .map(|m| m.S_i * delta_inv)
+        .collect::<Vec<_>>();
+    hat_S_j.insert(i as usize, S_i * delta_inv);
+
     let presig = Presignature {
-        R,
-        k: k_i,
-        chi: SecretScalar::new(&mut chi_i.clone()),
+        Gamma: NonZero::from_point(Gamma).ok_or(Bug::ZeroGamma)?,
+        hat_k_i,
+        hat_chi_i,
+        hat_Delta_j,
+        hat_S_j,
     };
 
     // If message is not specified, protocol terminates here and outputs partial
@@ -1360,18 +1512,20 @@ where
     tracer.named_round_begins("Partial signing");
 
     // Round 1
-    let partial_sig = presig.issue_partial_signature(message_to_sign);
+    // TODO: calculate partial_sigature (DONE)
+    let partial_sigature = presig.clone().issue_partial_signature(message_to_sign)?;
 
     tracer.send_msg();
     outgoings
         .send(Outgoing::broadcast(Msg::Round4(MsgRound4 {
             // sigma_i = k_i * m + r_i * chi_i
-            sigma: partial_sig.sigma,
+            sigma_i: partial_sigature.sigma_i,
         })))
         .await
         .map_err(IoError::send_message)?;
     tracer.msg_sent();
 
+    // TODO: erase (Gamma, hat_k_i, hat_Chi_i) from memory
     // Output
     tracer.named_round_begins("Signature reconstruction");
 
@@ -1381,15 +1535,32 @@ where
         .await
         .map_err(IoError::receive_message)?;
     tracer.msgs_received();
+
+    // TODO: check Gamma^{sigma_j} = hat_Delta_j^m * hat_S_j^r (for all j in P)
+    for (j, _msg_id, msg_j) in partial_sigs.iter_indexed() {
+        let presig_clone = presig.clone();
+        let Gamma = presig_clone.Gamma;
+        let hat_Delta_j = presig_clone.hat_Delta_j[usize::from(j)];
+        let hat_S_j = presig_clone.hat_S_j[usize::from(j)];
+        let sigma_j = msg_j.sigma_i;
+        let m = message_to_sign.to_scalar();
+        let r = partial_sigature.r;
+        if Gamma * sigma_j != hat_Delta_j * m + hat_S_j * r {
+            return Err(SigningAborted::SignatureInvalid.into());
+        }
+    }
+
     std::println!("signing_n_out_of_n: 17");
     let sig = {
-        let r = NonZero::from_scalar(partial_sig.r);
+        let r = NonZero::from_scalar(partial_sigature.r);
         let s = NonZero::from_scalar(
             // s = sigma = sum(sigma_j)
-            partial_sig.sigma + partial_sigs.iter().map(|m| m.sigma).sum::<Scalar<E>>(),
+            partial_sigature.sigma_i + partial_sigs.iter().map(|m| m.sigma_i).sum::<Scalar<E>>(),
         );
         Option::zip(r, s).map(|(r, s)| Signature { r, s }.normalize_s())
     };
+
+    // NOTICE: This check wasn't in the original paper
     let sig_invalid = match &sig {
         Some(sig) => sig.verify(&pk, &message_to_sign).is_err(),
         None => true,
@@ -1416,11 +1587,14 @@ where
     ///
     /// **Never reuse presignatures!** If you use the same presignatures to sign two different
     /// messages, it leaks the private key!
-    pub fn issue_partial_signature(self, message_to_sign: DataToSign<E>) -> PartialSignature<E> {
-        let r = self.R.x().to_scalar();
+    pub fn issue_partial_signature(
+        self,
+        message_to_sign: DataToSign<E>,
+    ) -> Result<PartialSignature<E>, Bug> {
+        let r = self.Gamma.x().to_scalar();
         let m = message_to_sign.to_scalar();
-        let sigma_i = self.k.as_ref() * m + r * self.chi.as_ref();
-        PartialSignature { r, sigma: sigma_i }
+        let sigma_i = self.hat_k_i * m + r * self.hat_chi_i;
+        Ok(PartialSignature { r, sigma_i })
     }
 }
 
@@ -1517,7 +1691,7 @@ impl<E: Curve> PartialSignature<E> {
             None
         } else {
             let r = NonZero::from_scalar(partial_signatures[0].r)?;
-            let s = NonZero::from_scalar(partial_signatures.iter().map(|s| s.sigma).sum())?;
+            let s = NonZero::from_scalar(partial_signatures.iter().map(|s| s.sigma_i).sum())?;
             Some(Signature { r, s }.normalize_s())
         }
     }
@@ -1662,7 +1836,9 @@ enum Reason {
 #[derive(Debug, Error)]
 enum SigningAborted {
     #[error("pi_enc::verify(K) failed")]
-    EncProofOfK(Vec<(PartyIndex, MsgId, MsgId)>),
+    EncElgProofOfK(Vec<(PartyIndex, MsgId, MsgId)>),
+    #[error("pi_enc::verify(G) failed")]
+    EncElgProofOfG(Vec<(PartyIndex, MsgId, MsgId)>),
     #[error("ψ, ψˆ, or ψ' proofs are invalid")]
     InvalidPsi(
         Vec<(
@@ -1676,10 +1852,12 @@ enum SigningAborted {
             ),
         )>,
     ),
-    #[error("ψ'' proof is invalid")]
-    InvalidPsiPrimePrime(Vec<(PartyIndex, MsgId, MsgId)>),
+    #[error("hat ψ' proof is invalid")]
+    InvalidHatPsi(Vec<(PartyIndex, MsgId, MsgId)>),
     #[error("Delta != G * delta")]
     MismatchedDelta,
+    #[error("pk * delta != S")]
+    MismatchedS,
     #[error("resulting signature is not valid")]
     SignatureInvalid,
     #[error("other parties received different broadcast messages at round1a")]
@@ -1693,65 +1871,108 @@ enum InvalidArgs {
     #[error("signer index `i` is out of bounds (must be < n)")]
     SignerIndexOutOfBounds,
     #[error("party index in S is out of bounds (must be < n)")]
-    InvalidS,
+    InvalidSubIndex,
     #[error("ranks are invalid (must be < t)")]
     InvalidRanks,
 }
 
+/// Bugs while signing
 #[derive(Debug, Error)]
-enum Bug {
+pub enum Bug {
+    /// invalid key share: number of parties exceeds u16
     #[error("invalid key share: number of parties exceeds u16")]
     PartiesNumberExceedsU16,
+
+    /// couldn't encrypt a scalar with paillier encryption key
     #[error("couldn't encrypt a scalar with paillier encryption key: {0:?}")]
-    PaillierEnc(BugSource),
+    PaillierEnc(BugSource, paillier_zk::fast_paillier::Error),
+    /// couldn't decrypt a message
+    #[error("couldn't decrypt a message: {0:?}")]
+    PaillierDec(BugSource, paillier_zk::fast_paillier::Error),
+    /// paillier addition/multiplication failed
     #[error("paillier addition/multiplication failed: {0:?}")]
-    PaillierOp(BugSource),
-    #[error("π enc failed to prove statement {0:?}: {1:?}")]
-    PiEnc(BugSource, paillier_zk::Error),
+    PaillierOp(BugSource, paillier_zk::fast_paillier::Error),
+
+    /// π enc-elg failed to prove statement
+    #[error("π enc-elg failed to prove statement {0:?}: {1:?}")]
+    PiEncElg(BugSource, paillier_zk::Error),
+    /// π aff-g failed to prove statement
     #[error("π aff-g failed to prove statement {0:?}: {1:?}")]
     PiAffG(BugSource, paillier_zk::Error),
-    #[error("π log* failed to prove statement: {0:?}")]
-    PiLog(BugSource, paillier_zk::Error),
-    #[error("couldn't decrypt a message: {0:?}")]
-    PaillierDec(BugSource),
+    /// pi_elog::prove failed to prove statement
+    #[error("pi_elog::prove failed to prove statement: {0:?}")]
+    PiELog(BugSource, paillier_zk::Error),
+
+    /// delta is zero
     #[error("delta is zero")]
     ZeroDelta,
-    #[error("R is zero")]
-    ZeroR,
+    /// Gamma is zero
+    #[error("Gamma is zero")]
+    ZeroGamma,
+
+    /// unexpected protocol output
     #[error("unexpected protocol output")]
     UnexpectedProtocolOutput,
+
+    /// derive lagrange coef
     #[error("derive lagrange coef")]
     LagrangeCoef,
+    /// derive birkhoff coef
     #[error("derive birkhoff coef")]
     BirkhoffCoef,
+
+    /// subset function returned error
     #[error("subset function returned error")]
     Subset,
+
+    /// derived child key is zero - probability of that is negligible
     #[error("derived child key is zero - probability of that is negligible")]
     DerivedChildKeyZero,
+    /// derived child share is zero - probability of that is negligible
     #[error("derived child share is zero - probability of that is negligible")]
     DerivedChildShareZero,
 }
 
+/// Bug source in signing protocol
 #[derive(Debug)]
 #[allow(non_camel_case_types)]
-enum BugSource {
-    G_i,
+pub enum BugSource {
+    /// $K_i$ from round 1
     K_i,
+    /// $G_i$ from round 1
+    G_i,
+    /// $psi0_ji$ from round 1
+    psi0_ji,
+    /// $psi1_ji$ from round 1
+    psi1_ji,
+    /// $psi_i$ from round 2
+    psi_i,
+    /// $gamma_i_times_K_j$ from round 2
     gamma_i_times_K_j,
+    /// $neg_beta_ij_enc$ from round 2
     neg_beta_ij_enc,
+    /// $D_ji$ from round 2
     D_ji,
+    /// $F_ji$ from round 2
     F_ji,
+    /// $x_i_times_K_j$ from round 2
     x_i_times_K_j,
-    hat_beta_ij_enc,
-    hat_D,
-    hat_F,
-    psi0,
-    psi,
-    hat_psi,
-    psi_prime,
-    alpha,
-    hat_alpha,
-    psi_prime_prime,
+    /// $neg_hat_beta_ij_enc$ from round 2
+    neg_hat_beta_ij_enc,
+    /// $hat_D_ji$ from round 2
+    hat_D_ji,
+    /// $hat_F_ji$ from round 2
+    hat_F_ji,
+    /// $psi_ji$ from round 2
+    psi_ji,
+    /// $hat_psi_ji$ from round 2
+    hat_psi_ji,
+    /// $alpha_ij$ from round 3
+    alpha_ij,
+    /// $hat_psi_i$ from round 3
+    hat_psi_i,
+    /// $hat_alpha_ij$ from round 3
+    hat_alpha_ij,
 }
 
 /// Error indicating that signature is not valid for given public key and message
