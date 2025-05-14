@@ -3,6 +3,7 @@ use paillier_zk::rug::{self, Integer};
 use paillier_zk::{
     paillier_affine_operation_in_range as pi_aff,
     paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal,
+    batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
 };
 use round_based::rounds_router::simple_store::RoundMsgs;
 use round_based::{MsgId, PartyIndex};
@@ -19,6 +20,7 @@ pub fn scalar_to_bignumber<E: Curve>(scalar: impl AsRef<Scalar<E>>) -> Integer {
 pub struct SecurityParams {
     pub pi_aff: pi_aff::SecurityParams,
     pub pi_enc_el_gamal: pi_enc_el_gamal::SecurityParams,
+    pub pi_enc_el_gamal_batch: pi_enc_el_gamal_batch::SecurityParams,
 }
 
 impl SecurityParams {
@@ -34,6 +36,12 @@ impl SecurityParams {
                 l: L::ELL,
                 epsilon: L::EPSILON,
                 q: L::q(),
+            },
+            pi_enc_el_gamal_batch: pi_enc_el_gamal_batch::SecurityParams {
+                l: L::ELL,
+                epsilon: L::EPSILON,
+                q: L::q(),
+                t: 128,
             },
         }
     }

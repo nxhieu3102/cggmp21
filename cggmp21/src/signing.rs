@@ -9,6 +9,7 @@ use paillier_zk::rug::Complete;
 use paillier_zk::{
     dlog_with_el_gamal_commitment as pi_elog, paillier_affine_operation_in_range as pi_aff,
     paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal, IntegerExt,
+batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
 };
 use paillier_zk::{fast_paillier, rug::Integer};
 use rand_core::{CryptoRng, RngCore};
@@ -136,6 +137,7 @@ pub mod msg {
     use paillier_zk::{
         dlog_with_el_gamal_commitment as pi_elog, paillier_affine_operation_in_range as pi_aff,
         paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal,
+        batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
     };
     use round_based::ProtocolMessage;
     use serde::{Deserialize, Serialize};
@@ -192,9 +194,9 @@ pub mod msg {
     #[serde(bound = "")]
     pub struct MsgRound1b<E: Curve> {
         /// $\psi^0_{j,i}$: pi_enc_el_gamal provement for K_i
-        pub psi0_ji: (pi_enc_el_gamal::Commitment<E>, pi_enc_el_gamal::Proof<E>),
-        /// $\psi^1_{j,i}$: pi_enc_el_gamal provement for G_i
-        pub psi1_ji: (pi_enc_el_gamal::Commitment<E>, pi_enc_el_gamal::Proof<E>),
+        pub psi_ji: (pi_enc_el_gamal_batch::Commitment<E>, pi_enc_el_gamal_batch::Proof<E>),
+        // $\psi^1_{j,i}$: pi_enc_el_gamal provement for G_i
+        // pub psi1_ji: (pi_enc_el_gamal::Commitment<E>, pi_enc_el_gamal::Proof<E>),
     }
 
     /// Message from round 2
@@ -836,57 +838,72 @@ where
 
         // TODO: replace pi_enc with pi_enc_elg (DONE)
         // TODO: Batch proof
-        let psi0_ji = pi_enc_el_gamal::non_interactive::prove::<E, D>(
+        let psi_ji = pi_enc_el_gamal_batch::non_interactive::prove::<E, D>(
             &unambiguous::ProofEnc { sid, prover: i },
             &R_j.into(),
-            pi_enc_el_gamal::Data {
+            pi_enc_el_gamal_batch::PublicData {
                 // TODO: Does decryption key leak any serious information if it is stored in Data
                 // CGGMP21 does not pass key into Data
                 key: dec_i,
-                ciphertext: &K_i,
                 a: &Y_i,
-                b: &A_i1,
-                x: &A_i2,
+                batch: &Vec::from([pi_enc_el_gamal_batch::PublicElement {
+                    ciphertext: K_i.clone(),
+                    b: A_i1,
+                    x: A_i2,
+                },
+                pi_enc_el_gamal_batch::PublicElement {
+                    ciphertext: G_i.clone(),
+                    b: B_i1,
+                    x: B_i2,
+                },]),
             },
-            pi_enc_el_gamal::PrivateData {
-                plaintext: &utils::scalar_to_bignumber(&k_i),
-                nonce: &rho_i,
-                b: &a_i,
+            pi_enc_el_gamal_batch::PrivateData {
+                batch: &Vec::from([pi_enc_el_gamal_batch::PrivateElement {
+                    plaintext: &utils::scalar_to_bignumber(&k_i),
+                    nonce: &rho_i,
+                    b: &a_i,
+                },
+                pi_enc_el_gamal_batch::PrivateElement {
+                    plaintext: &utils::scalar_to_bignumber(&gamma_i),
+                    nonce: &nu_i,
+                    b: &b_i,
+                },]),
             },
-            &security_params.pi_enc_el_gamal,
+            &security_params.pi_enc_el_gamal_batch,
             &mut *rng,
+            2
         )
         .map_err(|e| Bug::PiEncElg(BugSource::psi0_ji, e))?;
 
         tracer.stage("Prove ψ1_ji");
 
-        let psi1_ji = pi_enc_el_gamal::non_interactive::prove::<E, D>(
-            &unambiguous::ProofEnc { sid, prover: i },
-            &R_j.into(),
-            pi_enc_el_gamal::Data {
-                // TODO: Does decryption key leak any serious information if it is stored in Data
-                // CGGMP21 does not pass key into Data
-                key: dec_i,
-                ciphertext: &G_i,
-                a: &Y_i,
-                b: &B_i1,
-                x: &B_i2,
-            },
-            pi_enc_el_gamal::PrivateData {
-                plaintext: &utils::scalar_to_bignumber(&gamma_i),
-                nonce: &nu_i,
-                b: &b_i,
-            },
-            &security_params.pi_enc_el_gamal,
-            &mut *rng,
-        )
-        .map_err(|e| Bug::PiEncElg(BugSource::psi1_ji, e))?;
+        // let psi1_ji = pi_enc_el_gamal::non_interactive::prove::<E, D>(
+        //     &unambiguous::ProofEnc { sid, prover: i },
+        //     &R_j.into(),
+        //     pi_enc_el_gamal::Data {
+        //         // TODO: Does decryption key leak any serious information if it is stored in Data
+        //         // CGGMP21 does not pass key into Data
+        //         key: dec_i,
+        //         ciphertext: &G_i,
+        //         a: &Y_i,
+        //         b: &B_i1,
+        //         x: &B_i2,
+        //     },
+        //     pi_enc_el_gamal::PrivateData {
+        //         plaintext: &utils::scalar_to_bignumber(&gamma_i),
+        //         nonce: &nu_i,
+        //         b: &b_i,
+        //     },
+        //     &security_params.pi_enc_el_gamal,
+        //     &mut *rng,
+        // )
+        // .map_err(|e| Bug::PiEncElg(BugSource::psi1_ji, e))?;
 
         tracer.send_msg();
         outgoings
             .feed(Outgoing::p2p(
                 j,
-                Msg::Round1b(MsgRound1b { psi0_ji, psi1_ji }),
+                Msg::Round1b(MsgRound1b { psi_ji}),
             ))
             .await
             .map_err(IoError::send_message)?;
@@ -974,25 +991,32 @@ where
             let R_j = &R[usize::from(j)];
             // TODO: pi_enc --> pi_enc_elg (DONE)
             // TODO: batch proof
-            let verify_psi0_ji = pi_enc_el_gamal::non_interactive::verify::<E, D>(
+            let verify_psi0_ji = pi_enc_el_gamal_batch::non_interactive::verify::<E, D>(
                 &unambiguous::ProofEnc { sid, prover: j },
                 &R_i.into(),
-                pi_enc_el_gamal::Data {
-                    // data of party j (from round1a_msg and round1b_msg)
-                    key: &R_j.enc.clone(),
-                    ciphertext: &round1a_msg.K_i,
+                pi_enc_el_gamal_batch::PublicData {
                     a: &round1a_msg.Y_i,
-                    b: &round1a_msg.A_i1,
-                    x: &round1a_msg.A_i2,
+                    key: &R_j.enc.clone(),
+                    batch: &Vec::from([pi_enc_el_gamal_batch::PublicElement {
+                        ciphertext: round1a_msg.K_i.clone(),
+                        b: round1a_msg.A_i1,
+                        x: round1a_msg.A_i2,
+                    },
+                    pi_enc_el_gamal_batch::PublicElement {
+                        ciphertext: round1a_msg.G_i.clone(),
+                        b: round1a_msg.B_i1,
+                        x: round1a_msg.B_i2,
+                    },]),
+                    // data of party j (from round1a_msg and round1b_msg)
                 },
-                &round1b_msg.psi0_ji.0,
-                &round1b_msg.psi0_ji.1,
-                &security_params.pi_enc_el_gamal,
+                &round1b_msg.psi_ji.0,
+                &round1b_msg.psi_ji.1,
+                &security_params.pi_enc_el_gamal_batch,
+                2,
             );
             match verify_psi0_ji {
                 Ok(_) => {}
                 Err(e) => {
-                    println!("line 996: {:?}", e);
                     faulty_parties.push((j, msg1a_id, msg1b_id))
                 }
             }
@@ -1001,28 +1025,28 @@ where
                 return Err(SigningAborted::EncElgProofOfK(faulty_parties).into());
             }
 
-            if pi_enc_el_gamal::non_interactive::verify::<E, D>(
-                &unambiguous::ProofEnc { sid, prover: j },
-                &R_i.into(),
-                pi_enc_el_gamal::Data {
-                    key: &R_j.enc.clone(),
-                    ciphertext: &round1a_msg.G_i,
-                    a: &round1a_msg.Y_i,
-                    b: &round1a_msg.B_i1,
-                    x: &round1a_msg.B_i2,
-                },
-                &round1b_msg.psi1_ji.0,
-                &round1b_msg.psi1_ji.1,
-                &security_params.pi_enc_el_gamal,
-            )
-            .is_err()
-            {
-                faulty_parties.push((j, msg1a_id, msg1b_id))
-            }
+            // if pi_enc_el_gamal::non_interactive::verify::<E, D>(
+            //     &unambiguous::ProofEnc { sid, prover: j },
+            //     &R_i.into(),
+            //     pi_enc_el_gamal::Data {
+            //         key: &R_j.enc.clone(),
+            //         ciphertext: &round1a_msg.G_i,
+            //         a: &round1a_msg.Y_i,
+            //         b: &round1a_msg.B_i1,
+            //         x: &round1a_msg.B_i2,
+            //     },
+            //     &round1b_msg.psi1_ji.0,
+            //     &round1b_msg.psi1_ji.1,
+            //     &security_params.pi_enc_el_gamal,
+            // )
+            // .is_err()
+            // {
+            //     faulty_parties.push((j, msg1a_id, msg1b_id))
+            // }
 
-            if !faulty_parties.is_empty() {
-                return Err(SigningAborted::EncElgProofOfG(faulty_parties).into());
-            }
+            // if !faulty_parties.is_empty() {
+            //     return Err(SigningAborted::EncElgProofOfG(faulty_parties).into());
+            // }
         }
     }
     runtime.yield_now().await;
