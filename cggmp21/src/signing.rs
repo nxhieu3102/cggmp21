@@ -7,9 +7,9 @@ use generic_ec::{coords::AlwaysHasAffineX, Curve, NonZero, Point, Scalar, Secret
 use generic_ec_zkp::polynomial::lagrange_coefficient_at_zero;
 use paillier_zk::rug::Complete;
 use paillier_zk::{
+    batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
     dlog_with_el_gamal_commitment as pi_elog, paillier_affine_operation_in_range as pi_aff,
-    paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal, IntegerExt,
-batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
+    IntegerExt,
 };
 use paillier_zk::{fast_paillier, rug::Integer};
 use rand_core::{CryptoRng, RngCore};
@@ -135,9 +135,8 @@ pub mod msg {
 
     use paillier_zk::fast_paillier;
     use paillier_zk::{
-        dlog_with_el_gamal_commitment as pi_elog, paillier_affine_operation_in_range as pi_aff,
-        paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal,
         batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
+        dlog_with_el_gamal_commitment as pi_elog, paillier_affine_operation_in_range as pi_aff,
     };
     use round_based::ProtocolMessage;
     use serde::{Deserialize, Serialize};
@@ -194,7 +193,10 @@ pub mod msg {
     #[serde(bound = "")]
     pub struct MsgRound1b<E: Curve> {
         /// $\psi^0_{j,i}$: pi_enc_el_gamal provement for K_i
-        pub psi_ji: (pi_enc_el_gamal_batch::Commitment<E>, pi_enc_el_gamal_batch::Proof<E>),
+        pub psi_ji: (
+            pi_enc_el_gamal_batch::Commitment<E>,
+            pi_enc_el_gamal_batch::Proof<E>,
+        ),
         // $\psi^1_{j,i}$: pi_enc_el_gamal provement for G_i
         // pub psi1_ji: (pi_enc_el_gamal::Commitment<E>, pi_enc_el_gamal::Proof<E>),
     }
@@ -739,14 +741,10 @@ where
     R: RngCore + CryptoRng,
     NonZero<Point<E>>: AlwaysHasAffineX<E>,
 {
-    std::println!("signing_n_out_of_n: 1");
-
     let MpcParty {
         delivery, runtime, ..
     } = party.into_party();
     let (incomings, mut outgoings) = delivery.split();
-
-    std::println!("signing_n_out_of_n: 2");
 
     tracer.stage("Retrieve auxiliary data");
     let R_i = &R[usize::from(i)];
@@ -833,7 +831,7 @@ where
     std::println!("signing_n_out_of_n: 7");
 
     for j in utils::iter_peers(i, n) {
-        tracer.stage("Prove ψ0_ji");
+        tracer.stage("Prove ψ_ji");
         let R_j = &R[usize::from(j)];
 
         // TODO: replace pi_enc with pi_enc_elg (DONE)
@@ -846,36 +844,40 @@ where
                 // CGGMP21 does not pass key into Data
                 key: dec_i,
                 a: &Y_i,
-                batch: &Vec::from([pi_enc_el_gamal_batch::PublicElement {
-                    ciphertext: K_i.clone(),
-                    b: A_i1,
-                    x: A_i2,
-                },
-                pi_enc_el_gamal_batch::PublicElement {
-                    ciphertext: G_i.clone(),
-                    b: B_i1,
-                    x: B_i2,
-                },]),
+                batch: &Vec::from([
+                    pi_enc_el_gamal_batch::PublicElement {
+                        ciphertext: K_i.clone(),
+                        b: A_i1,
+                        x: A_i2,
+                    },
+                    pi_enc_el_gamal_batch::PublicElement {
+                        ciphertext: G_i.clone(),
+                        b: B_i1,
+                        x: B_i2,
+                    },
+                ]),
             },
             pi_enc_el_gamal_batch::PrivateData {
-                batch: &Vec::from([pi_enc_el_gamal_batch::PrivateElement {
-                    plaintext: &utils::scalar_to_bignumber(&k_i),
-                    nonce: &rho_i,
-                    b: &a_i,
-                },
-                pi_enc_el_gamal_batch::PrivateElement {
-                    plaintext: &utils::scalar_to_bignumber(&gamma_i),
-                    nonce: &nu_i,
-                    b: &b_i,
-                },]),
+                batch: &Vec::from([
+                    pi_enc_el_gamal_batch::PrivateElement {
+                        plaintext: &utils::scalar_to_bignumber(&k_i),
+                        nonce: &rho_i,
+                        b: &a_i,
+                    },
+                    pi_enc_el_gamal_batch::PrivateElement {
+                        plaintext: &utils::scalar_to_bignumber(&gamma_i),
+                        nonce: &nu_i,
+                        b: &b_i,
+                    },
+                ]),
             },
             &security_params.pi_enc_el_gamal_batch,
             &mut *rng,
-            2
+            2,
         )
-        .map_err(|e| Bug::PiEncElg(BugSource::psi0_ji, e))?;
+        .map_err(|e| Bug::PiEncElgGamalBatch(BugSource::psi_ji, e))?;
 
-        tracer.stage("Prove ψ1_ji");
+        // tracer.stage("Prove ψ_ji");
 
         // let psi1_ji = pi_enc_el_gamal::non_interactive::prove::<E, D>(
         //     &unambiguous::ProofEnc { sid, prover: i },
@@ -901,10 +903,7 @@ where
 
         tracer.send_msg();
         outgoings
-            .feed(Outgoing::p2p(
-                j,
-                Msg::Round1b(MsgRound1b { psi_ji}),
-            ))
+            .feed(Outgoing::p2p(j, Msg::Round1b(MsgRound1b { psi_ji })))
             .await
             .map_err(IoError::send_message)?;
         tracer.msg_sent();
@@ -982,7 +981,8 @@ where
     std::println!("signing_n_out_of_n: 10");
     // Step 1. Verify proofs
     // TODO: pi_enc --> pi_enc_elg (DONE)
-    tracer.stage("Verify psi0_ji and psi1_ji proofs");
+    // TODO: batch proof
+    tracer.stage("Verify psi_ji proofs");
     {
         let mut faulty_parties = vec![];
         for ((j, msg1a_id, round1a_msg), (_, msg1b_id, round1b_msg)) in
@@ -991,22 +991,24 @@ where
             let R_j = &R[usize::from(j)];
             // TODO: pi_enc --> pi_enc_elg (DONE)
             // TODO: batch proof
-            let verify_psi0_ji = pi_enc_el_gamal_batch::non_interactive::verify::<E, D>(
+            let verify_psi_ji = pi_enc_el_gamal_batch::non_interactive::verify::<E, D>(
                 &unambiguous::ProofEnc { sid, prover: j },
                 &R_i.into(),
                 pi_enc_el_gamal_batch::PublicData {
                     a: &round1a_msg.Y_i,
                     key: &R_j.enc.clone(),
-                    batch: &Vec::from([pi_enc_el_gamal_batch::PublicElement {
-                        ciphertext: round1a_msg.K_i.clone(),
-                        b: round1a_msg.A_i1,
-                        x: round1a_msg.A_i2,
-                    },
-                    pi_enc_el_gamal_batch::PublicElement {
-                        ciphertext: round1a_msg.G_i.clone(),
-                        b: round1a_msg.B_i1,
-                        x: round1a_msg.B_i2,
-                    },]),
+                    batch: &Vec::from([
+                        pi_enc_el_gamal_batch::PublicElement {
+                            ciphertext: round1a_msg.K_i.clone(),
+                            b: round1a_msg.A_i1,
+                            x: round1a_msg.A_i2,
+                        },
+                        pi_enc_el_gamal_batch::PublicElement {
+                            ciphertext: round1a_msg.G_i.clone(),
+                            b: round1a_msg.B_i1,
+                            x: round1a_msg.B_i2,
+                        },
+                    ]),
                     // data of party j (from round1a_msg and round1b_msg)
                 },
                 &round1b_msg.psi_ji.0,
@@ -1014,15 +1016,13 @@ where
                 &security_params.pi_enc_el_gamal_batch,
                 2,
             );
-            match verify_psi0_ji {
+            match verify_psi_ji {
                 Ok(_) => {}
-                Err(e) => {
-                    faulty_parties.push((j, msg1a_id, msg1b_id))
-                }
+                Err(e) => faulty_parties.push((j, msg1a_id, msg1b_id)),
             }
 
             if !faulty_parties.is_empty() {
-                return Err(SigningAborted::EncElgProofOfK(faulty_parties).into());
+                return Err(SigningAborted::EncElgGamalBatchProofOfK(faulty_parties).into());
             }
 
             // if pi_enc_el_gamal::non_interactive::verify::<E, D>(
@@ -1861,8 +1861,12 @@ enum Reason {
 enum SigningAborted {
     #[error("pi_enc::verify(K) failed")]
     EncElgProofOfK(Vec<(PartyIndex, MsgId, MsgId)>),
+    #[error("pi_enc_el_gamal_batch::verify(K) failed")]
+    EncElgGamalBatchProofOfK(Vec<(PartyIndex, MsgId, MsgId)>),
     #[error("pi_enc::verify(G) failed")]
     EncElgProofOfG(Vec<(PartyIndex, MsgId, MsgId)>),
+    #[error("pi_enc_el_gamal_batch::verify(G) failed")]
+    EncElgGamalBatchProofOfG(Vec<(PartyIndex, MsgId, MsgId)>),
     #[error("ψ, ψˆ, or ψ' proofs are invalid")]
     InvalidPsi(
         Vec<(
@@ -1920,6 +1924,9 @@ pub enum Bug {
     /// π enc-elg failed to prove statement
     #[error("π enc-elg failed to prove statement {0:?}: {1:?}")]
     PiEncElg(BugSource, paillier_zk::Error),
+    /// π enc-elg-gamal-batch failed to prove statement
+    #[error("π enc-elg-gamal-batch failed to prove statement {0:?}: {1:?}")]
+    PiEncElgGamalBatch(BugSource, paillier_zk::Error),
     /// π aff-g failed to prove statement
     #[error("π aff-g failed to prove statement {0:?}: {1:?}")]
     PiAffG(BugSource, paillier_zk::Error),
@@ -1965,10 +1972,6 @@ pub enum BugSource {
     K_i,
     /// $G_i$ from round 1
     G_i,
-    /// $psi0_ji$ from round 1
-    psi0_ji,
-    /// $psi1_ji$ from round 1
-    psi1_ji,
     /// $psi_i$ from round 2
     psi_i,
     /// $gamma_i_times_K_j$ from round 2
