@@ -7,9 +7,9 @@ use generic_ec::{coords::AlwaysHasAffineX, Curve, NonZero, Point, Scalar, Secret
 use generic_ec_zkp::polynomial::lagrange_coefficient_at_zero;
 use paillier_zk::rug::Complete;
 use paillier_zk::{
+    batch_paillier_affine_operation_in_range as pi_aff_batch,
     batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
-    dlog_with_el_gamal_commitment as pi_elog, paillier_affine_operation_in_range as pi_aff,
-    IntegerExt,
+    dlog_with_el_gamal_commitment as pi_elog, IntegerExt,
 };
 use paillier_zk::{fast_paillier, rug::Integer};
 use rand_core::{CryptoRng, RngCore};
@@ -135,8 +135,9 @@ pub mod msg {
 
     use paillier_zk::fast_paillier;
     use paillier_zk::{
+        batch_paillier_affine_operation_in_range as pi_aff_batch,
         batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
-        dlog_with_el_gamal_commitment as pi_elog, paillier_affine_operation_in_range as pi_aff,
+        dlog_with_el_gamal_commitment as pi_elog,
     };
     use round_based::ProtocolMessage;
     use serde::{Deserialize, Serialize};
@@ -218,9 +219,7 @@ pub mod msg {
         /// $\hat F_{j,i} = enc(-hat_beta_ij, r_ij)$
         pub hat_F_ji: fast_paillier::Ciphertext,
         /// $\psi_{j,i}$: pi_aff_g provement for $Gamma_i$
-        pub psi_ji: (pi_aff::Commitment<E>, pi_aff::Proof),
-        /// $\hat \psi_{j,i}$: pi_aff_g provement for $X_i$ - public share of party i
-        pub hat_psi_ji: (pi_aff::Commitment<E>, pi_aff::Proof),
+        pub psi_ji: (pi_aff_batch::Commitment<E>, pi_aff_batch::Proof),
     }
 
     /// Message from round 3
@@ -1152,61 +1151,83 @@ where
 
         tracer.stage("Prove psi_ji");
         // TODO: batch pi_aff_g (psi_ji, hat_psi_ji)
-        let psi_ji = pi_aff::non_interactive::prove::<E, D>(
-            &unambiguous::ProofPsi {
-                sid,
-                prover: i,
-                hat: false,
-            },
-            &R_j.into(),
-            pi_aff::Data {
-                key0: enc_j,
-                key1: dec_i,
-                c: &round1a_msg.K_i, // K_j
-                d: &D_ji,
-                y: &F_ji,
-                x: &Gamma_i, // MtA(k, gamma)
-            },
-            pi_aff::PrivateData {
-                x: &utils::scalar_to_bignumber(&gamma_i),
-                y: &(-&beta_ij).complete(),
-                nonce: &s_ij,
-                nonce_y: &r_ij,
-            },
-            &security_params.pi_aff,
-            &mut *rng,
-        )
-        .map_err(|e| Bug::PiAffG(BugSource::psi_ji, e))?;
+        let psi_ji: (pi_aff_batch::Commitment<E>, pi_aff_batch::Proof) =
+            pi_aff_batch::non_interactive::prove::<E, D>(
+                &unambiguous::ProofPsi {
+                    sid,
+                    prover: i,
+                    hat: false,
+                },
+                &R_j.into(),
+                pi_aff_batch::PublicData {
+                    batch: vec![
+                        pi_aff_batch::PublicElement {
+                            x: Gamma_i.clone(),
+                            d: D_ji.clone(),
+                            y: F_ji.clone(),
+                            c: round1a_msg.K_i.clone(),
+                        },
+                        pi_aff_batch::PublicElement {
+                            x: *(Point::generator() * x_i.clone()), // MtA(k, x)
+                            d: hat_D_ji.clone(),
+                            y: hat_F_ji.clone(),
+                            c: round1a_msg.K_i.clone(), // K_j
+                        },
+                    ],
+                    key0: enc_j,
+                    key1: dec_i,
+                },
+                pi_aff_batch::PrivateData {
+                    batch: vec![
+                        pi_aff_batch::PrivateElement {
+                            x: &utils::scalar_to_bignumber(&gamma_i),
+                            y: &(-&beta_ij).complete(),
+                            nonce: &s_ij,
+                            nonce_y: &r_ij,
+                        },
+                        pi_aff_batch::PrivateElement {
+                            x: &utils::scalar_to_bignumber(x_i),
+                            y: &(-&hat_beta_ij).complete(),
+                            nonce: &hat_s_ij,
+                            nonce_y: &hat_r_ij,
+                        },
+                    ],
+                },
+                &security_params.pi_aff_batch,
+                &mut *rng,
+                2,
+            )
+            .map_err(|e| Bug::PiAffG(BugSource::psi_ji, e))?;
         runtime.yield_now().await;
 
-        tracer.stage("Prove psiˆ_ji");
-        // pi_aff-g: range proof for hat_D_ji, hat_F_ji in affine operation
-        let hat_psi_ji = pi_aff::non_interactive::prove::<E, D>(
-            &unambiguous::ProofPsi {
-                sid,
-                prover: i,
-                hat: true,
-            },
-            &R_j.into(),
-            pi_aff::Data {
-                key0: enc_j,
-                key1: dec_i,
-                c: &round1a_msg.K_i, // K_j
-                d: &hat_D_ji,
-                y: &hat_F_ji,
-                x: &(Point::generator() * x_i), // MtA(k, x)
-            },
-            pi_aff::PrivateData {
-                x: &utils::scalar_to_bignumber(x_i),
-                y: &(-&hat_beta_ij).complete(),
-                nonce: &hat_s_ij,
-                nonce_y: &hat_r_ij,
-            },
-            &security_params.pi_aff,
-            &mut *rng,
-        )
-        .map_err(|e| Bug::PiAffG(BugSource::hat_psi_ji, e))?;
-        runtime.yield_now().await;
+        // tracer.stage("Prove psiˆ_ji");
+        // // pi_aff-g: range proof for hat_D_ji, hat_F_ji in affine operation
+        // let hat_psi_ji = pi_aff::non_interactive::prove::<E, D>(
+        //     &unambiguous::ProofPsi {
+        //         sid,
+        //         prover: i,
+        //         hat: true,
+        //     },
+        //     &R_j.into(),
+        //     pi_aff::Data {
+        //         key0: enc_j,
+        //         key1: dec_i,
+        //         c: &round1a_msg.K_i, // K_j
+        //         d: &hat_D_ji,
+        //         y: &hat_F_ji,
+        //         x: &(Point::generator() * x_i), // MtA(k, x)
+        //     },
+        //     pi_aff::PrivateData {
+        //         x: &utils::scalar_to_bignumber(x_i),
+        //         y: &(-&hat_beta_ij).complete(),
+        //         nonce: &hat_s_ij,
+        //         nonce_y: &hat_r_ij,
+        //     },
+        //     &security_params.pi_aff,
+        //     &mut *rng,
+        // )
+        // .map_err(|e| Bug::PiAffG(BugSource::hat_psi_ji, e))?;
+        // runtime.yield_now().await;
 
         tracer.send_msg();
         outgoings
@@ -1222,7 +1243,6 @@ where
                     hat_D_ji,
                     hat_F_ji,
                     psi_ji,
-                    hat_psi_ji,
                 }),
             ))
             .await
@@ -1255,48 +1275,59 @@ where
 
         // TODO: batch verify pi_aff_g
         tracer.stage("Validate psi_ji");
-        let psi_ji_invalid = pi_aff::non_interactive::verify::<E, D>(
+        let psi_ji_invalid = pi_aff_batch::non_interactive::verify::<E, D>(
             &unambiguous::ProofPsi {
                 sid,
                 prover: j,
                 hat: false,
             },
             &R_i.into(),
-            pi_aff::Data {
+            pi_aff_batch::PublicData {
                 key0: dec_i,  // verifier key
                 key1: &enc_j, // prover key
-                c: &K_i,      // from verifier
-                d: &msg.D_ji,
-                y: &msg.F_ji,
-                x: &msg.Gamma_i,
+                batch: vec![
+                    pi_aff_batch::PublicElement {
+                        c: K_i.clone(), // from verifier
+                        d: msg.D_ji.clone(),
+                        y: msg.F_ji.clone(),
+                        x: msg.Gamma_i.clone(),
+                    },
+                    pi_aff_batch::PublicElement {
+                        c: K_i.clone(), // from verifier
+                        d: msg.hat_D_ji.clone(),
+                        y: msg.hat_F_ji.clone(),
+                        x: *(X_j.clone()),
+                    },
+                ],
             },
             &msg.psi_ji.0,
-            &security_params.pi_aff,
+            &security_params.pi_aff_batch,
             &msg.psi_ji.1,
+            2
         )
         .err();
 
-        tracer.stage("Validate hat_psi_ji");
-        let hat_psi_ji_invalid = pi_aff::non_interactive::verify::<E, D>(
-            &unambiguous::ProofPsi {
-                sid,
-                prover: j,
-                hat: true,
-            },
-            &R_i.into(),
-            pi_aff::Data {
-                key0: dec_i,  // verifier key
-                key1: &enc_j, // prover key
-                c: &K_i,      // from verifier
-                d: &msg.hat_D_ji,
-                y: &msg.hat_F_ji,
-                x: &X_j,
-            },
-            &msg.hat_psi_ji.0,
-            &security_params.pi_aff,
-            &msg.hat_psi_ji.1,
-        )
-        .err();
+        // tracer.stage("Validate hat_psi_ji");
+        // let hat_psi_ji_invalid = pi_aff::non_interactive::verify::<E, D>(
+        //     &unambiguous::ProofPsi {
+        //         sid,
+        //         prover: j,
+        //         hat: true,
+        //     },
+        //     &R_i.into(),
+        //     pi_aff::Data {
+        //         key0: dec_i,  // verifier key
+        //         key1: &enc_j, // prover key
+        //         c: &K_i,      // from verifier
+        //         d: &msg.hat_D_ji,
+        //         y: &msg.hat_F_ji,
+        //         x: &X_j,
+        //     },
+        //     &msg.hat_psi_ji.0,
+        //     &security_params.pi_aff,
+        //     &msg.hat_psi_ji.1,
+        // )
+        // .err();
 
         // TODO: replace with validate psi(elog)
         tracer.stage("Validate psi_j");
@@ -1318,12 +1349,12 @@ where
         )
         .err();
 
-        if psi_ji_invalid.is_some() || hat_psi_ji_invalid.is_some() || psi_j_invalid.is_some() {
+        if psi_ji_invalid.is_some() || psi_j_invalid.is_some() {
             faulty_parties.push((
                 j,
                 round1a_msg_id,
                 msg_id,
-                (psi_ji_invalid, hat_psi_ji_invalid, psi_j_invalid),
+                (psi_ji_invalid, psi_j_invalid),
             ))
         }
         runtime.yield_now().await;
@@ -1874,7 +1905,6 @@ enum SigningAborted {
             MsgId,
             MsgId,
             (
-                Option<paillier_zk::InvalidProof>,
                 Option<paillier_zk::InvalidProof>,
                 Option<paillier_zk::InvalidProof>,
             ),
