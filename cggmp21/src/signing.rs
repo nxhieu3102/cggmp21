@@ -194,7 +194,7 @@ pub mod msg {
     #[serde(bound = "")]
     pub struct MsgRound1b<E: Curve> {
         /// $\psi^0_{j,i}$: pi_enc_el_gamal provement for K_i
-        pub psi_ji: (
+        pub psi_enc_ji: (
             pi_enc_el_gamal_batch::Commitment<E>,
             pi_enc_el_gamal_batch::Proof<E>,
         ),
@@ -835,7 +835,7 @@ where
 
         // TODO: replace pi_enc with pi_enc_elg (DONE)
         // TODO: Batch proof
-        let psi_ji = pi_enc_el_gamal_batch::non_interactive::prove::<E, D>(
+        let psi_enc_ji = pi_enc_el_gamal_batch::non_interactive::prove::<E, D>(
             &unambiguous::ProofEnc { sid, prover: i },
             &R_j.into(),
             pi_enc_el_gamal_batch::PublicData {
@@ -874,7 +874,7 @@ where
             &mut *rng,
             2,
         )
-        .map_err(|e| Bug::PiEncElgGamalBatch(BugSource::psi_ji, e))?;
+        .map_err(|e| Bug::PiEncElgGamalBatch(BugSource::psi_enc_ji, e))?;
 
         // tracer.stage("Prove ψ_ji");
 
@@ -902,7 +902,7 @@ where
 
         tracer.send_msg();
         outgoings
-            .feed(Outgoing::p2p(j, Msg::Round1b(MsgRound1b { psi_ji })))
+            .feed(Outgoing::p2p(j, Msg::Round1b(MsgRound1b { psi_enc_ji })))
             .await
             .map_err(IoError::send_message)?;
         tracer.msg_sent();
@@ -924,7 +924,7 @@ where
         .await
         .map_err(IoError::receive_message)?;
 
-    // TODO: (psi0_ji, psi1_ji) --> psi_ji (batch proof of enc-elg)
+    // TODO: (psi0_ji, psi1_ji) --> psi_enc_ji (batch proof of enc-elg)
     let round1b_msgs = rounds
         .complete(round1b)
         .await
@@ -981,7 +981,7 @@ where
     // Step 1. Verify proofs
     // TODO: pi_enc --> pi_enc_elg (DONE)
     // TODO: batch proof
-    tracer.stage("Verify psi_ji proofs");
+    tracer.stage("Verify psi_enc_ji proofs");
     {
         let mut faulty_parties = vec![];
         for ((j, msg1a_id, round1a_msg), (_, msg1b_id, round1b_msg)) in
@@ -990,7 +990,7 @@ where
             let R_j = &R[usize::from(j)];
             // TODO: pi_enc --> pi_enc_elg (DONE)
             // TODO: batch proof
-            let verify_psi_ji = pi_enc_el_gamal_batch::non_interactive::verify::<E, D>(
+            let verify_psi_enc_ji = pi_enc_el_gamal_batch::non_interactive::verify::<E, D>(
                 &unambiguous::ProofEnc { sid, prover: j },
                 &R_i.into(),
                 pi_enc_el_gamal_batch::PublicData {
@@ -1010,12 +1010,12 @@ where
                     ]),
                     // data of party j (from round1a_msg and round1b_msg)
                 },
-                &round1b_msg.psi_ji.0,
-                &round1b_msg.psi_ji.1,
+                &round1b_msg.psi_enc_ji.0,
+                &round1b_msg.psi_enc_ji.1,
                 &security_params.pi_enc_el_gamal_batch,
                 2,
             );
-            match verify_psi_ji {
+            match verify_psi_enc_ji {
                 Ok(_) => {}
                 Err(e) => faulty_parties.push((j, msg1a_id, msg1b_id)),
             }
@@ -1151,53 +1151,52 @@ where
 
         tracer.stage("Prove psi_ji");
         // TODO: batch pi_aff_g (psi_ji, hat_psi_ji)
-        let psi_ji: (pi_aff_batch::Commitment<E>, pi_aff_batch::Proof) =
-            pi_aff_batch::non_interactive::prove::<E, D>(
-                &unambiguous::ProofPsi {
-                    sid,
-                    prover: i,
-                    hat: false,
-                },
-                &R_j.into(),
-                pi_aff_batch::PublicData {
-                    batch: vec![
-                        pi_aff_batch::PublicElement {
-                            x: Gamma_i.clone(),
-                            d: D_ji.clone(),
-                            y: F_ji.clone(),
-                            c: round1a_msg.K_i.clone(),
-                        },
-                        pi_aff_batch::PublicElement {
-                            x: *(Point::generator() * x_i.clone()), // MtA(k, x)
-                            d: hat_D_ji.clone(),
-                            y: hat_F_ji.clone(),
-                            c: round1a_msg.K_i.clone(), // K_j
-                        },
-                    ],
-                    key0: enc_j,
-                    key1: dec_i,
-                },
-                pi_aff_batch::PrivateData {
-                    batch: vec![
-                        pi_aff_batch::PrivateElement {
-                            x: &utils::scalar_to_bignumber(&gamma_i),
-                            y: &(-&beta_ij).complete(),
-                            nonce: &s_ij,
-                            nonce_y: &r_ij,
-                        },
-                        pi_aff_batch::PrivateElement {
-                            x: &utils::scalar_to_bignumber(x_i),
-                            y: &(-&hat_beta_ij).complete(),
-                            nonce: &hat_s_ij,
-                            nonce_y: &hat_r_ij,
-                        },
-                    ],
-                },
-                &security_params.pi_aff_batch,
-                &mut *rng,
-                2,
-            )
-            .map_err(|e| Bug::PiAffG(BugSource::psi_ji, e))?;
+        let psi_ji = pi_aff_batch::non_interactive::prove::<E, D>(
+            &unambiguous::ProofPsi {
+                sid,
+                prover: i,
+                hat: false,
+            },
+            &R_j.into(),
+            pi_aff_batch::PublicData {
+                batch: vec![
+                    pi_aff_batch::PublicElement {
+                        x: Gamma_i.clone(),
+                        d: D_ji.clone(),
+                        y: F_ji.clone(),
+                        c: round1a_msg.K_i.clone(),
+                    },
+                    pi_aff_batch::PublicElement {
+                        x: *(Point::generator() * x_i.clone()), // MtA(k, x)
+                        d: hat_D_ji.clone(),
+                        y: hat_F_ji.clone(),
+                        c: round1a_msg.K_i.clone(), // K_j
+                    },
+                ],
+                key0: enc_j, // verifier key
+                key1: dec_i, // prover key
+            },
+            pi_aff_batch::PrivateData {
+                batch: vec![
+                    pi_aff_batch::PrivateElement {
+                        x: &utils::scalar_to_bignumber(&gamma_i),
+                        y: &(-&beta_ij).complete(),
+                        nonce: &s_ij,
+                        nonce_y: &r_ij,
+                    },
+                    pi_aff_batch::PrivateElement {
+                        x: &utils::scalar_to_bignumber(x_i),
+                        y: &(-&hat_beta_ij).complete(),
+                        nonce: &hat_s_ij,
+                        nonce_y: &hat_r_ij,
+                    },
+                ],
+            },
+            &security_params.pi_aff_batch,
+            &mut *rng,
+            2,
+        )
+        .map_err(|e| Bug::PiAffG(BugSource::psi_ji, e))?;
         runtime.yield_now().await;
 
         // tracer.stage("Prove psiˆ_ji");
@@ -1283,17 +1282,17 @@ where
             },
             &R_i.into(),
             pi_aff_batch::PublicData {
-                key0: dec_i,  // verifier key
-                key1: &enc_j, // prover key
+                key0: dec_i,  // key that encrypt K_i, G_i
+                key1: &enc_j, // ket that encrypt F_ji, hat_F_ji
                 batch: vec![
                     pi_aff_batch::PublicElement {
-                        c: K_i.clone(), // from verifier
+                        c: K_i.clone(),
                         d: msg.D_ji.clone(),
                         y: msg.F_ji.clone(),
                         x: msg.Gamma_i.clone(),
                     },
                     pi_aff_batch::PublicElement {
-                        c: K_i.clone(), // from verifier
+                        c: K_i.clone(),
                         d: msg.hat_D_ji.clone(),
                         y: msg.hat_F_ji.clone(),
                         x: *(X_j.clone()),
@@ -1303,7 +1302,7 @@ where
             &msg.psi_ji.0,
             &security_params.pi_aff_batch,
             &msg.psi_ji.1,
-            2
+            2,
         )
         .err();
 
@@ -1350,12 +1349,7 @@ where
         .err();
 
         if psi_ji_invalid.is_some() || psi_j_invalid.is_some() {
-            faulty_parties.push((
-                j,
-                round1a_msg_id,
-                msg_id,
-                (psi_ji_invalid, psi_j_invalid),
-            ))
+            faulty_parties.push((j, round1a_msg_id, msg_id, (psi_ji_invalid, psi_j_invalid)))
         }
         runtime.yield_now().await;
     }
@@ -2002,6 +1996,8 @@ pub enum BugSource {
     K_i,
     /// $G_i$ from round 1
     G_i,
+    /// from round 1b
+    psi_enc_ji,
     /// $psi_i$ from round 2
     psi_i,
     /// $gamma_i_times_K_j$ from round 2
