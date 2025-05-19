@@ -16,6 +16,8 @@ extern crate std;
 pub mod progress;
 pub mod security_level;
 
+/// Hierarchical threshold DKG specific types
+mod hierarchical_threshold;
 /// Non-threshold DKG specific types
 mod non_threshold;
 /// Threshold DKG specific types
@@ -44,7 +46,10 @@ use crate::{
 
 pub use self::execution_id::ExecutionId;
 #[doc(no_inline)]
-pub use self::msg::{non_threshold::Msg as NonThresholdMsg, threshold::Msg as ThresholdMsg};
+pub use self::msg::{
+    hierarchical_threshold::Msg as HierarchicalThresholdMsg, non_threshold::Msg as NonThresholdMsg,
+    threshold::Msg as ThresholdMsg,
+};
 
 /// Defines default choice for digest and security level used across the crate
 mod default_choice {
@@ -64,12 +69,21 @@ pub mod msg {
             Msg, MsgReliabilityCheck, MsgRound1, MsgRound2Broad, MsgRound2Uni, MsgRound3,
         };
     }
+    /// Messages types related to hierarchical threshold DKG protocol
+    pub mod hierarchical_threshold {
+        pub use crate::hierarchical_threshold::{
+            Msg, MsgReliabilityCheck, MsgRound1, MsgRound2Broad, MsgRound2Uni, MsgRound3,
+        };
+    }
 }
 
 /// Key generation entry point. You can call [`set_threshold`] to make it into a
 /// threshold DKG
 ///
 /// [`set_threshold`]: GenericKeygenBuilder::set_threshold
+/// or call [`set_hierarchical_threshold`] to make it into a hierarchical threshold DKG
+///
+/// [`set_hierarchical_threshold`]: GenericKeygenBuilder::set_hierarchical_threshold
 pub type KeygenBuilder<
     'a,
     E,
@@ -85,8 +99,16 @@ pub type ThresholdKeygenBuilder<
     D = crate::default_choice::Digest,
 > = GenericKeygenBuilder<'a, E, WithThreshold, L, D>;
 
+/// Hierarchical threshold keygen builder
+pub type HierarchicalThresholdKeygenBuilder<
+    'a,
+    E,
+    L = crate::default_choice::SecurityLevel,
+    D = crate::default_choice::Digest,
+> = GenericKeygenBuilder<'a, E, WithHierarchicalThreshold, L, D>;
+
 /// Key generation entry point with choice for threshold or non-threshold
-/// variant
+/// or hierarchical threshold variant
 pub struct GenericKeygenBuilder<'a, E: Curve, M, L: SecurityLevel, D: Digest> {
     i: u16,
     n: u16,
@@ -101,8 +123,10 @@ pub struct GenericKeygenBuilder<'a, E: Curve, M, L: SecurityLevel, D: Digest> {
 
 /// Indicates non-threshold DKG
 pub struct NonThreshold;
-/// Indicates threshold DKG
+/// Indicates threshold DKG (threshold)
 pub struct WithThreshold(u16);
+/// Indicates hierarchical threshold DKG (threshold, ranks)
+pub struct WithHierarchicalThreshold(u16, Vec<u16>);
 
 impl<'a, E, L, D> GenericKeygenBuilder<'a, E, NonThreshold, L, D>
 where
@@ -136,6 +160,7 @@ where
 {
     /// Specifies to generate key shares for a threshold scheme
     pub fn set_threshold(self, t: u16) -> GenericKeygenBuilder<'a, E, WithThreshold, L, D> {
+        // validate t <= n
         GenericKeygenBuilder {
             i: self.i,
             n: self.n,
@@ -148,6 +173,29 @@ where
             _params: core::marker::PhantomData,
         }
     }
+
+    /// Specifies to generate key shares for a HTSS scheme
+    pub fn set_hierarchical_threshold(
+        self,
+        t: u16,
+        ranks: Vec<u16>,
+    ) -> GenericKeygenBuilder<'a, E, WithHierarchicalThreshold, L, D> {
+        // validate t <= n
+        // validate ranks.len() == n
+        // validate 0 <= ranks[i] < t for all i
+        GenericKeygenBuilder {
+            i: self.i,
+            n: self.n,
+            optional_t: WithHierarchicalThreshold(t, ranks),
+            reliable_broadcast_enforced: self.reliable_broadcast_enforced,
+            execution_id: self.execution_id,
+            tracer: self.tracer,
+            #[cfg(feature = "hd-wallet")]
+            hd_enabled: self.hd_enabled,
+            _params: core::marker::PhantomData,
+        }
+    }
+
     /// Specifies another hash function to use
     pub fn set_digest<D2>(self) -> GenericKeygenBuilder<'a, E, M, L, D2>
     where
@@ -287,6 +335,52 @@ where
     ) -> impl round_based::state_machine::StateMachine<
         Output = Result<CoreKeyShare<E>, KeygenError>,
         Msg = threshold::Msg<E, L, D>,
+    > + 'a
+    where
+        R: RngCore + CryptoRng,
+    {
+        round_based::state_machine::wrap_protocol(|party| self.start(rng, party))
+    }
+}
+
+impl<'a, E, L, D> GenericKeygenBuilder<'a, E, WithHierarchicalThreshold, L, D>
+where
+    E: Curve,
+    L: SecurityLevel,
+    D: Digest + Clone + 'static,
+{
+    /// Starts hierarchical threshold key generation
+    pub async fn start<R, M>(self, rng: &mut R, party: M) -> Result<CoreKeyShare<E>, KeygenError>
+    where
+        R: RngCore + CryptoRng,
+        M: Mpc<ProtocolMessage = hierarchical_threshold::Msg<E, L, D>>,
+    {
+        hierarchical_threshold::run_hierarchical_threshold_keygen(
+            self.tracer,
+            self.i,
+            self.optional_t.0,
+            self.optional_t.1,
+            self.n,
+            self.reliable_broadcast_enforced,
+            self.execution_id,
+            rng,
+            party,
+            #[cfg(feature = "hd-wallet")]
+            self.hd_enabled,
+        )
+        .await
+    }
+
+    /// Returns a state machine that can be used to carry out the key generation protocol
+    ///
+    /// See [`round_based::state_machine`] for details on how that can be done.
+    #[cfg(feature = "state-machine")]
+    pub fn into_state_machine<R>(
+        self,
+        rng: &'a mut R,
+    ) -> impl round_based::state_machine::StateMachine<
+        Output = Result<CoreKeyShare<E>, KeygenError>,
+        Msg = hierarchical_threshold::Msg<E, L, D>,
     > + 'a
     where
         R: RngCore + CryptoRng,

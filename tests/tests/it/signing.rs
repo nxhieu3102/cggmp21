@@ -189,7 +189,9 @@ where
             } else {
                 presig
             };
-            presig.issue_partial_signature(message_to_sign)
+            presig
+                .issue_partial_signature(message_to_sign)
+                .expect("invalid pre-sigantures")
         })
         .collect::<Vec<_>>();
 

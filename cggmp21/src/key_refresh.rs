@@ -11,6 +11,8 @@ use rand_core::{CryptoRng, RngCore};
 use round_based::Mpc;
 use thiserror::Error;
 
+use crate::fast_paillier;
+use crate::security_level::{validate_public_paillier_key_size, validate_secret_paillier_key_size};
 use crate::{
     errors::IoError,
     key_share::{AnyKeyShare, AuxInfo, DirtyIncompleteKeyShare, KeyShare},
@@ -19,7 +21,6 @@ use crate::{
     utils::AbortBlame,
     ExecutionId,
 };
-use crate::{fast_paillier, rug::Integer};
 
 #[doc(no_inline)]
 pub use self::msg::{aux_only::Msg as AuxOnlyMsg, non_threshold::Msg as NonThresholdMsg};
@@ -43,43 +44,39 @@ pub mod msg {
 /// To speed up computations, it's possible to supply data to the algorithm
 /// generated ahead of time
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct PregeneratedPrimes<L = crate::default_choice::SecurityLevel> {
-    p: Integer,
-    q: Integer,
+pub struct PregeneratedPaillierKey<L = crate::default_choice::SecurityLevel> {
+    dec: fast_paillier::DecryptionKey,
     _phantom: std::marker::PhantomData<L>,
 }
 
-impl<L: SecurityLevel> PregeneratedPrimes<L> {
-    /// Constructs pregenerated primes from two big numbers
-    ///
-    /// Returns `None` if big numbers are smaller than 4 * [L::SECURITY_BITS](crate::security_level::KeygenSecurityLevel::SECURITY_BITS)
-    ///
-    /// Function doesn't validate that provided numbers are primes. If they're not,
-    /// key refresh protocol should fail with some ZK proof error.
-    pub fn new(p: Integer, q: Integer) -> Option<Self> {
-        if !crate::security_level::validate_secret_paillier_key_size::<L>(&p, &q) {
+impl<L: SecurityLevel> PregeneratedPaillierKey<L> {
+    /// Create PregeneratedPaillierKey from a Paillier decryption key
+    pub fn new(dec: fast_paillier::DecryptionKey) -> Option<Self> {
+        if !validate_public_paillier_key_size::<L>(dec.n())
+            || !validate_secret_paillier_key_size::<L>(dec.p(), dec.q(), dec.alpha())
+        {
             None
         } else {
             Some(Self {
-                p,
-                q,
+                dec,
                 _phantom: std::marker::PhantomData,
             })
         }
     }
 
-    /// Returns `p, q`
-    pub fn split(self) -> (Integer, Integer) {
-        (self.p, self.q)
+    /// Generates paillier key. Takes some time.
+    pub fn generate<R: RngCore + CryptoRng>(rng: &mut R) -> Result<Self, KeyRefreshError> {
+        let dec = fast_paillier::DecryptionKey::generate(rng, L::N_SIZE as u32, L::A_SIZE as u32)
+            .map_err(|_| KeyRefreshError(Reason::InternalError(Bug::PaillierKeyError)))?;
+        Ok(Self {
+            dec,
+            _phantom: std::marker::PhantomData,
+        })
     }
 
-    /// Generates primes. Takes some time.
-    pub fn generate<R: RngCore>(rng: &mut R) -> Self {
-        Self {
-            p: fast_paillier::utils::generate_safe_prime(rng, 4 * L::SECURITY_BITS),
-            q: fast_paillier::utils::generate_safe_prime(rng, 4 * L::SECURITY_BITS),
-            _phantom: std::marker::PhantomData,
-        }
+    /// Retrieve Paillier decryption key from PregeneratedPaillierKey
+    pub fn dec(&self) -> &fast_paillier::DecryptionKey {
+        &self.dec
     }
 }
 
@@ -107,7 +104,7 @@ where
 {
     target: M,
     execution_id: ExecutionId<'a>,
-    pregenerated: PregeneratedPrimes<L>,
+    pregenerated: PregeneratedPaillierKey<L>,
     tracer: Option<&'a mut dyn Tracer>,
     enforce_reliable_broadcast: bool,
     precompute_multiexp_tables: bool,
@@ -135,7 +132,7 @@ where
     pub fn new(
         eid: ExecutionId<'a>,
         key_share: &'a impl AnyKeyShare<E>,
-        pregenerated: PregeneratedPrimes<L>,
+        pregenerated: PregeneratedPaillierKey<L>,
     ) -> Self {
         Self {
             target: RefreshShare(key_share.as_ref()),
@@ -205,7 +202,7 @@ where
         eid: ExecutionId<'a>,
         i: u16,
         n: u16,
-        pregenerated: PregeneratedPrimes<L>,
+        pregenerated: PregeneratedPaillierKey<L>,
     ) -> Self {
         Self {
             target: AuxOnly { i, n },

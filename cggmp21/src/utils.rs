@@ -1,8 +1,8 @@
 use generic_ec::{Curve, Scalar};
 use paillier_zk::rug::{self, Integer};
 use paillier_zk::{
-    group_element_vs_paillier_encryption_in_range as pi_log,
-    paillier_affine_operation_in_range as pi_aff, paillier_encryption_in_range as pi_enc,
+    paillier_affine_operation_in_range as pi_aff,
+    paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal,
 };
 use round_based::rounds_router::simple_store::RoundMsgs;
 use round_based::{MsgId, PartyIndex};
@@ -18,8 +18,7 @@ pub fn scalar_to_bignumber<E: Curve>(scalar: impl AsRef<Scalar<E>>) -> Integer {
 
 pub struct SecurityParams {
     pub pi_aff: pi_aff::SecurityParams,
-    pub pi_log: pi_log::SecurityParams,
-    pub pi_enc: pi_enc::SecurityParams,
+    pub pi_enc_el_gamal: pi_enc_el_gamal::SecurityParams,
 }
 
 impl SecurityParams {
@@ -31,12 +30,7 @@ impl SecurityParams {
                 epsilon: L::EPSILON,
                 q: L::q(),
             },
-            pi_log: pi_log::SecurityParams {
-                l: L::ELL,
-                epsilon: L::EPSILON,
-                q: L::q(),
-            },
-            pi_enc: pi_enc::SecurityParams {
+            pi_enc_el_gamal: pi_enc_el_gamal::SecurityParams {
                 l: L::ELL,
                 epsilon: L::EPSILON,
                 q: L::q(),
@@ -217,6 +211,7 @@ pub fn generate_blum_prime(rng: &mut impl rand_core::RngCore, bits_size: u32) ->
 
 /// Unambiguous encoding for different types for which it was not defined
 pub mod encoding {
+    use paillier_zk::fast_paillier::AnyEncryptionKey;
     use paillier_zk::rug;
 
     pub struct Integer;
@@ -226,6 +221,50 @@ pub mod encoding {
             encoder: udigest::encoding::EncodeValue<B>,
         ) {
             encoder.encode_leaf_value(x.to_digits(rug::integer::Order::Msf))
+        }
+    }
+
+    pub struct EncryptionKey;
+    impl udigest::DigestAs<paillier_zk::fast_paillier::EncryptionKey> for EncryptionKey {
+        fn digest_as<B: udigest::Buffer>(
+            x: &paillier_zk::fast_paillier::EncryptionKey,
+            encoder: udigest::encoding::EncodeValue<B>,
+        ) {
+            // Encode as a structured sequence of fields
+            let mut encoder = encoder.encode_struct();
+
+            // Encode unsigned integer fields
+            encoder
+                .add_field("n_size")
+                .encode_leaf_value(x.n_size().to_be_bytes());
+            encoder
+                .add_field("a_size")
+                .encode_leaf_value(x.a_size().to_be_bytes());
+            encoder
+                .add_field("nounce_size")
+                .encode_leaf_value(x.nounce_size().to_be_bytes());
+
+            // Encode rug::Integer fields using most-significant-first byte order
+            encoder
+                .add_field("h")
+                .encode_leaf_value(x.h().to_digits(rug::integer::Order::Msf));
+            encoder
+                .add_field("n")
+                .encode_leaf_value(x.n().to_digits(rug::integer::Order::Msf));
+            encoder
+                .add_field("nn")
+                .encode_leaf_value(x.nn().to_digits(rug::integer::Order::Msf));
+            encoder
+                .add_field("h_pow_n")
+                .encode_leaf_value(x.h_pow_n().to_digits(rug::integer::Order::Msf));
+            encoder
+                .add_field("half_n")
+                .encode_leaf_value(x.half_n().to_digits(rug::integer::Order::Msf));
+            encoder
+                .add_field("neg_half_n")
+                .encode_leaf_value(x.neg_half_n().to_digits(rug::integer::Order::Msf));
+
+            encoder.finish()
         }
     }
 }

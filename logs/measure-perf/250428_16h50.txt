@@ -1,0 +1,127 @@
+RUST_TESTS_SEED=a553f028f1230c1b6ea60ceb8192ca9d000df24ff0e306b9703facb1cf786d61
+n = 3
+
+Non-threshold DKG
+Protocol Performance:
+  - Protocol took 9.88ms to complete
+In particular:
+  - Stage: 83.75µs
+    - Setup networking: 82.50µs (98.5%)
+    - Unstaged: 1.25µs (1.5%)
+  - Round 1: 3.55ms
+    - Sample x_i, rid_i, chain_code: 1.87ms (52.7%)
+    - Sample schnorr commitment: 1.39ms (39.2%)
+    - Commit to public data: 285.90µs (8.1%)
+    - Unstaged: 2.87µs (0.1%)
+  - Round 2: 72.25µs
+    - Hash received msgs (reliability check): 70.84µs (98.0%)
+    - Unstaged: 1.41µs (2.0%)
+  - Round 3: 2.21µs
+    - Assert other parties hashed messages (reliability check): 1.63µs (73.5%)
+    - Unstaged: 586.00ns (26.5%)
+  - Round 4: 698.26µs
+    - Validate decommitments: 550.35µs (78.8%)
+    - Calculate challege rid: 137.68µs (19.7%)
+    - Prove knowledge of `x_i`: 9.57µs (1.4%)
+    - Unstaged: 669.00ns (0.1%)
+  - Round 5: 5.47ms
+    - Validate schnorr proofs: 5.47ms (100.0%)
+    - Unstaged: 2.00µs (0.0%)
+
+
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+
+--------------------
+terminal output:
+
+thread 'main' panicked at /home/trucvy/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/round-based-0.4.1/src/sim/mod.rs:112:13:
+Simulation output didn't match expectations.
+Expected: all parties succeed
+Actual  : 0 parties succeeded, 3 parties returned an error
+Failures:
+- Party 0: aux data gen failed
+
+Caused by:
+    0: key refresh protocol failed to complete
+    1: internal error
+    2: Invalid key share geenrated
+    3: paillier secret key doesn't match security level (primes are too small)
+- Party 1: aux data gen failed
+
+Caused by:
+    0: key refresh protocol failed to complete
+    1: internal error
+    2: Invalid key share geenrated
+    3: paillier secret key doesn't match security level (primes are too small)
+- Party 2: aux data gen failed
+
+Caused by:
+    0: key refresh protocol failed to complete
+    1: internal error
+    2: Invalid key share geenrated
+    3: paillier secret key doesn't match security level (primes are too small)

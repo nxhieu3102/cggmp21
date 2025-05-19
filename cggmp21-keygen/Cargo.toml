@@ -11,11 +11,13 @@ keywords = ["mpc", "dkg", "threshold-signatures", "tss"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+birkhoff = { workspace = true }
+
 key-share = { workspace = true, features = ["serde"] }
 hd-wallet = { workspace = true, optional = true }
 
 generic-ec = { workspace = true, features = ["serde", "udigest", "hash-to-scalar"] }
-generic-ec-zkp = { workspace = true, features = ["serde", "udigest"] }
+generic-ec-zkp = { workspace = true, features = ["serde", "udigest", "alloc"] }
 udigest = { workspace = true, features = ["derive"]}
 
 round-based = { workspace = true, features = ["derive"] }

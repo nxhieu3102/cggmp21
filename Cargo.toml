@@ -1,25 +1,27 @@
 [workspace]
 resolver = "2"
 members = [
+    "birkhoff",
     "cggmp21",
-    "cggmp21-keygen", "cggmp21-wasm", "examples/p2p_example",
+    "cggmp21-keygen", 
+    "cggmp21-wasm", 
+    "examples/p2p_example",
     "key-share",
     "tests",
 ]
-exclude = [
-    "wasm/no_std",
-]
+exclude = ["wasm/no_std"]
 
 [workspace.dependencies]
 cggmp21 = { version = "0.6", path = "cggmp21" }
 cggmp21-keygen = { version = "0.5", path = "cggmp21-keygen" }
 key-share = { version = "0.6", path = "key-share", default-features = false }
+birkhoff = { version = "0.1.0", path = "birkhoff" }
 
-generic-ec = { version = "0.4.1", default-features = false } 
-generic-ec-zkp = { version = "0.4.1", default-features = false } 
+generic-ec = { version = "0.4.5", default-features = false }
+generic-ec-zkp = { version = "0.4.4", default-features = false }
 round-based = { version = "0.4.1", default-features = false }
 
-paillier-zk = "0.4.1" 
+paillier-zk = { git = "https://github.com/nxhieu3102/paillier-zk" }
 udigest = { version = "0.2.1", default-features = false }
 
 digest = { version = "0.10", default-features = false }
@@ -46,4 +48,3 @@ hex = { version = "0.4", default-features = false }
 hd-wallet = { version = "0.6", default-features = false }
 
 generic-tests = "0.1"
-

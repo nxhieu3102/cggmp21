@@ -32,7 +32,7 @@ async fn sleep_with_message(duration: Duration, message: &str) {
 async fn display_node_info<M>(node: &Node<M>) {
     println!("=========================");
     println!("Node address: {}", node.address);
-    
+
     println!("Peer id mapping:");
     for (id, addr) in node.peers_id.read().await.iter() {
         println!("  Peer id: {} -> address: {}", id, addr);
@@ -55,19 +55,19 @@ async fn main() -> Result<()> {
     }
 
     // Load the node configuration
-    let config = load_config(&args[1])
-        .context(format!("Failed to load config from {}", &args[1]))?;
+    let config =
+        load_config(&args[1]).context(format!("Failed to load config from {}", &args[1]))?;
 
     // Set up the P2P network
     println!("Initializing P2P network node...");
-    let (node, _incoming, mut outgoing) =
-        Node::<Msg<E, L, D>>::new(config).await?;
+    let (node, _incoming, mut outgoing) = Node::<Msg<E, L, D>>::new(config).await?;
 
     // Wait for all nodes to start and connect
     sleep_with_message(
         Duration::from_secs(10),
         "Sleeping for 10 seconds to allow all nodes to start...",
-    ).await;
+    )
+    .await;
 
     // Display node information for debugging
     display_node_info(&node).await;
@@ -76,7 +76,7 @@ async fn main() -> Result<()> {
     let test_message = cggmp21::keygen::msg::threshold::MsgRound1 {
         commitment: sha2::digest::generic_array::GenericArray::default(),
     };
-    
+
     println!("Sending test message to all peers...");
     outgoing
         .send(Outgoing::broadcast(Msg::Round1(test_message)))
@@ -87,7 +87,8 @@ async fn main() -> Result<()> {
     sleep_with_message(
         Duration::from_secs(10),
         "Sleeping for 10 seconds to receive messages...",
-    ).await;
+    )
+    .await;
 
     // Uncomment to enable the actual DKG protocol
     /*
@@ -114,7 +115,7 @@ async fn main() -> Result<()> {
 
     tokio::signal::ctrl_c().await?;
     */
-    
+
     println!("P2P example completed successfully");
     Ok(())
 }
