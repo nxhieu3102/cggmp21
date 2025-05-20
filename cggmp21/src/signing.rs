@@ -993,7 +993,7 @@ where
             );
             match verify_psi_enc_ji {
                 Ok(_) => {}
-                Err(e) => faulty_parties.push((j, msg1a_id, msg1b_id)),
+                Err(e) => faulty_parties.push((j, msg1a_id, msg1b_id, e)),
             }
 
             if !faulty_parties.is_empty() {
@@ -1121,12 +1121,12 @@ where
                         y: F_ji.clone(),
                         x: Gamma_i.clone(), // MtA(k, gamma)
                     },
-                    // pi_aff_batch::PublicElement {
-                    //     c: round1a_msg.K_i.clone(), // K_j
-                    //     d: hat_D_ji.clone(),
-                    //     y: hat_F_ji.clone(),
-                    //     x: *(Point::generator() * x_i.clone()), // MtA(k, x)},
-                    // },
+                    pi_aff_batch::PublicElement {
+                        c: round1a_msg.K_i.clone(), // K_j
+                        d: hat_D_ji.clone(),
+                        y: hat_F_ji.clone(),
+                        x: *(Point::generator() * x_i.clone()), // MtA(k, x)},
+                    },
                 ],
             },
             pi_aff_batch::PrivateData {
@@ -1137,17 +1137,17 @@ where
                         nonce: &s_ij,
                         nonce_y: &r_ij,
                     },
-                    // pi_aff_batch::PrivateElement {
-                    //     x: &utils::scalar_to_bignumber(x_i),
-                    //     y: &(-&hat_beta_ij).complete(),
-                    //     nonce: &hat_s_ij,
-                    //     nonce_y: &hat_r_ij,
-                    // },
+                    pi_aff_batch::PrivateElement {
+                        x: &utils::scalar_to_bignumber(x_i),
+                        y: &(-&hat_beta_ij).complete(),
+                        nonce: &hat_s_ij,
+                        nonce_y: &hat_r_ij,
+                    },
                 ],
             },
             &security_params.pi_aff_batch,
             &mut *rng,
-            1,
+            2,
         )
         .map_err(|e| Bug::PiAffG(BugSource::psi_ji, e))?;
         runtime.yield_now().await;
@@ -1215,18 +1215,18 @@ where
                         y: msg.F_ji.clone(),
                         x: msg.Gamma_i.clone(),
                     },
-                    // pi_aff_batch::PublicElement {
-                    //     c: K_i.clone(), // from verifier
-                    //     d: msg.hat_D_ji.clone(),
-                    //     y: msg.hat_F_ji.clone(),
-                    //     x: *X_j.clone(),
-                    // },
+                    pi_aff_batch::PublicElement {
+                        c: K_i.clone(), // from verifier
+                        d: msg.hat_D_ji.clone(),
+                        y: msg.hat_F_ji.clone(),
+                        x: *X_j.clone(),
+                    },
                 ],
             },
             &msg.psi_aff_ji.0,
             &security_params.pi_aff_batch,
             &msg.psi_aff_ji.1,
-            1,
+            2,
         )
         .err();
 
@@ -1792,7 +1792,7 @@ enum Reason {
 #[derive(Debug, Error)]
 enum SigningAborted {
     #[error("pi_enc_el_gamal_batch::verify(K) failed")]
-    EncElgGamalBatchProofOfKorG(Vec<(PartyIndex, MsgId, MsgId)>),
+    EncElgGamalBatchProofOfKorG(Vec<(PartyIndex, MsgId, MsgId, paillier_zk::InvalidProof)>),
     #[error("ψ, ψˆ, or ψ' proofs are invalid")]
     InvalidPsi(
         Vec<(
