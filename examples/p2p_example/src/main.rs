@@ -91,7 +91,7 @@ async fn main() -> Result<()> {
     .await;
 
     // Uncomment to enable the actual DKG protocol
-    /*
+    
     // Set up MPC
     let delivery = (
         incoming.map(|msg| msg.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))),
@@ -114,7 +114,7 @@ async fn main() -> Result<()> {
             .await?;
 
     tokio::signal::ctrl_c().await?;
-    */
+    
 
     println!("P2P example completed successfully");
     Ok(())

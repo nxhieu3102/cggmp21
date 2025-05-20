@@ -1,5 +1,5 @@
 use alloc::vec::Vec;
-
+use serde::{Deserialize, Serialize};
 use round_based::rounds_router::simple_store::RoundMsgs;
 use round_based::{MsgId, PartyIndex};
 
@@ -24,7 +24,7 @@ where
 ///
 /// In the future we might want to replace the data_message and proof_message
 /// with a generic vec of messages.
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 #[allow(dead_code)] // removes false-positive warnings
 pub struct AbortBlame {
     /// Party which can be blamed for breaking the protocol

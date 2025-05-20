@@ -11,8 +11,8 @@ keywords = ["mpc", "threshold-signatures", "tss"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-generic-ec = { workspace = true, features = ["alloc"] }
-generic-ec-zkp = { workspace = true, features = ["alloc"] }
+generic-ec = { path="../../fork-generic-ec", workspace = true, features = ["alloc"] }
+generic-ec-zkp = {path="../../fork-generic-ec/generic-ec-zkp", workspace = true, features = ["alloc"] }
 rand_core = { workspace = true, optional = true }
 
 hd-wallet = { workspace = true, optional = true }

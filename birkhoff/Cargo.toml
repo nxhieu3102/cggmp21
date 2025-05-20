@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 # For polynomial
 generic-ec = { workspace = true, features = ["serde", "udigest", "hash-to-scalar", "curve-secp256k1", "std"] }
-generic-ec-zkp = { workspace = true, features = ["serde", "udigest", "alloc"] }
+generic-ec-zkp = {path="../../fork-generic-ec/generic-ec-zkp", workspace = true, features = ["serde", "udigest", "alloc"] }
 
 [dev-dependencies]
 pretty_assertions = "1.3"

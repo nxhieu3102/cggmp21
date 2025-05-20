@@ -16,11 +16,11 @@ birkhoff = { workspace = true }
 key-share = { workspace = true, features = ["serde"] }
 hd-wallet = { workspace = true, optional = true }
 
-generic-ec = { workspace = true, features = ["serde", "udigest", "hash-to-scalar"] }
-generic-ec-zkp = { workspace = true, features = ["serde", "udigest", "alloc"] }
+generic-ec = {path="../../fork-generic-ec/generic-ec",  workspace = true, features = ["serde", "udigest", "hash-to-scalar"] }
+generic-ec-zkp = {path="../../fork-generic-ec/generic-ec-zkp", workspace = true }
 udigest = { workspace = true, features = ["derive"]}
 
-round-based = { workspace = true, features = ["derive"] }
+round-based = { path= "../../fork-round-based/round-based", workspace = true, features = ["derive"] }
 
 sha2 = { workspace = true }
 digest = { workspace = true }
