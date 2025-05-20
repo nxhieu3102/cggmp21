@@ -22,13 +22,15 @@ rand_chacha = "0.3"
 getrandom = { version = "0.2", features = ["js"] }
 base64 = "0.21"
 digest = { workspace = true }
-generic-ec = { workspace = true }
-generic-ec-zkp = { workspace = true }
+generic-ec = {path="../../fork-generic-ec/generic-ec", workspace = true }
+generic-ec-zkp = {path="../../fork-generic-ec/generic-ec-zkp", workspace = true }
 sha2 = { workspace = true }
 hex = { workspace = true }
+round-based = { workspace = true }
 
 # Internal crates
 cggmp21-keygen = { workspace = true }
+rand_dev.workspace = true
 
 [dependencies.web-sys]
 version = "0.3"

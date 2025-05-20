@@ -236,7 +236,18 @@ async function initWasmModule() {
     // Import the wasm module
     wasmModule = await import('../pkg/cggmp21_wasm.js');
     await wasmModule.default();
-    
+    console.log('WASM module loaded');
+    try {
+      const msg = wasmModule.create_message_round_1({
+        i: 1,
+        t: 2,
+        n: 3,
+        sid: '1234567890'
+      });
+      console.log('create_message_round_1 function exists', msg);
+    } catch (error) {
+      console.error('error', error);
+    }
     postMessage({ type: 'wasm_loaded', status: 'success' });
     
     return true;
