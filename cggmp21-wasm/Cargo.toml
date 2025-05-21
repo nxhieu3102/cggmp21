@@ -30,6 +30,7 @@ round-based = { workspace = true }
 
 # Internal crates
 cggmp21-keygen = { workspace = true }
+cggmp21 = {workspace = true}
 rand_dev.workspace = true
 
 [dependencies.web-sys]

@@ -5,6 +5,7 @@ use std::cell::RefCell;
 
 // Export the keygen module for WASM
 pub mod keygen;
+pub mod key_refresh;
 
 // Define the message format
 #[derive(Serialize, Deserialize)]

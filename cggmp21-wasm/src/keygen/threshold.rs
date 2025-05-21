@@ -7,8 +7,6 @@ use rand_dev::DevRng;
 use sha2::Sha256;
 use wasm_bindgen::prelude::*;
 use serde::{Serialize, Deserialize};
-use generic_ec::{Curve, NonZero, Point, Scalar, SecretScalar};
-use cggmp21_keygen::security_level::SecurityLevel;
 /// WASM wrapper for KeygenProtocol
 #[wasm_bindgen]
 pub struct StatefulKeygenProtocol {
