@@ -5,7 +5,7 @@ use generic_ec::{Curve, NonZero, Point, Scalar, SecretScalar};
 use generic_ec_zkp::{polynomial::Polynomial, schnorr_pok};
 use rand_core::{CryptoRng, RngCore};
 use round_based::{
-    rounds_router::simple_store::RoundInput, rounds_router::Round, rounds_router::RoundsRouter,
+    rounds_router::simple_store::RoundInput, rounds_router::RoundsRouter,
     Delivery, Mpc, MpcParty, Outgoing, ProtocolMessage, SinkExt,
 };
 use serde::{Deserialize, Serialize};
@@ -295,6 +295,7 @@ where
         };
         Outgoing::p2p(j, Msg::Round2Uni(message))
     });
+    
     outgoings
         .send_all(&mut futures_util::stream::iter(messages.map(Ok)))
         .await
@@ -664,16 +665,16 @@ where
 
 /// Creates round 3 message containing Schnorr proof of knowledge.
 pub fn create_message_round_3<E, L, D>(
-    commitments: RoundMsgs<MsgRound1<D>>,
-    decommitments: RoundMsgs<MsgRound2Broad<E, L>>,
-    sigmas_msg: RoundMsgs<MsgRound2Uni<E>>,
-    sid: ExecutionId<'_>,
-    my_decommitment: MsgRound2Broad<E, L>,
+    commitments: &RoundMsgs<MsgRound1<D>>,
+    decommitments: &RoundMsgs<MsgRound2Broad<E, L>>,
+    sigmas_msg: &RoundMsgs<MsgRound2Uni<E>>,
+    sid: &ExecutionId<'_>,
+    my_decommitment: &MsgRound2Broad<E, L>,
     n: u16,
     t: u16,
     i: u16,
-    r: ProverSecret<E>,
-    sigmas: Vec<Scalar<E>>,
+    r: &ProverSecret<E>,
+    sigmas: &Vec<Scalar<E>>,
 ) -> Result<MsgRound3<E>, Bug>
 where
     E: Curve,
@@ -682,7 +683,7 @@ where
 {
     let blame = utils::collect_blame(&commitments, &decommitments, |j, com, decom| {
         let com_expected = udigest::hash::<D>(&unambiguous::HashCom {
-            sid,
+            sid: *sid,
             party_index: j,
             decommitment: decom,
         });
@@ -759,7 +760,7 @@ where
     debug_assert_eq!(Point::generator() * &sigma, ys[usize::from(i)]);
 
     let challenge = Scalar::from_hash::<D>(&unambiguous::SchnorrPok {
-        sid,
+        sid: *sid,
         prover: i,
         rid: rid.as_ref(),
         // add y_i and h_i to the challenge
@@ -778,25 +779,37 @@ where
 
 /// hehe
 pub fn create_key_share<E, L, D>(
-    sch_proofs: RoundMsgs<MsgRound3<E>>,
-    decommitments: RoundMsgs<MsgRound2Broad<E, L>>,
-    ys: Vec<NonZero<Point<E>>>,
-    sid: ExecutionId<'_>,
-    rid: L::Rid,
-    my_decommitment: MsgRound2Broad<E, L>,
+    sch_proofs: &RoundMsgs<MsgRound3<E>>,
+    decommitments: &RoundMsgs<MsgRound2Broad<E, L>>,
+    sid: &ExecutionId<'_>,
+    rid: &L::Rid,
+    my_decommitment: &MsgRound2Broad<E, L>,
     i: u16,
     n: u16,
     t: u16,
-    sigma: NonZero<SecretScalar<E>>,
+    sigma: &NonZero<SecretScalar<E>>,
 ) -> Result<CoreKeyShare<E>, KeygenError>
 where
     E: Curve,
     L: SecurityLevel,
     D: Digest + Clone + 'static,
 {
+
+    let polynomial_sum = decommitments
+        .iter_including_me(&my_decommitment)
+        .map(|d| &d.F)
+        .sum::<Polynomial<_>>();
+    // ys = [y_j = F(j + 1) for j in 0..n]
+    // y_j is the public share of party j
+    // y_j = sigma_j * G, where sigma_j is the secret share of party j
+    let ys = (0..n)
+        .map(|l| polynomial_sum.value(&Scalar::from(l + 1)))
+        .map(|y_j: Point<E>| NonZero::from_point(y_j).ok_or(Bug::ZeroShare))
+        .collect::<Result<Vec<_>, _>>()?;
+
     let blame = utils::collect_blame(&decommitments, &sch_proofs, |j, decom, sch_proof| {
         let challenge = Scalar::from_hash::<D>(&unambiguous::SchnorrPok {
-            sid,
+            sid: *sid,
             prover: j,
             rid: rid.as_ref(),
             y: ys[usize::from(j)],
@@ -828,7 +841,7 @@ where
         key_info: DirtyKeyInfo {
             curve: Default::default(),
             shared_public_key: NonZero::from_point(y).ok_or(Bug::ZeroPk)?,
-            public_shares: ys,
+            public_shares: ys.clone(),
             vss_setup: Some(VssSetup {
                 min_signers: t,
                 I: key_shares_indexes,
@@ -837,7 +850,7 @@ where
             #[cfg(feature = "hd-wallet")]
             chain_code,
         },
-        x: sigma,
+        x: sigma.clone(),
     }
     .validate()
     .map_err(|err| Bug::InvalidKeyShare(err.into_error()))?)

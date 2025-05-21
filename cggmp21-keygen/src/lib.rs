@@ -22,6 +22,8 @@ mod hierarchical_threshold;
 mod non_threshold;
 /// Threshold DKG specific types
 pub mod threshold;
+/// Stateful threshold DKG implementation
+pub mod threshold_stateful;
 
 mod errors;
 /// Module containing execution ID types and functionality for protocol identification

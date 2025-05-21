@@ -93,27 +93,27 @@ async fn main() -> Result<()> {
     // Uncomment to enable the actual DKG protocol
     
     // Set up MPC
-    let delivery = (
-        incoming.map(|msg| msg.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))),
-        outgoing,
-    );
-    let party = round_based::MpcParty::connected(delivery);
+    // let delivery = (
+    //     incoming.map(|msg| msg.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))),
+    //     outgoing,
+    // );
+    // let party = round_based::MpcParty::connected(delivery);
 
-    // DKG
-    let eid = cggmp21::ExecutionId::new(b"execution id, unique per protocol execution");
-    let i = config.node.id - 1;
-    let n = 3;
-    let t = 2;
+    // // DKG
+    // let eid = cggmp21::ExecutionId::new(b"execution id, unique per protocol execution");
+    // let i = config.node.id - 1;
+    // let n = 3;
+    // let t = 2;
 
-    println!("Starting DKG with id: {}, n: {}, t: {}", i, n, t);
+    // println!("Starting DKG with id: {}, n: {}, t: {}", i, n, t);
 
-    let _incomplete_key_share =
-        cggmp21::keygen::<E>(eid, i.try_into().expect("Can not parse id"), n)
-            .set_threshold(t)
-            .start(&mut OsRng, party)
-            .await?;
+    // let _incomplete_key_share =
+    //     cggmp21::keygen::<E>(eid, i.try_into().expect("Can not parse id"), n)
+    //         .set_threshold(t)
+    //         .start(&mut OsRng, party)
+    //         .await?;
 
-    tokio::signal::ctrl_c().await?;
+    // tokio::signal::ctrl_c().await?;
     
 
     println!("P2P example completed successfully");
