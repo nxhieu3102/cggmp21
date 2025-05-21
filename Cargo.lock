@@ -1935,6 +1935,7 @@ name = "paillier-zk"
 version = "0.4.2"
 source = "git+https://github.com/nxhieu3102/paillier-zk#34037b29015b1787b41135dd73e70f2fa7e7a454"
 dependencies = [
+ "bytemuck",
  "digest",
  "fast-paillier",
  "generic-ec 0.4.5 (git+https://github.com/nxhieu3102/generic-ec?branch=feat%2Fintegrate-cggmp21)",

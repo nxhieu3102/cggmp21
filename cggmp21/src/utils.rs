@@ -1,8 +1,8 @@
 use generic_ec::{Curve, Scalar};
 use paillier_zk::rug::{self, Integer};
 use paillier_zk::{
-    paillier_affine_operation_in_range as pi_aff,
-    paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal,
+    batch_paillier_affine_operation_in_range as pi_aff_batch,
+    batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
 };
 use round_based::rounds_router::simple_store::RoundMsgs;
 use round_based::{MsgId, PartyIndex};
@@ -17,23 +17,25 @@ pub fn scalar_to_bignumber<E: Curve>(scalar: impl AsRef<Scalar<E>>) -> Integer {
 }
 
 pub struct SecurityParams {
-    pub pi_aff: pi_aff::SecurityParams,
-    pub pi_enc_el_gamal: pi_enc_el_gamal::SecurityParams,
+    pub pi_aff_batch: pi_aff_batch::SecurityParams,
+    pub pi_enc_el_gamal_batch: pi_enc_el_gamal_batch::SecurityParams,
 }
 
 impl SecurityParams {
     pub fn new<L: SecurityLevel>() -> Self {
         Self {
-            pi_aff: pi_aff::SecurityParams {
+            pi_aff_batch: pi_aff_batch::SecurityParams {
                 l_x: L::ELL,
                 l_y: L::ELL_PRIME,
                 epsilon: L::EPSILON,
                 q: L::q(),
+                t: 128,
             },
-            pi_enc_el_gamal: pi_enc_el_gamal::SecurityParams {
+            pi_enc_el_gamal_batch: pi_enc_el_gamal_batch::SecurityParams {
                 l: L::ELL,
                 epsilon: L::EPSILON,
                 q: L::q(),
+                t: 128,
             },
         }
     }
