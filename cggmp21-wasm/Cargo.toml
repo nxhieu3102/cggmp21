@@ -3,9 +3,6 @@ name = "cggmp21-wasm"
 version = "0.1.0"
 edition = "2021"
 
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = false
-
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -22,15 +19,15 @@ rand_chacha = "0.3"
 getrandom = { version = "0.2", features = ["js"] }
 base64 = "0.21"
 digest = { workspace = true }
-generic-ec = {git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21", workspace = true }
-generic-ec-zkp = {git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21", workspace = true }
+generic-ec = { workspace = true }
+generic-ec-zkp = { workspace = true }
 sha2 = { workspace = true }
 hex = { workspace = true }
 round-based = { workspace = true }
 
 # Internal crates
 cggmp21-keygen = { workspace = true }
-cggmp21 = {workspace = true}
+cggmp21 = { workspace = true }
 rand_dev.workspace = true
 
 [dependencies.web-sys]
@@ -46,7 +43,7 @@ features = [
   'Worker',
   'console',
   'Document',
-  'Element', 
+  'Element',
   'HtmlElement',
   'Node',
   'Window',
@@ -57,7 +54,5 @@ features = [
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
