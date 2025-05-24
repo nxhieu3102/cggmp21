@@ -1,0 +1,15 @@
+{
+  "name": "cggmp21-keygen-demo",
+  "version": "0.1.0",
+  "description": "Demo application for CGGMP21 keygen protocol",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "build": "cd ../.. && wasm-pack build --target web",
+    "dev": "npm run build && npm start"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.13.0"
+  }
+} 

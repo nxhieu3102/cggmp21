@@ -16,11 +16,11 @@ birkhoff = { workspace = true }
 cggmp21-keygen = { workspace = true }
 key-share = { workspace = true, features = ["serde"] }
 
-generic-ec = { workspace = true, features = ["serde", "udigest", "hash-to-scalar"] }
-generic-ec-zkp = { workspace = true, features = ["serde", "udigest"] }
-round-based = { workspace = true, features = ["derive"] }
+generic-ec = { git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21" , workspace = true, features = ["serde", "udigest", "hash-to-scalar"] }
+generic-ec-zkp = { git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21" , workspace = true, features = ["serde", "udigest"] }
+round-based = { git="https://github.com/nxhieu3102/round-based" ,branch="feat/integrate-cggmp21", workspace = true, features = ["derive"] }
 
-paillier-zk = { workspace = true, features = ["serde"] }
+paillier-zk = {git="https://github.com/nxhieu3102/paillier-zk", workspace = true, features = ["serde"] }
 udigest = { workspace = true, features = ["std", "derive"]}
 
 digest = { workspace = true }
@@ -41,9 +41,10 @@ tokio = { version = "1.0", features = ["full"] }
 anyhow = { workspace = true }
 
 thiserror = { workspace = true }
+displaydoc.workspace = true
 
 [dev-dependencies]
-round-based = { workspace = true, features = ["derive", "sim"] }
+round-based = { git="https://github.com/nxhieu3102/round-based" ,branch="feat/integrate-cggmp21", workspace = true, features = ["derive", "sim"] }
 
 rand = { workspace = true }
 rand_dev = { workspace = true }

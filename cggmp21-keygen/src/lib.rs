@@ -21,10 +21,13 @@ mod hierarchical_threshold;
 /// Non-threshold DKG specific types
 mod non_threshold;
 /// Threshold DKG specific types
-mod threshold;
+pub mod threshold;
+/// Stateful threshold DKG implementation
+pub mod threshold_stateful;
 
 mod errors;
-mod execution_id;
+/// Module containing execution ID types and functionality for protocol identification
+pub mod execution_id;
 mod utils;
 
 use alloc::vec::Vec;
@@ -36,6 +39,7 @@ use round_based::{Mpc, MsgId, PartyIndex};
 
 #[doc(inline)]
 pub use key_share;
+use serde::{Deserialize, Serialize};
 
 use crate::progress::Tracer;
 use crate::{
@@ -425,7 +429,7 @@ impl From<KeygenAborted> for Reason {
 /// Error indicating that protocol was aborted by malicious party
 ///
 /// It _can be_ cryptographically proven, but we do not support it yet.
-#[derive(Debug, displaydoc::Display)]
+#[derive(Debug, displaydoc::Display, Deserialize, Serialize)]
 #[cfg_attr(feature = "std", derive(thiserror::Error))]
 enum KeygenAborted {
     #[displaydoc("party decommitment doesn't match commitment: {0:?}")]
@@ -443,18 +447,24 @@ enum KeygenAborted {
     MissingChainCode(Vec<utils::AbortBlame>),
 }
 
+/// Bug occurred
 #[derive(Debug, displaydoc::Display)]
 #[cfg_attr(feature = "std", derive(thiserror::Error))]
-enum Bug {
+pub enum Bug {
+    /// resulting key share is not valid
     #[displaydoc("resulting key share is not valid")]
     InvalidKeyShare(#[cfg_attr(feature = "std", source)] InvalidCoreShare),
+    /// unexpected zero value
     #[displaydoc("unexpected zero value")]
     NonZeroScalar,
     #[cfg(feature = "hd-wallet")]
+    /// chain code is missing although we checked that it should be present
     #[displaydoc("chain code is missing although we checked that it should be present")]
     NoChainCode,
+    /// key share of one of the signers is zero - probability of that is negligible
     #[displaydoc("key share of one of the signers is zero - probability of that is negligible")]
     ZeroShare,
+    /// shared public key is zero - probability of that is negligible
     #[displaydoc("shared public key is zero - probability of that is negligible")]
     ZeroPk,
 }

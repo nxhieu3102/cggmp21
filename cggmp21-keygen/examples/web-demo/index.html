@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGGMP21 Keygen Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #status {
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+        }
+        #log {
+            height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CGGMP21 Keygen Demo</h1>
+        
+        <div class="input-group">
+            <label for="partyIndex">Party Index:</label>
+            <input type="number" id="partyIndex" min="1" value="1">
+        </div>
+        
+        <div class="input-group">
+            <label for="totalParties">Total Parties:</label>
+            <input type="number" id="totalParties" min="2" value="3">
+        </div>
+        
+        <div class="input-group">
+            <label for="wsUrl">WebSocket URL:</label>
+            <input type="text" id="wsUrl" value="ws://localhost:8080">
+        </div>
+        
+        <button id="startBtn">Start Keygen</button>
+        <button id="stopBtn" disabled>Stop</button>
+        
+        <div id="status">Status: Not started</div>
+        <div id="log"></div>
+    </div>
+
+    <script type="module">
+        import { init, KeygenProtocol } from '../../pkg/cggmp21_keygen.js';
+        import { WebSocketTransport } from './websocket.js';
+
+        let protocol = null;
+        let transport = null;
+        let worker = null;
+
+        const statusEl = document.getElementById('status');
+        const logEl = document.getElementById('log');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+
+        function log(message) {
+            const entry = document.createElement('div');
+            entry.textContent = `[${new Date().toISOString()}] ${message}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function startKeygen() {
+            try {
+                const partyIndex = parseInt(document.getElementById('partyIndex').value);
+                const totalParties = parseInt(document.getElementById('totalParties').value);
+                const wsUrl = document.getElementById('wsUrl').value;
+
+                if (partyIndex < 1 || partyIndex > totalParties) {
+                    throw new Error('Invalid party index');
+                }
+
+                statusEl.textContent = 'Status: Initializing...';
+                log('Initializing WASM module...');
+
+                await init();
+                protocol = new KeygenProtocol();
+                transport = new WebSocketTransport(wsUrl);
+
+                statusEl.textContent = 'Status: Running...';
+                log('Starting keygen protocol...');
+
+                await protocol.init(partyIndex, totalParties);
+
+                transport.onMessage(async (message) => {
+                    log(`Received message: ${JSON.stringify(message)}`);
+                    const result = await protocol.handleMessage(message);
+                    if (result.outgoing) {
+                        log(`Sending message: ${JSON.stringify(result.outgoing)}`);
+                        transport.send(result.outgoing);
+                    }
+                    if (result.complete) {
+                        log(`Keygen completed! Key share: ${result.keyShare}`);
+                        statusEl.textContent = 'Status: Completed';
+                        stopBtn.disabled = true;
+                    }
+                });
+
+                const result = await protocol.start();
+                if (result.outgoing) {
+                    log(`Sending initial message: ${JSON.stringify(result.outgoing)}`);
+                    transport.send(result.outgoing);
+                }
+
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            } catch (error) {
+                log(`Error: ${error.message}`);
+                statusEl.textContent = 'Status: Error';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        }
+
+        function stopKeygen() {
+            if (transport) {
+                transport.close();
+                transport = null;
+            }
+            protocol = null;
+            statusEl.textContent = 'Status: Stopped';
+            log('Protocol stopped');
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        }
+
+        startBtn.addEventListener('click', startKeygen);
+        stopBtn.addEventListener('click', stopKeygen);
+    </script>
+</body>
+</html> 

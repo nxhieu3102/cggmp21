@@ -26,6 +26,7 @@ use crate::{
 };
 
 use super::{Bug, KeyRefreshError, PregeneratedPaillierKey, ProtocolAborted};
+use round_based::rounds_router::simple_store::RoundMsgs;
 
 macro_rules! prefixed {
     ($name:tt) => {
@@ -157,6 +158,7 @@ mod unambiguous {
     }
 }
 
+/// Runs the auxiliary generation protocol
 pub async fn run_aux_gen<R, M, L, D>(
     i: u16,
     n: u16,
@@ -608,5 +610,372 @@ where
     tracer.protocol_ends();
 
     std::println!("run_aux_gen: 23");
+    Ok(aux)
+}
+
+/// Creates a commitment for round 1 of the auxiliary generation protocol
+pub fn create_message_round_1<R, D, L>(
+    rng: &mut R,
+    sid: ExecutionId<'_>,
+    i: u16,
+    pregenerated: &PregeneratedPaillierKey<L>,
+) -> Result<
+    (
+        MsgRound1<D>,
+        MsgRound2<L>,
+        Integer,
+        Integer,
+        π_prm::Proof<{ crate::security_level::M }>,
+        L::Rid,
+    ),
+    Bug,
+>
+where
+    R: RngCore + CryptoRng,
+    D: Digest<OutputSize = digest::typenum::U32> + Clone + 'static,
+    L: SecurityLevel,
+{
+    // Retrieve data from paillier decryption key
+    let dec = &pregenerated.dec;
+    let p = dec.p();
+    let q = dec.q();
+
+    let N = (p * q).complete();
+    let phi_N = (p - 1u8).complete() * (q - 1u8).complete();
+
+    // Generate auxiliary params r, λ, t, s
+    // r in Z_N*
+    let r = Integer::gen_invertible(&N, rng);
+    // 0 <= lambda < phi_N
+    let lambda = phi_N
+        .random_below_ref(&mut utils::external_rand(rng))
+        .into();
+    // t = r^2 mod N
+    let t = r.square().modulo(&N);
+    // s = t^lambda mod N
+    let s = t.pow_mod_ref(&lambda, &N).ok_or(Bug::PowMod)?.into();
+
+    // Prove Πprm (ψˆ_i)
+    // (N, s, t) is Ring Pedersen Parameters
+    // ψˆ_i: proof s mod (t mod N) = 0
+    let hat_psi = π_prm::prove::<{ crate::security_level::M }, D>(
+        &unambiguous::ProofPrm { sid, prover: i },
+        rng,
+        π_prm::Data {
+            N: &N,
+            s: &s,
+            t: &t,
+        },
+        &phi_N,
+        &lambda,
+    )
+    .map_err(Bug::PiPrm)?;
+
+    // Sample random bytes
+    // rho_i in paper, this signer's share of bytes
+    let mut rho_bytes = L::Rid::default();
+    rng.fill_bytes(rho_bytes.as_mut());
+
+    // Compute hash commitment and sample decommitment
+    let decommitment = MsgRound2 {
+        N: N.clone(),
+        enc: dec.encryption_key().clone(),
+        s: s.clone(),
+        t: t.clone(),
+        params_proof: hat_psi.clone(),
+        rho_bytes: rho_bytes.clone(),
+        decommit: {
+            let mut nonce = L::Rid::default();
+            rng.fill_bytes(nonce.as_mut());
+            nonce
+        },
+    };
+
+    let hash_commit = udigest::hash::<D>(&unambiguous::HashCom {
+        sid,
+        prover: i,
+        decommitment: &decommitment,
+    });
+
+    let commitment = MsgRound1 {
+        commitment: hash_commit,
+    };
+
+    Ok((commitment, decommitment, N, phi_N, hat_psi, rho_bytes))
+}
+
+/// Creates a reliability check message for round 1 of the auxiliary generation protocol
+pub fn create_message_reliability_check<D>(
+    commitments: &RoundMsgs<MsgRound1<D>>,
+    commitment: &MsgRound1<D>,
+    sid: ExecutionId<'_>,
+) -> MsgReliabilityCheck<D>
+where
+    D: Digest<OutputSize = digest::typenum::U32> + Clone + 'static,
+{
+    let h_i = udigest::hash_iter::<D>(
+        commitments
+            .iter_including_me(commitment)
+            .map(|commitment| unambiguous::Echo { sid, commitment }),
+    );
+
+    MsgReliabilityCheck(h_i)
+}
+
+/// Validates decommitments from round 2
+pub fn validate_decommitments<D, L>(
+    decommitments: &RoundMsgs<MsgRound2<L>>,
+    commitments: &RoundMsgs<MsgRound1<D>>,
+    sid: ExecutionId<'_>,
+) -> Result<Vec<AbortBlame>, ()>
+where
+    D: Digest<OutputSize = digest::typenum::U32> + Clone + 'static,
+    L: SecurityLevel,
+{
+    let blame = collect_blame(decommitments, commitments, |j, decomm, comm| {
+        let com_expected = udigest::hash::<D>(&unambiguous::HashCom {
+            sid,
+            prover: j,
+            decommitment: decomm,
+        });
+        com_expected != comm.commitment
+    });
+
+    Ok(blame)
+}
+
+/// Validates ring pedersen parameters (Π_prm)
+pub fn validate_ring_pedersen_parameters<D, L>(
+    decommitments: &RoundMsgs<MsgRound2<L>>,
+    sid: ExecutionId<'_>,
+) -> Result<Vec<AbortBlame>, ()>
+where
+    D: Digest<OutputSize = digest::typenum::U32> + Clone + 'static,
+    L: SecurityLevel,
+{
+    let blame = collect_blame(decommitments, decommitments, |j, d, _| {
+        if !crate::security_level::validate_public_paillier_key_size::<L>(&d.N) {
+            true
+        } else {
+            let data = π_prm::Data {
+                N: &d.N,
+                s: &d.s,
+                t: &d.t,
+            };
+            π_prm::verify::<{ crate::security_level::M }, D>(
+                &unambiguous::ProofPrm { sid, prover: j },
+                data,
+                &d.params_proof,
+            )
+            .is_err()
+        }
+    });
+
+    Ok(blame)
+}
+
+/// Combines the random bytes from all parties
+pub fn combine_random_bytes<L>(
+    decommitments: &RoundMsgs<MsgRound2<L>>,
+    my_rho_bytes: &L::Rid,
+    my_decommitment: &MsgRound2<L>,
+) -> L::Rid
+where
+    L: SecurityLevel,
+{
+    decommitments
+        .iter_including_me(my_decommitment)
+        .map(|d| &d.rho_bytes)
+        .fold(my_rho_bytes.clone(), utils::xor_array)
+}
+
+/// Creates proofs for round 3 of the auxiliary generation protocol
+pub fn create_message_round_3<R, D, L>(
+    rng: &mut R,
+    sid: ExecutionId<'_>,
+    i: u16,
+    p: &Integer,
+    q: &Integer,
+    N: &Integer,
+    rho_bytes: &L::Rid,
+    decommitments: &RoundMsgs<MsgRound2<L>>,
+) -> Result<Vec<(u16, MsgRound3)>, Bug>
+where
+    R: RngCore + CryptoRng,
+    D: Digest<OutputSize = digest::typenum::U32> + Clone + 'static,
+    L: SecurityLevel,
+{
+    // Compute П_mod (ψ_i)
+    let psi = π_mod::non_interactive::prove::<{ crate::security_level::M }, D>(
+        &unambiguous::ProofMod {
+            sid,
+            rho: rho_bytes.as_ref(),
+            prover: i,
+        },
+        &π_mod::Data { n: N.clone() },
+        &π_mod::PrivateData {
+            p: p.clone(),
+            q: q.clone(),
+        },
+        rng,
+    )
+    .map_err(Bug::PiMod)?;
+
+    // Assemble security params for П_fac (ф_i)
+    let π_fac_security = π_fac::SecurityParams {
+        l: L::ELL,
+        epsilon: L::EPSILON,
+        q: L::q(),
+    };
+
+    let n_sqrt = utils::sqrt(N);
+
+    let mut messages = Vec::new();
+
+    // Create a message for each party
+    for (j, _, d) in decommitments.iter_indexed() {
+        // Compute П_fac (ф_i^j)
+        let phi = π_fac::prove::<D>(
+            &unambiguous::ProofFac {
+                sid,
+                rho: rho_bytes.as_ref(),
+                prover: i,
+            },
+            &π_fac::Aux {
+                s: d.s.clone(),
+                t: d.t.clone(),
+                rsa_modulo: d.N.clone(),
+                multiexp: None,
+                crt: None,
+            },
+            π_fac::Data {
+                n: N,
+                n_root: &n_sqrt,
+            },
+            π_fac::PrivateData { p, q },
+            &π_fac_security,
+            rng,
+        )
+        .map_err(Bug::PiFac)?;
+
+        let msg = MsgRound3 {
+            mod_proof: psi.clone(),
+            fac_proof: phi,
+        };
+
+        messages.push((j, msg));
+    }
+
+    Ok(messages)
+}
+
+/// Validates proofs from round 3
+pub fn validate_proofs_round_3<D, L>(
+    decommitments: &RoundMsgs<MsgRound2<L>>,
+    round3_msgs: &RoundMsgs<MsgRound3>,
+    rho_bytes: &L::Rid,
+    sid: ExecutionId<'_>,
+    phi_common_aux: &π_fac::Aux,
+) -> Result<(), Bug>
+where
+    D: Digest<OutputSize = digest::typenum::U32> + Clone + 'static,
+    L: SecurityLevel,
+{
+    // Security parameters for П_fac
+    let π_fac_security = π_fac::SecurityParams {
+        l: L::ELL,
+        epsilon: L::EPSILON,
+        q: L::q(),
+    };
+
+    // Validate mod proofs
+    let mod_blame = collect_blame(decommitments, round3_msgs, |j, decommitment, proof_msg| {
+        let data = π_mod::Data {
+            n: decommitment.N.clone(),
+        };
+        let (comm, proof) = &proof_msg.mod_proof;
+        π_mod::non_interactive::verify::<{ crate::security_level::M }, D>(
+            &unambiguous::ProofMod {
+                sid,
+                rho: rho_bytes.as_ref(),
+                prover: j,
+            },
+            &data,
+            comm,
+            proof,
+        )
+        .is_err()
+    });
+
+    if !mod_blame.is_empty() {
+        return Err(Bug::InvalidModProof.into());
+    }
+
+    // Validate fac proofs
+    let fac_blame = collect_blame(decommitments, round3_msgs, |j, decommitment, proof_msg| {
+        π_fac::verify::<D>(
+            &unambiguous::ProofFac {
+                sid,
+                rho: rho_bytes.as_ref(),
+                prover: j,
+            },
+            phi_common_aux,
+            π_fac::Data {
+                n: &decommitment.N,
+                n_root: &utils::sqrt(&decommitment.N),
+            },
+            &π_fac_security,
+            &proof_msg.fac_proof,
+        )
+        .is_err()
+    });
+
+    if !fac_blame.is_empty() {
+        return Err(Bug::InvalidFacProof.into());
+    }
+
+    Ok(())
+}
+
+/// Assembles auxiliary info from validated proofs
+pub fn assemble_aux_info<L>(
+    decommitments: &RoundMsgs<MsgRound2<L>>,
+    my_decommitment: &MsgRound2<L>,
+    i: u16,
+    dec: fast_paillier::DecryptionKey,
+    crt: Option<paillier_zk::fast_paillier::utils::CrtExp>,
+    compute_multiexp_table: bool,
+) -> Result<AuxInfo<L>, Bug>
+where
+    L: SecurityLevel,
+{
+    let mut party_auxes = decommitments
+        .iter_including_me(my_decommitment)
+        .map(|d| PartyAux {
+            N: d.N.clone(),
+            enc: d.enc.clone(),
+            s: d.s.clone(),
+            t: d.t.clone(),
+            multiexp: None,
+            crt: None,
+        })
+        .collect::<Vec<_>>();
+
+    party_auxes[usize::from(i)].crt = crt;
+
+    let mut aux = DirtyAuxInfo {
+        dec,
+        parties: party_auxes,
+        security_level: std::marker::PhantomData,
+    };
+
+    if compute_multiexp_table {
+        aux.precompute_multiexp_tables();
+    }
+
+    let aux = aux
+        .validate()
+        .map_err(|err| Bug::InvalidShareGenerated(err.into_error()))?;
+
     Ok(aux)
 }

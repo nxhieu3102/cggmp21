@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Test in WASM</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .log {
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            background-color: #f0f0f0;
+        }
+        button {
+            padding: 8px 16px;
+            margin-right: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input[type="text"] {
+            padding: 8px;
+            width: 300px;
+            margin-right: 10px;
+        }
+        .peers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .peer {
+            background-color: #e0e0e0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket P2P Communication Test</h1>
+    
+    <div class="card">
+        <h2>Connection Setup</h2>
+        <div>
+            <label for="party-id">Party ID:</label>
+            <input type="number" id="party-id" value="1" min="1" max="100">
+        </div>
+        <div style="margin-top: 10px;">
+            <label for="websocket-url">WebSocket URL:</label>
+            <input type="text" id="websocket-url" value="ws://localhost:8091" style="width: 300px;">
+        </div>
+        <div style="margin-top: 10px;">
+            <button id="connect-btn">Connect</button>
+            <button id="disconnect-btn">Disconnect</button>
+            <span id="connection-status">Not connected</span>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Send Message</h2>
+        <div>
+            <input type="text" id="message" placeholder="Enter message to send">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Connected Parties</h2>
+        <div class="peers" id="peers">
+            <!-- Connected peers will be shown here -->
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Log</h2>
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        // Instead of using ES6 module import, load the module manually
+        let p2pNode = null;
+        let connectedPeers = new Set();
+        let wasmModule;
+        
+        // Initialize the WASM module
+        async function initWasm() {
+            try {
+                // Manually import the JavaScript wrapper
+                const wasmImports = await import('./pkg/crates_compile_in_nostd_wasm.js');
+                const init = wasmImports.default;
+                const { P2PNode } = wasmImports;
+                
+                // Initialize the module
+                await init();
+                logMessage('WASM module loaded successfully');
+                
+                // Store the P2PNode class globally
+                window.P2PNode = P2PNode;
+            } catch (e) {
+                logMessage('Error loading WASM module: ' + e);
+                console.error(e);
+            }
+        }
+        
+        // Handle incoming WebSocket messages
+        function handleIncomingMessage(message) {
+            logMessage(`Received: ${message}`);
+            
+            // Check for party registration confirmation
+            if (message.startsWith('Registered as party')) {
+                logMessage('✅ Registration successful');
+            }
+            // Check for messages from other parties
+            else if (message.startsWith('FROM_PARTY_')) {
+                const parts = message.split(':');
+                if (parts.length >= 2) {
+                    const senderInfo = parts[0];
+                    const content = parts.slice(1).join(':');
+                    
+                    // Extract party ID
+                    const partyIdMatch = senderInfo.match(/FROM_PARTY_(\d+)/);
+                    if (partyIdMatch && partyIdMatch[1]) {
+                        const partyId = partyIdMatch[1];
+                        logMessage(`📩 Party ${partyId}: ${content}`);
+                        
+                        // Add peer to the connected peers list if not already there
+                        if (!connectedPeers.has(partyId)) {
+                            connectedPeers.add(partyId);
+                            updatePeersList();
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Connect to WebSocket server
+        function connect() {
+            try {
+                if (!window.P2PNode) {
+                    logMessage('WASM module not loaded yet');
+                    return;
+                }
+                
+                const partyId = parseInt(document.getElementById('party-id').value);
+                const wsUrl = document.getElementById('websocket-url').value;
+                
+                p2pNode = new window.P2PNode(partyId, wsUrl);
+                
+                // Set up message handler before connecting
+                p2pNode.set_message_handler(handleIncomingMessage);
+                
+                p2pNode.connect();
+                
+                logMessage(`Connecting to ${wsUrl} as party ${partyId}...`);
+                updateConnectionStatus();
+                
+                // Poll connection status for 5 seconds
+                let attempts = 0;
+                const statusCheck = setInterval(() => {
+                    updateConnectionStatus();
+                    attempts++;
+                    if (p2pNode.is_connected() || attempts > 10) {
+                        clearInterval(statusCheck);
+                    }
+                }, 500);
+            } catch (e) {
+                logMessage('Error connecting: ' + e);
+                console.error(e);
+            }
+        }
+        
+        // Update the list of connected peers
+        function updatePeersList() {
+            const peersEl = document.getElementById('peers');
+            peersEl.innerHTML = '';
+            
+            if (connectedPeers.size === 0) {
+                peersEl.innerHTML = '<em>No other parties connected</em>';
+                return;
+            }
+            
+            connectedPeers.forEach(peerId => {
+                const peerEl = document.createElement('div');
+                peerEl.className = 'peer';
+                peerEl.textContent = `Party ${peerId}`;
+                peersEl.appendChild(peerEl);
+            });
+        }
+        
+        // Disconnect from WebSocket server
+        function disconnect() {
+            if (p2pNode) {
+                try {
+                    p2pNode.disconnect();
+                    logMessage('Disconnected from server');
+                    connectedPeers.clear();
+                    updatePeersList();
+                    updateConnectionStatus();
+                } catch (e) {
+                    logMessage('Error disconnecting: ' + e);
+                    console.error(e);
+                }
+            }
+        }
+        
+        // Send a message
+        function sendMessage() {
+            if (!p2pNode || !p2pNode.is_connected()) {
+                logMessage('Not connected to server');
+                return;
+            }
+            
+            const message = document.getElementById('message').value;
+            if (!message) {
+                logMessage('Please enter a message');
+                return;
+            }
+
+            console.log(p2pNode.send);
+            
+            try {
+                p2pNode.send(message);
+                logMessage(`📤 Sent: ${message}`);
+                
+                // Clear the message input
+                document.getElementById('message').value = '';
+            } catch (e) {
+                logMessage('Error sending message: ' + e);
+                console.error(e);
+            }
+        }
+        
+        // Update the connection status display
+        function updateConnectionStatus() {
+            const statusEl = document.getElementById('connection-status');
+            if (!p2pNode) {
+                statusEl.textContent = 'Not initialized';
+                statusEl.style.color = 'gray';
+            } else if (p2pNode.is_connected()) {
+                statusEl.textContent = 'Connected';
+                statusEl.style.color = 'green';
+            } else {
+                statusEl.textContent = 'Disconnected';
+                statusEl.style.color = 'red';
+            }
+        }
+        
+        // Add message to the log
+        function logMessage(message) {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.innerHTML += `[${timestamp}] ${message}<br>`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        
+        // Set up event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('connect-btn').addEventListener('click', connect);
+            document.getElementById('disconnect-btn').addEventListener('click', disconnect);
+            document.getElementById('send-btn').addEventListener('click', sendMessage);
+            
+            // Initialize WASM
+            initWasm();
+            
+            // Initialize peer list
+            updatePeersList();
+            
+            // Allow sending message with Enter key
+            document.getElementById('message').addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

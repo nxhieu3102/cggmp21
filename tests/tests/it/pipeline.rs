@@ -27,7 +27,7 @@ where
     let mut rng = DevRng::new();
 
     std::println!("Run keygen...");
-    let incomplete_shares = run_keygen(t, n, hd_enabled, &mut rng);
+    let incomplete_shares: Vec<cggmp21::key_share::Valid<cggmp21::key_share::DirtyIncompleteKeyShare<_>>> = run_keygen(t, n, hd_enabled, &mut rng);
 
     std::println!("Run aux gen...");
     let shares = run_aux_gen(incomplete_shares, &mut rng);

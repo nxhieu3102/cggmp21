@@ -1,9 +1,11 @@
 //! Key refresh & aux info generation protocols
 
 /// Auxiliary info (re)generation protocol specific types
-mod aux_only;
+pub mod aux_only;
 /// Non-threshold key refresh specific types
-mod non_threshold;
+pub mod non_threshold;
+/// Auxiliary info (re)generation protocol state machine
+pub mod aux_only_stateful;
 
 use digest::Digest;
 use generic_ec::Curve;
@@ -364,6 +366,10 @@ enum Bug {
     BuildCrt,
     #[error("updated share is zero - probability of that is negligible")]
     ZeroShare,
+    #[error("invalid mod proof")]
+    InvalidModProof,
+    #[error("invalid fac proof")]
+    InvalidFacProof,
 }
 
 /// Error indicating that protocol was aborted by malicious party

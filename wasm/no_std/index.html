@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>cggmp21-keygen WebAssembly Demo</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #333;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    #result {
+      background-color: #f5f5f5;
+      border-radius: 4px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+    .success {
+      color: #008800;
+      font-weight: bold;
+    }
+    .error {
+      color: #cc0000;
+      font-weight: bold;
+    }
+    #log {
+      background-color: #222;
+      color: #eee;
+      font-family: monospace;
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+      height: 300px;
+      overflow-y: auto;
+    }
+    .log-entry {
+      border-bottom: 1px solid #444;
+      padding: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>cggmp21-keygen WebAssembly Demo</h1>
+  
+  <div id="result">
+    Loading WebAssembly module...
+  </div>
+  
+  <h2>Console Output</h2>
+  <div id="log"></div>
+  
+  <script>
+    // Override console.log to show in our UI
+    const originalLog = console.log;
+    const originalError = console.error;
+    
+    console.log = function(...args) {
+      originalLog.apply(console, args);
+      const log = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.textContent = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    };
+    
+    console.error = function(...args) {
+      originalError.apply(console, args);
+      const log = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry error';
+      entry.textContent = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    };
+    
+    // Basic WASM loading check
+    async function init() {
+      try {
+        const { default: init, is_wasm_loaded, get_version } = await import('./pkg/crates_compile_in_nostd_wasm.js');
+        await init();
+        
+        const result = document.getElementById('result');
+        
+        // Test if wasm is loaded
+        if (is_wasm_loaded()) {
+          result.innerHTML = `<p class="success">✅ WASM module loaded successfully!</p>
+                             <p>Module version: ${get_version()}</p>
+                             <p>Check the console output below for examples of using cggmp21-keygen functionality.</p>`;
+        } else {
+          result.innerHTML = `<p class="error">❌ WASM module failed to load properly</p>`;
+        }
+        
+      } catch (error) {
+        console.error("Error loading WASM module:", error);
+        document.getElementById('result').innerHTML = 
+          `<p class="error">❌ Error loading WASM module: ${error.message}</p>`;
+      }
+    }
+    
+    window.addEventListener('load', () => {
+      init().then(() => {
+        // Dynamically load the example script after initialization
+        const script = document.createElement('script');
+        script.src = 'example.js';
+        document.body.appendChild(script);
+      });
+    });
+  </script>
+</body>
+</html> 
