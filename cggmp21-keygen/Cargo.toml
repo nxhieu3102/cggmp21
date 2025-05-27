@@ -16,11 +16,15 @@ birkhoff = { workspace = true }
 key-share = { workspace = true, features = ["serde"] }
 hd-wallet = { workspace = true, optional = true }
 
-generic-ec = {git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21",  workspace = true, features = ["serde", "udigest", "hash-to-scalar"] }
-generic-ec-zkp = {git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21", workspace = true }
-udigest = { workspace = true, features = ["derive"]}
+generic-ec = { workspace = true, features = [
+    "serde",
+    "udigest",
+    "hash-to-scalar",
+] }
+generic-ec-zkp = { workspace = true }
+udigest = { workspace = true, features = ["derive"] }
 
-round-based = { git="https://github.com/nxhieu3102/round-based" ,branch="feat/integrate-cggmp21", workspace = true, features = ["derive"] }
+round-based = { workspace = true, features = ["derive"] }
 
 sha2 = { workspace = true }
 digest = { workspace = true }

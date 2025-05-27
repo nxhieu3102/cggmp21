@@ -5,10 +5,15 @@ edition = "2024"
 
 [dependencies]
 # For polynomial
-generic-ec = { git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21", workspace = true, features = ["serde", "udigest", "hash-to-scalar", "curve-secp256k1", "std"] }
-generic-ec-zkp = {git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21", workspace = true, features = ["serde", "udigest", "alloc"] }
+generic-ec = { workspace = true, features = [
+    "serde",
+    "udigest",
+    "hash-to-scalar",
+    "curve-secp256k1",
+    "std",
+] }
+generic-ec-zkp = { workspace = true, features = ["serde", "udigest", "alloc"] }
 
 [dev-dependencies]
 pretty_assertions = "1.3"
 rand_core = { workspace = true }
-

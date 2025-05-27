@@ -16,12 +16,16 @@ birkhoff = { workspace = true }
 cggmp21-keygen = { workspace = true }
 key-share = { workspace = true, features = ["serde"] }
 
-generic-ec = { git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21" , workspace = true, features = ["serde", "udigest", "hash-to-scalar"] }
-generic-ec-zkp = { git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21" , workspace = true, features = ["serde", "udigest"] }
-round-based = { git="https://github.com/nxhieu3102/round-based" ,branch="feat/integrate-cggmp21", workspace = true, features = ["derive"] }
+generic-ec = { workspace = true, features = [
+    "serde",
+    "udigest",
+    "hash-to-scalar",
+] }
+generic-ec-zkp = { workspace = true, features = ["serde", "udigest"] }
+round-based = { workspace = true, features = ["derive"] }
 
-paillier-zk = { path = "../../fork-paillier-zk", workspace = true, features = ["serde"] }
-udigest = { workspace = true, features = ["std", "derive"]}
+paillier-zk = { workspace = true, features = ["serde"] }
+udigest = { workspace = true, features = ["std", "derive"] }
 
 digest = { workspace = true }
 sha2 = { workspace = true }
@@ -46,7 +50,7 @@ num-traits = "0.2.19"
 num-integer = "0.1.46"
 
 [dev-dependencies]
-round-based = { git="https://github.com/nxhieu3102/round-based" ,branch="feat/integrate-cggmp21", workspace = true, features = ["derive", "sim"] }
+round-based = { workspace = true, features = ["derive", "sim"] }
 
 rand = { workspace = true }
 rand_dev = { workspace = true }
@@ -68,4 +72,3 @@ state-machine = ["cggmp21-keygen/state-machine"]
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs", "--html-in-header", "katex-header.html"]
-
