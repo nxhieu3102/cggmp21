@@ -1,9 +1,10 @@
 use anyhow::{bail, Context, Result};
 use cggmp21::{
-    fast_paillier, key_share::KeyShare, rug::Integer, security_level::SecurityLevel,
+    fast_paillier, key_share::KeyShare, security_level::SecurityLevel,
     PregeneratedPaillierKey,
 };
 use generic_ec::Curve;
+use num_bigint::BigInt;
 use rand::{CryptoRng, RngCore};
 use serde_json::{Map, Value};
 
@@ -132,6 +133,7 @@ impl PrecomputedKeyShares {
             .shares
             .get(&Self::key::<E>(t, n, hd_enabled))
             .context("shares not found")?;
+        println!("key_shares: {:?}", key_shares);
         serde_json::from_value(key_shares.clone()).context("parse key shares")
     }
 
@@ -226,20 +228,20 @@ impl PregeneratedPaillierKeys {
 /// and they can be generated faster.
 ///
 /// Only to be used in the tests.
-pub fn generate_blum_prime(rng: &mut impl rand::RngCore, bits_size: u32) -> Integer {
-    loop {
-        let mut n: Integer = Integer::random_bits(
-            bits_size,
-            &mut cggmp21::fast_paillier::utils::external_rand(rng),
-        )
-        .into();
-        n.set_bit(bits_size - 1, true);
-        n.next_prime_mut();
-        if n.mod_u(4) == 3 {
-            break n;
-        }
-    }
-}
+// pub fn generate_blum_prime(rng: &mut impl rand::RngCore, bits_size: u32) -> Integer {
+//     loop {
+//         let mut n: BigInt = BigInt::random_bits(
+//             bits_size,
+//             &mut cggmp21::fast_paillier::utils::external_rand(rng),
+//         )
+//         .into();
+//         n.set_bit(bits_size - 1, true);
+//         n.next_prime_mut();
+//         if n.mod_u(4) == 3 {
+//             break n;
+//         }
+//     }
+// }
 
 pub fn convert_stark_scalar(
     x: &generic_ec::Scalar<cggmp21::supported_curves::Stark>,

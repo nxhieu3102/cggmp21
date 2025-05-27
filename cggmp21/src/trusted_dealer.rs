@@ -27,9 +27,9 @@ use std::{iter, marker::PhantomData};
 use generic_ec::{Curve, NonZero, SecretScalar};
 use paillier_zk::{
     fast_paillier::{self},
-    rug::{Complete, Integer},
-    IntegerExt,
+    BigIntExt,
 };
+use num_bigint::{BigInt, RandBigInt};
 use rand_core::{CryptoRng, RngCore};
 use thiserror::Error;
 
@@ -241,13 +241,13 @@ pub fn generate_aux_data_with_paillier_keys<L: SecurityLevel, R: RngCore + Crypt
             let q = dec.q();
             let N = dec.n();
 
-            let φ_N = (p - 1u8).complete() * (q - 1u8).complete();
+            let φ_N = (p - 1u8) * (q - 1u8);
 
-            let r = Integer::gen_invertible(&N, rng);
-            let λ = φ_N.random_below_ref(&mut utils::external_rand(rng)).into();
+            let r = BigInt::gen_invertible(&N, rng);
+            let λ = rng.gen_bigint_range(&BigInt::from(0), &φ_N);
 
-            let t = r.square().modulo(&N);
-            let s = t.pow_mod_ref(&λ, &N).ok_or(Reason::PowMod)?.into();
+            let t = r.modpow(&BigInt::from(2), &N);
+            let s = t.modpow(&λ, &N);
 
             let mut aux = PartyAux {
                 N: N.clone(),

@@ -307,8 +307,7 @@ use futures_channel as _;
 #[cfg(feature = "hd-wallet")]
 pub use hd_wallet;
 pub use {
-    generic_ec, paillier_zk,
-    paillier_zk::{fast_paillier, rug},
+    generic_ec, paillier_zk, paillier_zk::fast_paillier,
     round_based,
 };
 

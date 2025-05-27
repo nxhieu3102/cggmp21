@@ -20,7 +20,7 @@ generic-ec = { git="https://github.com/nxhieu3102/generic-ec", branch="feat/inte
 generic-ec-zkp = { git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21" , workspace = true, features = ["serde", "udigest"] }
 round-based = { git="https://github.com/nxhieu3102/round-based" ,branch="feat/integrate-cggmp21", workspace = true, features = ["derive"] }
 
-paillier-zk = {git="https://github.com/nxhieu3102/paillier-zk", workspace = true, features = ["serde"] }
+paillier-zk = { path = "../../fork-paillier-zk", workspace = true, features = ["serde"] }
 udigest = { workspace = true, features = ["std", "derive"]}
 
 digest = { workspace = true }
@@ -37,11 +37,13 @@ hex = { workspace = true, default-features = false, features = ["serde"] }
 
 hd-wallet = { workspace = true, optional = true }
 
-tokio = { version = "1.0", features = ["full"] }
 anyhow = { workspace = true }
 
 thiserror = { workspace = true }
 displaydoc.workspace = true
+num-bigint = "0.4.6"
+num-traits = "0.2.19"
+num-integer = "0.1.46"
 
 [dev-dependencies]
 round-based = { git="https://github.com/nxhieu3102/round-based" ,branch="feat/integrate-cggmp21", workspace = true, features = ["derive", "sim"] }

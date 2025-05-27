@@ -21,7 +21,7 @@ generic-ec = { git="https://github.com/nxhieu3102/generic-ec", branch="feat/inte
 generic-ec-zkp = { git="https://github.com/nxhieu3102/generic-ec", branch="feat/integrate-cggmp21", default-features = false }
 round-based = { git="https://github.com/nxhieu3102/round-based" ,branch="feat/integrate-cggmp21", default-features = false }
 
-paillier-zk = { git = "https://github.com/nxhieu3102/paillier-zk" }
+paillier-zk = { path = "../fork-paillier-zk" }
 udigest = { version = "0.2.1", default-features = false }
 
 digest = { version = "0.10", default-features = false }

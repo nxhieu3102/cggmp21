@@ -8,9 +8,7 @@
 //! You can define your own security level using macro [define_security_level]. Be sure that you properly
 //! analyzed the CGGMP paper and you understand implications. Inconsistent security level may cause unexpected
 //! unverbose runtime error or reduced security of the protocol.
-
-use crate::rug::Integer;
-
+use num_bigint::BigInt;
 /// Security level of CGGMP21 DKG protocol
 pub use cggmp21_keygen::security_level::SecurityLevel as KeygenSecurityLevel;
 
@@ -71,7 +69,7 @@ pub trait SecurityLevel: KeygenSecurityLevel {
     ///
     /// Note that it's not curve order, and it doesn't need to be a prime, it's another security parameter
     /// that determines security level.
-    fn q() -> Integer;
+    fn q() -> BigInt;
 }
 
 /// Determines max size of exponents
@@ -99,7 +97,6 @@ pub fn max_exponents_size<L: SecurityLevel>() -> (u32, u32) {
 pub mod _internal {
     use hex::FromHex;
 
-    pub use crate::rug::Integer;
     pub use cggmp21_keygen::security_level::{
         define_security_level as define_keygen_security_level, SecurityLevel as KeygenSecurityLevel,
     };
@@ -210,7 +207,7 @@ macro_rules! define_security_level {
             const N_SIZE: u32 = 3072;
             const A_SIZE: u32 = 512;
 
-            fn q() -> $crate::security_level::_internal::Integer {
+            fn q() -> BigInt{
                 $q
             }
         }
@@ -240,27 +237,27 @@ define_security_level!(SecurityLevel128{
     m = 128,
     n_size = 3072,
     a_size = 512,
-    q = (Integer::ONE << 128_u32).into(),
+    q = BigInt::from(1) << 128_u32,
 });
 
 /// Checks that public paillier key meets security level constraints
-pub(crate) fn validate_public_paillier_key_size<L: SecurityLevel>(N: &Integer) -> bool {
-    N.significant_bits() >= L::N_SIZE - L::EPSILON_N_SIZE
+pub(crate) fn validate_public_paillier_key_size<L: SecurityLevel>(N: &BigInt) -> bool {
+    N.bits() >= (L::N_SIZE - L::EPSILON_N_SIZE) as u64
 }
 
 /// Checks that secret paillier key meets security level constraints
 pub(crate) fn validate_secret_paillier_key_size<L: SecurityLevel>(
-    p: &Integer,
-    q: &Integer,
-    alpha: &Integer,
+    p: &BigInt,
+    q: &BigInt,
+    alpha: &BigInt,
 ) -> bool {
     println!("N_SIZE: {}", L::N_SIZE);
     println!("A_SIZE: {}", L::A_SIZE);
-    println!("p: {} bits", p.significant_bits());
-    println!("q: {} bits", q.significant_bits());
-    println!("alpha: {} bits", alpha.significant_bits());
+    println!("p: {} bits", p.bits());
+    println!("q: {} bits", q.bits());
+    println!("alpha: {} bits", alpha.bits());
 
-    p.significant_bits() >= L::N_SIZE / 2 - L::EPSILON_P_SIZE
-        && q.significant_bits() >= L::N_SIZE / 2 - L::EPSILON_Q_SIZE
-        && alpha.significant_bits() >= L::A_SIZE - L::EPSILON_A_SIZE
+    p.bits() >= (L::N_SIZE / 2 - L::EPSILON_P_SIZE) as u64
+        && q.bits() >= (L::N_SIZE / 2 - L::EPSILON_Q_SIZE) as u64
+        && alpha.bits() >= (L::A_SIZE - L::EPSILON_A_SIZE) as u64
 }

@@ -1,5 +1,4 @@
 use generic_ec::{Curve, Scalar};
-use paillier_zk::rug::{self, Integer};
 use paillier_zk::{
     batch_paillier_affine_operation_in_range as pi_aff_batch,
     batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
@@ -8,12 +7,16 @@ use round_based::rounds_router::simple_store::RoundMsgs;
 use round_based::{MsgId, PartyIndex};
 
 use crate::security_level::SecurityLevel;
-
-pub use paillier_zk::fast_paillier::utils::external_rand;
-
+use num_bigint::{BigInt, Sign, RandomBits, RandBigInt};
+use num_traits::identities::One;
 /// Converts `&Scalar<E>` into Integer
-pub fn scalar_to_bignumber<E: Curve>(scalar: impl AsRef<Scalar<E>>) -> Integer {
-    Integer::from_digits(&scalar.as_ref().to_be_bytes(), rug::integer::Order::Msf)
+pub fn scalar_to_bignumber<E: Curve>(scalar: impl AsRef<Scalar<E>>) -> BigInt {
+    let bytes = scalar.as_ref().to_be_bytes();
+    if scalar.as_ref().lt(&Scalar::zero()) {
+        BigInt::from_bytes_be(Sign::Minus, &bytes)
+    } else {
+        BigInt::from_bytes_be(Sign::Plus, &bytes)
+    }
 }
 
 pub struct SecurityParams {
@@ -158,11 +161,11 @@ pub fn but_nth<T, I: IntoIterator<Item = T>>(n: u16, iter: I) -> impl Iterator<I
 
 /// Binary search for rounded down square root. For non-positive numbers returns
 /// one
-pub fn sqrt(x: &Integer) -> Integer {
-    if x.cmp0().is_le() {
-        Integer::ONE.clone()
+pub fn sqrt(x: &BigInt) -> BigInt {
+    if x <= &BigInt::ZERO {
+        BigInt::one()
     } else {
-        x.sqrt_ref().into()
+        x.sqrt()
     }
 }
 
@@ -198,31 +201,34 @@ pub fn subset<T: Clone, I: Into<usize> + Copy>(indexes: &[I], list: &[T]) -> Opt
 /// However, they do break security of the protocol.
 ///
 /// Only supposed to be used in the tests.
-#[cfg(test)]
-pub fn generate_blum_prime(rng: &mut impl rand_core::RngCore, bits_size: u32) -> Integer {
-    loop {
-        let mut n: Integer = Integer::random_bits(bits_size, &mut external_rand(rng)).into();
-        n.set_bit(bits_size - 1, true);
-        n.next_prime_mut();
 
-        if n.mod_u(4) == 3 {
-            break n;
-        }
-    }
-}
+// TODO: fix this
+// #[cfg(test)]
+// pub fn generate_blum_prime(rng: &mut impl rand_core::RngCore, bits_size: u32) -> BigInt {
+//     loop {
+//         let n = rng.gen
+//         let mut n: BigInt = BigInt::random_bits(bits_size, &mut external_rand(rng)).into();
+//         n.set_bit(bits_size - 1, true);
+//         n.next_prime_mut();
+
+//         if n.mod_u(4) == 3 {
+//             break n;
+//         }
+//     }
+// }
 
 /// Unambiguous encoding for different types for which it was not defined
 pub mod encoding {
     use paillier_zk::fast_paillier::AnyEncryptionKey;
-    use paillier_zk::rug;
-
-    pub struct Integer;
-    impl udigest::DigestAs<rug::Integer> for Integer {
+    use num_bigint;
+    pub struct BigInt;
+    impl udigest::DigestAs<num_bigint::BigInt> for BigInt {
         fn digest_as<B: udigest::Buffer>(
-            x: &rug::Integer,
+            value: &num_bigint::BigInt,
             encoder: udigest::encoding::EncodeValue<B>,
         ) {
-            encoder.encode_leaf_value(x.to_digits(rug::integer::Order::Msf))
+            let (_, digits) = value.to_bytes_be();
+            encoder.encode_leaf_value(digits)
         }
     }
 
@@ -249,22 +255,22 @@ pub mod encoding {
             // Encode rug::Integer fields using most-significant-first byte order
             encoder
                 .add_field("h")
-                .encode_leaf_value(x.h().to_digits(rug::integer::Order::Msf));
+                .encode_leaf_value(x.h().to_signed_bytes_be());
             encoder
                 .add_field("n")
-                .encode_leaf_value(x.n().to_digits(rug::integer::Order::Msf));
+                .encode_leaf_value(x.n().to_signed_bytes_be());
             encoder
                 .add_field("nn")
-                .encode_leaf_value(x.nn().to_digits(rug::integer::Order::Msf));
+                .encode_leaf_value(x.nn().to_signed_bytes_be());
             encoder
                 .add_field("h_pow_n")
-                .encode_leaf_value(x.h_pow_n().to_digits(rug::integer::Order::Msf));
+                .encode_leaf_value(x.h_pow_n().to_signed_bytes_be());
             encoder
                 .add_field("half_n")
-                .encode_leaf_value(x.half_n().to_digits(rug::integer::Order::Msf));
+                .encode_leaf_value(x.half_n().to_signed_bytes_be());
             encoder
                 .add_field("neg_half_n")
-                .encode_leaf_value(x.neg_half_n().to_digits(rug::integer::Order::Msf));
+                .encode_leaf_value(x.neg_half_n().to_signed_bytes_be());
 
             encoder.finish()
         }
@@ -273,33 +279,31 @@ pub mod encoding {
 
 #[cfg(test)]
 mod test {
-    use paillier_zk::rug::Complete;
+    use num_bigint::{RandBigInt};
 
     #[test]
     fn test_sqrt() {
-        use super::{sqrt, Integer};
-        assert_eq!(sqrt(&Integer::from(-5)), Integer::from(1));
-        assert_eq!(sqrt(&Integer::from(1)), Integer::from(1));
-        assert_eq!(sqrt(&Integer::from(2)), Integer::from(1));
-        assert_eq!(sqrt(&Integer::from(3)), Integer::from(1));
-        assert_eq!(sqrt(&Integer::from(4)), Integer::from(2));
-        assert_eq!(sqrt(&Integer::from(5)), Integer::from(2));
-        assert_eq!(sqrt(&Integer::from(6)), Integer::from(2));
-        assert_eq!(sqrt(&Integer::from(7)), Integer::from(2));
-        assert_eq!(sqrt(&Integer::from(8)), Integer::from(2));
-        assert_eq!(sqrt(&Integer::from(9)), Integer::from(3));
-        assert_eq!(sqrt(&(Integer::from(1) << 1024)), Integer::from(1) << 512);
+        use super::{sqrt, BigInt};
+        assert_eq!(sqrt(&BigInt::from(-5)), BigInt::from(1));
+        assert_eq!(sqrt(&BigInt::from(1)), BigInt::from(1));
+        assert_eq!(sqrt(&BigInt::from(2)), BigInt::from(1));
+        assert_eq!(sqrt(&BigInt::from(3)), BigInt::from(1));
+        assert_eq!(sqrt(&BigInt::from(4)), BigInt::from(2));
+        assert_eq!(sqrt(&BigInt::from(5)), BigInt::from(2));
+        assert_eq!(sqrt(&BigInt::from(6)), BigInt::from(2));
+        assert_eq!(sqrt(&BigInt::from(7)), BigInt::from(2));
+        assert_eq!(sqrt(&BigInt::from(8)), BigInt::from(2));
+        assert_eq!(sqrt(&BigInt::from(9)), BigInt::from(3));
+        assert_eq!(sqrt(&(BigInt::from(1) << 1024)), BigInt::from(1) << 512);
 
-        let modulo = (Integer::ONE << 1024_u32).complete();
-        let mut rng = rand_dev::DevRng::new();
+        let modulo = (BigInt::from(1) << 1024_u32);
+        let mut rng = rand::thread_rng();
         for _ in 0..100 {
-            let x = modulo
-                .random_below_ref(&mut super::external_rand(&mut rng))
-                .into();
+            let x = rng.gen_bigint_range(&BigInt::from(0), &modulo);
             let root = sqrt(&x);
-            assert!(root.square_ref().complete() <= x);
+            assert!(&root * &root <= x);
             let root = root + 1u8;
-            assert!(root.square_ref().complete() > x);
+            assert!(&root * &root > x);
         }
     }
 }

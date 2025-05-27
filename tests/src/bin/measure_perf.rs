@@ -13,6 +13,7 @@ use rand::prelude::SliceRandom;
 use rand::Rng;
 use rand_dev::DevRng;
 use sha2::Sha256;
+use num_bigint::BigInt;
 
 type E = generic_ec::curves::Secp256k1;
 
@@ -468,5 +469,5 @@ cggmp21::define_security_level!(CustomSecLevel {
     m = 128,
     n_size = 3072,
     a_size = 512,
-    q = cggmp21::rug::Integer::ONE.clone() << 128,
+    q = BigInt::from(1) << 128,
 });

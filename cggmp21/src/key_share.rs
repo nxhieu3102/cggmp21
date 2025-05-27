@@ -4,11 +4,11 @@ use std::ops;
 use std::sync::Arc;
 
 use generic_ec::{Curve, NonZero, Point};
-use paillier_zk::rug::{Complete, Integer};
-use paillier_zk::{fast_paillier, paillier_encryption_in_range as π_enc};
+use paillier_zk::{fast_paillier, paillier_encryption_in_range as π_enc, fast_paillier::utils::{serializable_bigint, serializable_vec_bigint, serializable_array_bigint}};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-
+use num_bigint::BigInt;
+use num_integer::Integer;
 use crate::security_level::SecurityLevel;
 
 #[doc(inline)]
@@ -63,13 +63,16 @@ pub struct DirtyKeyShare<E: Curve, L: SecurityLevel = crate::default_choice::Sec
 pub struct PartyAux {
     // TODO: any new info for optimized Paillier key
     /// $N_i = p_i \cdot q_i$
-    pub N: Integer,
+    #[serde(with = "serializable_bigint")]
+    pub N: BigInt,
     /// Paillier public key
     pub enc: fast_paillier::EncryptionKey,
     /// Ring-Perdesten parameter $s_i$
-    pub s: Integer,
+    #[serde(with = "serializable_bigint")]
+    pub s: BigInt,
     /// Ring-Perdesten parameter $t_i$
-    pub t: Integer,
+    #[serde(with = "serializable_bigint")]
+    pub t: BigInt,
     /// Precomputed table for faster multiexponentiation
     #[serde(default)]
     pub multiexp: Option<Arc<paillier_zk::multiexp::MultiexpTable>>,
@@ -87,8 +90,8 @@ impl<L: SecurityLevel> Validate for DirtyAuxInfo<L> {
         // validate Pederson key
         // check gcd(s,N) = 1 and gcd(t,N) = 1
         if self.parties.iter().any(|p| {
-            p.s.gcd_ref(&p.N).complete() != *Integer::ONE
-                || p.t.gcd_ref(&p.N).complete() != *Integer::ONE
+            p.s.gcd(&p.N) != BigInt::from(1)
+                || p.t.gcd(&p.N) != BigInt::from(1)
         }) {
             return Err(InvalidKeyShareReason::StGcdN.into());
         }
@@ -113,7 +116,7 @@ impl<L: SecurityLevel> Validate for DirtyAuxInfo<L> {
         {
             return Err(InvalidKeyShareReason::PaillierPkTooSmall {
                 required: 8 * L::SECURITY_BITS - 1,
-                actual: invalid_aux.N.significant_bits(),
+                actual: invalid_aux.N.bits() as u32,
             }
             .into());
         }
@@ -137,11 +140,11 @@ impl<L: SecurityLevel> DirtyAuxInfo<L> {
             .iter()
             .map(|aux_i| {
                 paillier_zk::multiexp::MultiexpTable::build(
-                    &aux_i.s,
-                    &aux_i.t,
-                    x_bits,
-                    y_bits,
-                    aux_i.N.clone(),
+                    &BigInt::from(aux_i.s.clone()),
+                    &BigInt::from(aux_i.t.clone()),
+                    x_bits as u64,
+                    y_bits as u64,
+                    BigInt::from(aux_i.N.clone()),
                 )
                 .map(Arc::new)
             })
@@ -196,8 +199,8 @@ impl PartyAux {
         let multiexp = paillier_zk::multiexp::MultiexpTable::build(
             &self.s,
             &self.t,
-            x_bits,
-            y_bits,
+            x_bits as u64,
+            y_bits as u64,
             self.N.clone(),
         )
         .map(Arc::new)
@@ -219,8 +222,8 @@ impl PartyAux {
     ///
     /// Note: CRT parameters contain secret information. Leaking them exposes secret Paillier key. Keep
     /// [`AuxInfo::parties`](DirtyAuxInfo::parties) secret (as well as rest of the key share).
-    pub fn precompute_crt(&mut self, p: &Integer, q: &Integer) -> Result<(), InvalidKeyShare> {
-        if (p * q).complete() != self.N {
+    pub fn precompute_crt(&mut self, p: &BigInt, q: &BigInt) -> Result<(), InvalidKeyShare> {
+        if (p * q) != self.N {
             return Err(InvalidKeyShareReason::CrtInvalidPq.into());
         }
         let crt = paillier_zk::fast_paillier::utils::CrtExp::build_n(p, q)
@@ -268,7 +271,7 @@ impl<E: Curve, L: SecurityLevel> DirtyKeyShare<E, L> {
         }
 
         let N_i = &aux.parties[usize::from(core.i)].N;
-        if *N_i != (aux.dec.p() * aux.dec.q()).complete() {
+        if *N_i != (aux.dec.p() * aux.dec.q()) {
             return Err(InvalidKeyShareReason::PrimesMul.into());
         }
 

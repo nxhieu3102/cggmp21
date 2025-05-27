@@ -3,9 +3,10 @@ use paillier_zk::{
     fast_paillier,
     no_small_factor::non_interactive as π_fac,
     paillier_blum_modulus as π_mod,
-    rug::{Complete, Integer},
-    IntegerExt,
+    BigIntExt,
 };
+
+use num_bigint::BigInt;
 use rand_core::{CryptoRng, RngCore};
 use round_based::rounds_router::simple_store::RoundMsgs;
 use paillier_zk::fast_paillier::utils::CrtExp;
@@ -85,9 +86,9 @@ pub struct AuxGenState<L: SecurityLevel, D: Digest + Clone + 'static> {
     /// My reliability check message
     pub my_reliability_check: Option<MsgReliabilityCheck<D>>,
     /// N - RSA modulus
-    pub N: Option<Integer>,
+    pub N: Option<BigInt>,
     /// phi_N - Euler's totient of N
-    pub phi_N: Option<Integer>,
+    pub phi_N: Option<BigInt>,
     /// My random bytes
     pub my_rho_bytes: Option<L::Rid>,
     /// Round 1 commitments from other parties

@@ -6,9 +6,10 @@ use paillier_zk::{
     fast_paillier,
     no_small_factor::non_interactive as π_fac,
     paillier_blum_modulus as π_mod,
-    rug::{Complete, Integer},
-    IntegerExt,
+    BigIntExt,
+    fast_paillier::utils::{serializable_bigint}
 };
+use num_bigint::{BigInt, RandBigInt}; 
 use rand_core::{CryptoRng, RngCore};
 use round_based::ProtocolMessage;
 use round_based::{
@@ -77,17 +78,20 @@ pub struct MsgRound2<E: Curve, L: SecurityLevel> {
     /// $\vec A_i$
     pub sch_commits_a: Vec<schnorr_pok::Commit<E>>,
     /// $N_i$
-    #[udigest(as = utils::encoding::Integer)]
-    pub N: Integer,
+    #[udigest(as = utils::encoding::BigInt)]
+    #[serde(with = "serializable_bigint")]
+    pub N: BigInt,
     /// $Paillier enc$
     #[udigest(as = utils::encoding::EncryptionKey)]
     pub enc: fast_paillier::EncryptionKey,
     /// $s_i$
-    #[udigest(as = utils::encoding::Integer)]
-    pub s: Integer,
+    #[udigest(as = utils::encoding::BigInt)]
+    #[serde(with = "serializable_bigint")]
+    pub s: BigInt,
     /// $t_i$
-    #[udigest(as = utils::encoding::Integer)]
-    pub t: Integer,
+    #[udigest(as = utils::encoding::BigInt)]
+    #[serde(with = "serializable_bigint")]
+    pub t: BigInt,
     /// $\hat \psi_i$
     // this should be L::M instead, but no rustc support yet
     pub params_proof: π_prm::Proof<{ crate::security_level::M }>,
@@ -114,7 +118,8 @@ pub struct MsgRound3<E: Curve> {
     /// $\phi_i^j$
     pub fac_proof: π_fac::Proof,
     /// $C_i^j$
-    pub C: Integer,
+    #[serde(with = "serializable_bigint")]
+    pub C: BigInt,
     /// $\psi_i^k$
     ///
     /// Here in the paper you only send one proof, but later they require you to
@@ -229,8 +234,8 @@ where
     let PregeneratedPaillierKey { dec, .. } = pregenerated;
     let p = dec.p();
     let q = dec.q();
-    let N = (p * q).complete();
-    let phi_N = (p - 1u8).complete() * (q - 1u8).complete();
+    let N = (p * q);
+    let phi_N = (p - 1u8) * (q - 1u8);
 
     // *x_i* in paper
     tracer.stage("Generate secret x_i and public X_i");
@@ -249,12 +254,10 @@ where
         .collect::<Vec<_>>();
 
     tracer.stage("Generate auxiliary params r, λ, t, s");
-    let r = Integer::gen_invertible(&N, rng);
-    let lambda = phi_N
-        .random_below_ref(&mut utils::external_rand(rng))
-        .into();
-    let t = r.square().modulo(&N);
-    let s = t.pow_mod_ref(&lambda, &N).ok_or(Bug::PowMod)?.into();
+    let r = BigInt::gen_invertible(&N, rng);
+    let lambda = rng.gen_bigint_range(&BigInt::from(0), &phi_N);
+    let t = r.modpow(&BigInt::from(2), &N);
+    let s = t.modpow(&lambda, &N);
 
     tracer.stage("Prove Πprm (ψˆ_i)");
     let hat_psi = π_prm::prove::<{ M }, D>(
