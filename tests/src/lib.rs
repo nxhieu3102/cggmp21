@@ -103,6 +103,8 @@ lazy_static::lazy_static! {
         ).unwrap();
 }
 
+use std::any::type_name;
+
 pub struct PrecomputedKeyShares {
     shares: Map<String, Value>,
 }
@@ -133,8 +135,8 @@ impl PrecomputedKeyShares {
             .shares
             .get(&Self::key::<E>(t, n, hd_enabled))
             .context("shares not found")?;
-        println!("key_shares: {:?}", key_shares);
-        serde_json::from_value(key_shares.clone()).context("parse key shares")
+        let _json = serde_json::from_value(key_shares.clone()).context("parse key shares")?;
+        Ok(_json)
     }
 
     pub fn add_shares<E: Curve, L: SecurityLevel>(

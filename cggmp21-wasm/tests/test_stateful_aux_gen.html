@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>StatefulAuxGenProtocol Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background-color: #f9f9f9;
+        }
+        
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .protocol-info {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .protocol-info h3 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .config-table th, .config-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .config-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        button { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+        
+        .clear-button {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+        
+        pre { 
+            background-color: #2d3748; 
+            color: #e2e8f0;
+            padding: 15px; 
+            border-radius: 5px; 
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .output { 
+            white-space: pre-wrap; 
+            word-wrap: break-word;
+        }
+        
+        .status {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.running {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .round-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 3px solid #007bff;
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 30px;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 Auxiliary Generation Protocol Test</h1>
+        <p>CGGMP21 - Stateful Implementation</p>
+    </div>
+    
+    <div class="section">
+        <div class="protocol-info">
+            <h3>📋 Protocol Information</h3>
+            <p>This test demonstrates the auxiliary generation protocol which creates shared auxiliary information needed for the CGGMP21 threshold signature scheme.</p>
+            
+            <div class="round-info">
+                <strong>Protocol Flow:</strong>
+                <ol>
+                    <li><strong>Round 1:</strong> Generate commitments to random values and ring-pedersen parameters</li>
+                    <li><strong>Reliability Check:</strong> Optional round to ensure reliable broadcast (if enforced)</li>
+                    <li><strong>Round 2:</strong> Reveal decommitments with actual values</li>
+                    <li><strong>Validation:</strong> Validate decommitments and ring-pedersen parameters</li>
+                    <li><strong>Round 3:</strong> Generate zero-knowledge proofs</li>
+                    <li><strong>Finalization:</strong> Combine all information to create auxiliary data</li>
+                </ol>
+            </div>
+        </div>
+        
+        <h3>Test Configuration</h3>
+        <table class="config-table">
+            <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td>Number of Parties</td>
+                <td>3</td>
+                <td>Total participants in the protocol</td>
+            </tr>
+            <tr>
+                <td>Session ID</td>
+                <td>aux-gen-test-session-123</td>
+                <td>Unique identifier for this protocol run</td>
+            </tr>
+            <tr>
+                <td>Reliable Broadcast</td>
+                <td>Disabled</td>
+                <td>Whether to enforce reliable broadcast channel</td>
+            </tr>
+            <tr>
+                <td>Compute Multiexp Table</td>
+                <td>Enabled</td>
+                <td>Pre-compute tables for faster operations</td>
+            </tr>
+            <tr>
+                <td>Compute CRT</td>
+                <td>Enabled</td>
+                <td>Use Chinese Remainder Theorem optimization</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>🧪 Test Controls</h3>
+        <div>
+            <button id="testButton" class="test-button">🚀 Run Auxiliary Generation Test</button>
+            <button id="clearButton" class="clear-button">🗑️ Clear Output</button>
+        </div>
+        
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+    
+    <div class="section">
+        <h3>📊 Test Output</h3>
+        <pre id="output" class="output">Click "Run Auxiliary Generation Test" to start the protocol execution...</pre>
+    </div>
+    
+    <div class="footer">
+        <p>🔬 CGGMP21 Auxiliary Generation Protocol Test Suite</p>
+        <p>Built with WebAssembly and Rust</p>
+    </div>
+    
+    <script type="module">
+        import { runTest } from './test_stateful_aux_gen.js';
+        
+        const testButton = document.getElementById('testButton');
+        const clearButton = document.getElementById('clearButton');
+        const outputElement = document.getElementById('output');
+        const statusElement = document.getElementById('status');
+        
+        function showStatus(message, type) {
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+            statusElement.style.display = 'block';
+        }
+        
+        function hideStatus() {
+            statusElement.style.display = 'none';
+        }
+        
+        testButton.addEventListener('click', async () => {
+            testButton.disabled = true;
+            outputElement.textContent = '';
+            
+            showStatus('🔄 Initializing WASM module and starting auxiliary generation test...', 'running');
+            
+            // Capture console output
+            const originalLog = console.log;
+            const originalError = console.error;
+            
+            console.log = (...args) => {
+                outputElement.textContent += args.join(' ') + '\n';
+                originalLog.apply(console, args);
+            };
+            
+            console.error = (...args) => {
+                outputElement.textContent += '❌ ERROR: ' + args.join(' ') + '\n';
+                originalError.apply(console, args);
+            };
+            
+            try {
+                const startTime = performance.now();
+                const result = await runTest();
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+                
+                outputElement.textContent += `\n🎉 Test completed successfully in ${duration}ms!\n`;
+                outputElement.textContent += `✅ Generated auxiliary info for ${result.auxInfos.length} parties\n`;
+                outputElement.textContent += `📊 Protocol rounds completed:\n`;
+                outputElement.textContent += `   - Round 1: ${result.commitments.length} commitments\n`;
+                outputElement.textContent += `   - Round 2: ${result.decommitments.length} decommitments\n`;
+                outputElement.textContent += `   - Round 3: ${result.round3Messages.length} proof messages\n`;
+                outputElement.textContent += `   - Final: ${result.auxInfos.length} auxiliary info objects\n`;
+                
+                showStatus('✅ Test completed successfully!', 'success');
+            } catch (error) {
+                outputElement.textContent += `\n💥 Test failed with error: ${error.message}\n`;
+                outputElement.textContent += `📋 Stack trace: ${error.stack}\n`;
+                showStatus('❌ Test failed. Check output for details.', 'error');
+            } finally {
+                // Restore original console functions
+                console.log = originalLog;
+                console.error = originalError;
+                testButton.disabled = false;
+            }
+        });
+        
+        clearButton.addEventListener('click', () => {
+            outputElement.textContent = 'Click "Run Auxiliary Generation Test" to start the protocol execution...';
+            hideStatus();
+        });
+    </script>
+</body>
+</html> 

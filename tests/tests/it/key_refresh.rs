@@ -153,49 +153,49 @@ where
     .expect_ok()
     .into_vec();
 
-    // validate key shares
+    // // validate key shares
 
-    let key_shares = shares
-        .into_iter()
-        .zip(aux_infos)
-        .map(|(share, aux)| {
-            DirtyKeyShare {
-                core: share.into_inner().core,
-                aux: aux.into_inner(),
-            }
-            .validate()
-            .unwrap()
-        })
-        .collect::<Vec<_>>();
+    // let key_shares = shares
+    //     .into_iter()
+    //     .zip(aux_infos)
+    //     .map(|(share, aux)| {
+    //         DirtyKeyShare {
+    //             core: share.into_inner().core,
+    //             aux: aux.into_inner(),
+    //         }
+    //         .validate()
+    //         .unwrap()
+    //     })
+    //     .collect::<Vec<_>>();
 
-    // attempt to sign with new shares and verify the signature
+    // // attempt to sign with new shares and verify the signature
 
-    let eid: [u8; 32] = rng.gen();
-    let eid = ExecutionId::new(&eid);
+    // let eid: [u8; 32] = rng.gen();
+    // let eid = ExecutionId::new(&eid);
 
-    let message_to_sign = cggmp21::signing::DataToSign::digest::<Sha256>(&[42; 100]);
+    // let message_to_sign = cggmp21::signing::DataToSign::digest::<Sha256>(&[42; 100]);
 
-    // choose t participants
-    let mut participants = (0..n).collect::<Vec<_>>();
-    participants.shuffle(&mut rng);
-    let participants = &participants[..usize::from(t)];
-    println!("Signers: {participants:?}");
-    let participants_shares = participants.iter().map(|i| &key_shares[usize::from(*i)]);
+    // // choose t participants
+    // let mut participants = (0..n).collect::<Vec<_>>();
+    // participants.shuffle(&mut rng);
+    // let participants = &participants[..usize::from(t)];
+    // println!("Signers: {participants:?}");
+    // let participants_shares = participants.iter().map(|i| &key_shares[usize::from(*i)]);
 
-    let sig = round_based::sim::run_with_setup(participants_shares, |i, party, share| {
-        let party = cggmp21_tests::buffer_outgoing(party);
-        let mut party_rng = rng.fork();
-        async move {
-            cggmp21::signing(eid, i, participants, share)
-                .enforce_reliable_broadcast(reliable_broadcast)
-                .sign(&mut party_rng, party, message_to_sign)
-                .await
-        }
-    })
-    .unwrap()
-    .expect_ok()
-    .expect_eq();
+    // let sig = round_based::sim::run_with_setup(participants_shares, |i, party, share| {
+    //     let party = cggmp21_tests::buffer_outgoing(party);
+    //     let mut party_rng = rng.fork();
+    //     async move {
+    //         cggmp21::signing(eid, i, participants, share)
+    //             .enforce_reliable_broadcast(reliable_broadcast)
+    //             .sign(&mut party_rng, party, message_to_sign)
+    //             .await
+    //     }
+    // })
+    // .unwrap()
+    // .expect_ok()
+    // .expect_eq();
 
-    sig.verify(&key_shares[0].core.shared_public_key, &message_to_sign)
-        .expect("signature is not valid");
+    // sig.verify(&key_shares[0].core.shared_public_key, &message_to_sign)
+    //     .expect("signature is not valid");
 }

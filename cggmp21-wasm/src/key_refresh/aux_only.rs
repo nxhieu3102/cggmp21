@@ -7,11 +7,11 @@ use sha2::Sha256;
 use rand_dev::DevRng;
 use wasm_bindgen::prelude::*;
 use serde::{Serialize, Deserialize};
-
+use generic_ec::curves::Secp256k1;
 /// WASM wrapper for AuxGenProtocol
 #[wasm_bindgen]
 pub struct StatefulAuxGenProtocol {
-    inner: RustAuxGenProtocol<DevRng, SecurityLevel128, Sha256>,
+    inner: RustAuxGenProtocol<DevRng, SecurityLevel128, Sha256, Secp256k1>,
 }
 
 /// Parameters for creating a new AuxGenProtocol instance
@@ -20,7 +20,6 @@ pub struct AuxGenProtocolParams {
     pub i: u16,
     pub n: u16,
     pub sid: String,
-    pub pregenerated_paillier_key: PregeneratedPaillierKey<SecurityLevel128>,
     pub reliable_broadcast_enforced: bool,
     pub compute_multiexp_table: bool,
     pub compute_crt: bool,

@@ -1,15 +1,13 @@
+use generic_ec::Curve;
+use crate::KeyShare;
 use digest::Digest;
 use paillier_zk::{
-    fast_paillier,
-    no_small_factor::non_interactive as π_fac,
-    paillier_blum_modulus as π_mod,
+    fast_paillier, no_small_factor::non_interactive as π_fac, paillier_blum_modulus as π_mod,
     BigIntExt,
 };
+use key_share::CoreKeyShare;
+use std::marker::PhantomData;
 
-use num_bigint::BigInt;
-use rand_core::{CryptoRng, RngCore};
-use round_based::rounds_router::simple_store::RoundMsgs;
-use paillier_zk::fast_paillier::utils::CrtExp;
 use crate::{
     errors::IoError,
     key_refresh::{
@@ -26,6 +24,10 @@ use crate::{
     utils::{self, AbortBlame},
     ExecutionId,
 };
+use num_bigint::BigInt;
+use paillier_zk::fast_paillier::utils::CrtExp;
+use rand_core::{CryptoRng, RngCore};
+use round_based::rounds_router::simple_store::RoundMsgs;
 
 /// Error during auxiliary generation protocol execution
 #[derive(Debug, displaydoc::Display)]
@@ -108,11 +110,13 @@ pub struct AuxGenState<L: SecurityLevel, D: Digest + Clone + 'static> {
 }
 
 /// Protocol implementation for auxiliary generation
-pub struct AuxGenProtocol<R: RngCore + CryptoRng, L: SecurityLevel, D: Digest + Clone + 'static> {
+pub struct AuxGenProtocol<R: RngCore + CryptoRng, L: SecurityLevel, D: Digest + Clone + 'static, E: Curve> {
     /// Internal protocol state
     pub state: AuxGenState<L, D>,
     /// Random number generator
     pub rng: R,
+    /// Phantom data for curve type
+    _curve: PhantomData<E>,
 }
 
 /// Error during AuxGenProtocol parameter validation
@@ -136,7 +140,8 @@ impl<
         R: RngCore + CryptoRng,
         L: SecurityLevel,
         D: Digest<OutputSize = digest::typenum::U32> + Clone + 'static,
-    > AuxGenProtocol<R, L, D>
+        E: Curve,
+    > AuxGenProtocol<R, L, D, E>
 {
     /// Validates auxiliary generation parameters
     fn validate_parameters(i: u16, n: u16) -> Result<(), AuxGenParameterError> {
@@ -185,6 +190,7 @@ impl<
                 crt: None,
             },
             rng,
+            _curve: PhantomData,
         })
     }
 
@@ -445,4 +451,14 @@ impl<
 
         Ok(aux)
     }
+
+    /// Creates a key share from the core share and auxiliary info
+    pub fn create_key_share(&self, core_share: CoreKeyShare<E>) -> Result<KeyShare<E, L>, AuxGenError> {
+        let aux = self.create_aux_info()?;
+        let key_share = KeyShare::from_parts((core_share, aux))
+            .map_err(|_| AuxGenError::Bug("Key share assembly failed"))?;
+        Ok(key_share)
+    }
 }
+
+

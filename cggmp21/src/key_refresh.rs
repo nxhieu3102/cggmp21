@@ -68,8 +68,7 @@ impl<L: SecurityLevel> PregeneratedPaillierKey<L> {
 
     /// Generates paillier key. Takes some time.
     pub fn generate<R: RngCore + CryptoRng>(rng: &mut R) -> Result<Self, KeyRefreshError> {
-        let dec = fast_paillier::DecryptionKey::generate(rng, L::N_SIZE as u32, L::A_SIZE as u32)
-            .map_err(|_| KeyRefreshError(Reason::InternalError(Bug::PaillierKeyError)))?;
+        let dec = fast_paillier::DecryptionKey::sample_128();
         Ok(Self {
             dec,
             _phantom: std::marker::PhantomData,

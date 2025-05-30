@@ -6,6 +6,12 @@ use std::cell::RefCell;
 // Export the keygen module for WASM
 pub mod keygen;
 pub mod key_refresh;
+pub mod signing;
+
+// Re-export for WASM bindings
+pub use keygen::StatefulKeygenProtocol;
+pub use key_refresh::StatefulAuxGenProtocol;
+pub use signing::stateful::StatefulSigningProtocol;
 
 // Define the message format
 #[derive(Serialize, Deserialize)]

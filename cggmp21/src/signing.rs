@@ -1,6 +1,8 @@
 //! Signing protocol
 #![allow(unused_extern_crates)]
 
+pub mod signing_stateful;
+
 use digest::Digest;
 use futures::SinkExt;
 use generic_ec::{coords::AlwaysHasAffineX, Curve, NonZero, Point, Scalar, SecretScalar};

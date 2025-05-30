@@ -45,6 +45,22 @@ pub struct DirtyAuxInfo<L: SecurityLevel = crate::default_choice::SecurityLevel>
     pub security_level: std::marker::PhantomData<L>,
 }
 
+/// TODO: remove this function
+pub fn gen_mock_aux_info<L: SecurityLevel>() -> DirtyAuxInfo<L> {
+    DirtyAuxInfo {
+        dec: fast_paillier::DecryptionKey::sample_112(),
+        parties: vec![PartyAux {
+            N: BigInt::from(1),
+            enc: fast_paillier::EncryptionKey::sample_112(),
+            s: BigInt::from(1),
+            t: BigInt::from(1),
+            multiexp: None,
+            crt: None,
+        }],
+        security_level: std::marker::PhantomData,
+    }
+}
+
 /// Dirty (unvalidated) key share
 ///
 #[doc = include_str!("../docs/key_share.md")]

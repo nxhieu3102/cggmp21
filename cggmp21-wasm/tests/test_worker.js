@@ -1,0 +1,526 @@
+// test_worker.js - Web Worker for heavy CGGMP21 computations
+import init, {
+    StatefulKeygenProtocol,
+    StatefulAuxGenProtocol,
+    StatefulSigningProtocol
+} from '../pkg/cggmp21_wasm.js';
+
+// Worker state
+let wasmInitialized = false;
+
+// Test configuration for 2-of-3 threshold signing
+const parties = [
+    {
+        i: 0, t: 2, n: 3,
+        sid: "test-signing-session-123",
+        reliable_broadcast_enforced: false,
+        ids: [1, 2]
+    },
+    {
+        i: 1, t: 2, n: 3,
+        sid: "test-signing-session-123",
+        reliable_broadcast_enforced: false,
+        ids: [0, 2]
+    },
+    {
+        i: 2, t: 2, n: 3,
+        sid: "test-signing-session-123",
+        reliable_broadcast_enforced: false,
+        ids: [0, 1]
+    }
+];
+
+const MESSAGE_TO_SIGN = "48656c6c6f2c20576f726c6421"; // "Hello, World!" in hex
+
+// Helper functions for message routing
+const createRecipientMap = (items, partyConfig) => {
+    const map = {};
+    items.forEach((item, idx) => {
+        map[idx] = items.filter((_, idx2) => partyConfig[idx].ids.includes(idx2));
+    });
+    return map;
+};
+
+const createP2PMap = (p2pMessages, parties) => {
+    const map = {};
+    parties.forEach((_, idx) => {
+        map[idx] = [];
+    });
+    p2pMessages.forEach((partyMessages, senderIdx) => {
+        partyMessages.forEach(p2pMsg => {
+            console.log(p2pMsg.recipient, p2pMsg.message);
+            map[p2pMsg.recipient].push(p2pMsg.message);
+        });
+    });
+    return map;
+};
+
+// Progress reporting helper
+const sendProgress = (phase, round, message, progress = null) => {
+    console.log("sendProgress", phase, round, message, progress);
+    postMessage({
+        type: 'progress',
+        data: { phase, round, message, progress }
+    });
+};
+
+// Initialize WASM module
+async function initializeWasm() {
+    if (!wasmInitialized) {
+        await init();
+        wasmInitialized = true;
+        sendProgress('init', '', 'WASM module initialized successfully');
+    }
+}
+
+// Phase 1: Key Generation
+async function runKeyGeneration() {
+    sendProgress('keygen', 'start', 'Starting Key Generation Phase');
+
+    const keygenProtocols = parties.map(party =>
+        new StatefulKeygenProtocol({
+            ...party,
+            sid: party.sid + "-keygen"
+        })
+    );
+
+    // Round 1: Generate commitments
+    sendProgress('keygen', 'round1', 'Generating commitments...', 25);
+    const commitments = keygenProtocols.map(protocol =>
+        protocol.round1_generate_commitment()
+    );
+
+    // Round 2: Broadcast decommitments and send sigmas
+    sendProgress('keygen', 'round2', 'Broadcasting decommitments and sending sigmas...', 50);
+    const decommitments = keygenProtocols.map(protocol =>
+        protocol.round2_broad()
+    );
+
+    const sigmasMsgs = keygenProtocols.map(protocol =>
+        protocol.round2_uni()
+    );
+
+    // Create sigma routing map
+    const sigmasMap = {};
+    sigmasMsgs.forEach(msgs => {
+        msgs.forEach(msg => {
+            const recipient = msg.recipient.OneParty;
+            if (!sigmasMap[recipient]) {
+                sigmasMap[recipient] = [];
+            }
+            sigmasMap[recipient].push(msg.msg.Round2Uni);
+        });
+    });
+
+    // Round 3: Generate Schnorr proofs
+    sendProgress('keygen', 'round3', 'Generating Schnorr proofs...', 75);
+    const commitmentsMap = createRecipientMap(commitments, parties);
+    const decommitmentsMap = createRecipientMap(decommitments, parties);
+
+    const round3Msgs = keygenProtocols.map((protocol, idx) => {
+        return protocol.round3({
+            commitments: commitmentsMap[idx],
+            ids: parties[idx].ids
+        }, {
+            decommitments: decommitmentsMap[idx],
+            ids: parties[idx].ids
+        }, {
+            sigmas: sigmasMap[idx],
+            ids: parties[idx].ids
+        });
+    });
+
+    // Final round: Generate incomplete key shares
+    sendProgress('keygen', 'final', 'Generating incomplete key shares...', 90);
+    const schProofMap = createRecipientMap(round3Msgs, parties);
+    console.log("schProofMap", schProofMap);
+    const incompleteKeyShares = keygenProtocols.map((protocol, idx) => {
+        return protocol.round_key_share({
+            commitments: commitmentsMap[idx],
+            ids: parties[idx].ids
+        }, {
+            decommitments: decommitmentsMap[idx],
+            ids: parties[idx].ids
+        }, {
+            sigmas: sigmasMap[idx],
+            ids: parties[idx].ids
+        }, {
+            sch_proof: schProofMap[idx],
+            ids: parties[idx].ids
+        });
+    });
+
+    console.log("incompleteKeyShares", incompleteKeyShares);
+
+    sendProgress('keygen', 'complete', `Key generation completed! Generated ${incompleteKeyShares.length} incomplete key shares`, 100);
+    return incompleteKeyShares;
+}
+
+// Phase 2: Auxiliary Information Generation
+async function runAuxGeneration(incompleteKeyShares) {
+    sendProgress('auxgen', 'start', 'Starting Auxiliary Generation Phase');
+
+    const auxGenProtocols = await Promise.all(
+        parties.map(party =>
+            new StatefulAuxGenProtocol({
+                ...party,
+                sid: party.sid + "-auxgen",
+                compute_multiexp_table: false,
+                compute_crt: false
+            })
+        )
+    );
+
+    // Round 1: Generate commitments
+    console.log("auxGenProtocols", auxGenProtocols);
+    sendProgress('auxgen', 'round1', 'Generating commitments...', 25);
+    const commitments = auxGenProtocols.map(protocol =>
+        protocol.round1_generate_commitment()
+    );
+
+    console.log("commitments", commitments);
+
+    const commitmentsMap = createRecipientMap(commitments, parties);
+    auxGenProtocols.forEach((protocol, idx) => {
+        protocol.set_round1_commitments({
+            commitments: commitmentsMap[idx],
+            ids: parties[idx].ids
+        });
+    });
+
+    console.log("auxGenProtocols", auxGenProtocols);
+
+    // Round 2: Get decommitments
+    sendProgress('auxgen', 'round2', 'Getting decommitments...', 50);
+    const decommitments = auxGenProtocols.map(protocol =>
+        protocol.round2_get_decommitment()
+    );
+
+    console.log("decommitments", decommitments);
+
+    const decommitmentsMap = createRecipientMap(decommitments, parties);
+    auxGenProtocols.forEach((protocol, idx) => {
+        protocol.set_round2_decommitments({
+            decommitments: decommitmentsMap[idx],
+            ids: parties[idx].ids
+        });
+        console.log("validate_round2_decommitments", protocol.validate_round2_decommitments());
+    });
+
+    // Round 3: Create messages
+    sendProgress('auxgen', 'round3', 'Creating messages...', 75);
+    const round3Messages = auxGenProtocols.map(protocol =>
+        protocol.round3_create_messages()
+    );
+
+    console.log("round3Messages", round3Messages);
+
+
+    const setRound3Messages = (protocols, round3Messages) => {
+        console.log("Setting Round 3 messages for all parties");
+
+        // Convert the message format - the round3Messages from round3_create_messages() 
+        // appears to be in a different format than what set_round3_messages expects
+        protocols.forEach((protocol, idx) => {
+            try {
+                // Collect messages intended for this party from all other parties
+                const messagesForParty = [];
+
+                round3Messages.forEach((msgs, senderIdx) => {
+                    if (senderIdx !== idx && parties[idx].ids.includes(senderIdx)) {
+                        // msgs should be an array of (recipient_id, message) pairs
+                        if (Array.isArray(msgs)) {
+                            msgs.forEach(msgPair => {
+                                if (Array.isArray(msgPair) && msgPair.length === 2) {
+                                    const [recipientId, message] = msgPair;
+                                    if (recipientId === idx) {
+                                        messagesForParty.push(message);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+
+                protocol.set_round3_messages({
+                    messages: messagesForParty,
+                    ids: parties[idx].ids
+                });
+                console.log(`Party ${idx} set ${messagesForParty.length} round 3 messages`);
+            } catch (error) {
+                console.error(`Party ${idx} failed setting round 3 messages:`, error);
+                throw error;
+            }
+        });
+    };
+
+    // const round3Map = createP2PMap(round3Messages, parties);
+    setRound3Messages(auxGenProtocols, round3Messages);
+
+    // Set round 3 messages and finalize
+    sendProgress('auxgen', 'final', 'Finalizing auxiliary info...', 90);
+
+    const auxInfos = auxGenProtocols.map((protocol, idx) => {
+        return protocol.finalize();
+    });
+
+    console.log(auxInfos);
+
+    const completeKeyShares = incompleteKeyShares.map((incompleteShare, idx) => {
+        return {
+            core: incompleteShare,
+            aux: auxInfos[idx],
+            party_index: idx
+        };
+    });
+
+    sendProgress('auxgen', 'complete', `Auxiliary generation completed! Generated ${completeKeyShares.length} complete key shares`, 100);
+    return completeKeyShares;
+}
+
+// Phase 3: Signing
+async function runSigning(completeKeyShares) {
+    sendProgress('signing', 'start', 'Starting Signing Phase');
+
+    const signingParties = [0, 1];
+    const signingKeyShares = signingParties.map(idx => completeKeyShares[idx]);
+
+    const signingProtocols = signingParties.map((globalIdx, localIdx) =>
+        new StatefulSigningProtocol({
+            i: localIdx,
+            signing_parties: [0, 1],
+            sid: parties[globalIdx].sid + "-signing",
+            reliable_broadcast_enforced: false,
+            message_hex: MESSAGE_TO_SIGN
+        }, signingKeyShares[localIdx])
+    );
+
+    // Round 1a: Generate broadcast messages
+    sendProgress('signing', 'round1a', 'Generating broadcast messages...', 15);
+    const round1aMessages = signingProtocols.map(protocol =>
+        protocol.round1a_generate_message()
+    );
+
+    signingProtocols.forEach((protocol, idx) => {
+        const otherMessages = round1aMessages.filter((_, msgIdx) => msgIdx !== idx);
+        const otherIds = signingParties.filter((_, partyIdx) => partyIdx !== idx);
+        protocol.set_round1a_messages({
+            messages: otherMessages,
+            ids: otherIds
+        });
+    });
+
+    // Round 1b: Generate P2P messages
+    sendProgress('signing', 'round1b', 'Generating P2P messages...', 30);
+    const round1bMessages = signingProtocols.map(protocol =>
+        protocol.round1b_generate_messages()
+    );
+
+    const round1bMap = createP2PMap(round1bMessages, signingParties);
+    signingProtocols.forEach((protocol, idx) => {
+        protocol.set_round1b_messages({
+            messages: round1bMap[idx],
+            ids: signingParties.filter((_, partyIdx) => partyIdx !== idx)
+        });
+        protocol.validate_round1b_proofs();
+    });
+
+    // Round 2: Generate P2P messages
+    sendProgress('signing', 'round2', 'Generating P2P messages...', 45);
+    const round2Messages = signingProtocols.map(protocol =>
+        protocol.round2_generate_messages()
+    );
+
+    const round2Map = createP2PMap(round2Messages, signingParties);
+    signingProtocols.forEach((protocol, idx) => {
+        protocol.set_round2_messages({
+            messages: round2Map[idx],
+            ids: signingParties.filter((_, partyIdx) => partyIdx !== idx)
+        });
+    });
+
+    // Round 3: Generate P2P messages
+    sendProgress('signing', 'round3', 'Generating P2P messages...', 60);
+    const round3Messages = signingProtocols.map(protocol =>
+        protocol.round3_generate_messages()
+    );
+
+    const round3Map = createP2PMap(round3Messages, signingParties);
+    signingProtocols.forEach((protocol, idx) => {
+        protocol.set_round3_messages({
+            messages: round3Map[idx],
+            ids: signingParties.filter((_, partyIdx) => partyIdx !== idx)
+        });
+    });
+
+    // Generate presignatures
+    sendProgress('signing', 'presignature', 'Generating presignatures...', 75);
+    const presignatures = signingProtocols.map(protocol =>
+        protocol.generate_presignature()
+    );
+
+    // Round 4: Generate partial signatures
+    sendProgress('signing', 'round4', 'Generating partial signatures...', 85);
+    const round4Messages = signingProtocols.map(protocol =>
+        protocol.round4_generate_message()
+    );
+
+    const round4Map = createRecipientMap(
+        round4Messages.map(msg => (msg !== undefined && msg !== null) ? msg : {}),
+        signingParties.map((_, idx) => ({ ids: signingParties.filter((_, partyIdx) => partyIdx !== idx) }))
+    );
+
+    signingProtocols.forEach((protocol, idx) => {
+        if (round4Map[idx] && round4Map[idx].length > 0) {
+            protocol.set_round4_messages({
+                messages: round4Map[idx],
+                ids: signingParties.filter((_, partyIdx) => partyIdx !== idx)
+            });
+        }
+    });
+
+    // Generate final signatures
+    sendProgress('signing', 'final', 'Generating signatures...', 95);
+    const signatures = signingProtocols.map((protocol, idx) => {
+        const round4Msg = round4Messages[idx];
+        if (round4Msg !== undefined && round4Msg !== null) {
+            return protocol.generate_signature(round4Msg);
+        }
+        return null;
+    });
+
+    const validSignatures = signatures.filter(sig => sig !== null);
+    
+    // Verify signatures
+    sendProgress('signing', 'verification', 'Verifying signatures...', 98);
+    const verificationResults = [];
+    
+    if (validSignatures.length > 0) {
+        try {
+            // Get public key from the first complete key share
+            const publicKeyHex = StatefulSigningProtocol.get_public_key_from_keyshare(completeKeyShares[0]);
+            
+            for (let i = 0; i < validSignatures.length; i++) {
+                const signature = validSignatures[i];
+                const isValid = StatefulSigningProtocol.verify_signature(signature, publicKeyHex, MESSAGE_TO_SIGN);
+                verificationResults.push({
+                    signatureIndex: i,
+                    isValid: isValid,
+                    signature: signature
+                });
+                
+                if (isValid) {
+                    console.log(`✅ Signature ${i} verification: VALID`);
+                } else {
+                    console.log(`❌ Signature ${i} verification: INVALID`);
+                }
+            }
+        } catch (error) {
+            console.error("Error during signature verification:", error);
+            verificationResults.push({
+                error: error.message || error
+            });
+        }
+    }
+
+    sendProgress('signing', 'complete', `Signing completed! Generated ${validSignatures.length} signatures, verification results: ${verificationResults.filter(r => r.isValid).length}/${verificationResults.length} valid`, 100);
+
+    return {
+        presignatures,
+        signatures: validSignatures,
+        verificationResults
+    };
+}
+
+// Main test function
+async function runFullPipelineTest() {
+    try {
+        await initializeWasm();
+
+        sendProgress('pipeline', 'start', '🚀 Starting Full CGGMP21 Pipeline Test');
+
+        const incompleteKeyShares = await runKeyGeneration();
+        console.log("incompleteKeyShares", incompleteKeyShares);
+        const completeKeyShares = await runAuxGeneration(incompleteKeyShares);
+        console.log("completeKeyShares", completeKeyShares);
+        const signingResults = await runSigning(completeKeyShares);
+
+        console.log("signingResults", signingResults);
+        sendProgress('pipeline', 'complete', '🎉 Full Pipeline Test Completed Successfully!');
+
+        return {
+            incompleteKeyShares,
+            completeKeyShares,
+            signingResults
+        };
+
+    } catch (error) {
+        postMessage({
+            type: 'error',
+            data: {
+                message: error.message,
+                stack: error.stack
+            }
+        });
+        throw error;
+    }
+}
+
+// Handle messages from main thread
+self.onmessage = async function (e) {
+    const { type, data } = e.data;
+
+    try {
+        switch (type) {
+            case 'init':
+                await initializeWasm();
+                postMessage({ type: 'init_complete' });
+                break;
+
+            case 'run_keygen':
+                const keyShares = await runKeyGeneration();
+                postMessage({
+                    type: 'keygen_complete',
+                    data: keyShares
+                });
+                break;
+
+            case 'run_auxgen':
+                const completeShares = await runAuxGeneration(data.incompleteKeyShares);
+                postMessage({
+                    type: 'auxgen_complete',
+                    data: completeShares
+                });
+                break;
+
+            case 'run_signing':
+                const signingResults = await runSigning(data.completeKeyShares);
+                postMessage({
+                    type: 'signing_complete',
+                    data: signingResults
+                });
+                break;
+
+            case 'run_full_pipeline':
+                console.log("run_full_pipeline");
+                const results = await runFullPipelineTest();
+                postMessage({
+                    type: 'pipeline_complete',
+                    data: results
+                });
+                break;
+
+            default:
+                throw new Error(`Unknown message type: ${type}`);
+        }
+    } catch (error) {
+        postMessage({
+            type: 'error',
+            data: {
+                originalType: type,
+                message: error.message,
+                stack: error.stack
+            }
+        });
+    }
+}; 

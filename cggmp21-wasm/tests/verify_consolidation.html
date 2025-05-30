@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Verify JavaScript Consolidation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-result {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #output {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            min-height: 300px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 JavaScript Consolidation Verification</h1>
+    
+    <div class="test-result">
+        <h3>Test Status</h3>
+        <p>This page verifies that the JavaScript logic has been successfully consolidated from the HTML file to the JS file.</p>
+    </div>
+
+    <div>
+        <button onclick="testImports()">🔍 Test Imports</button>
+        <button onclick="testWasmInit()">🚀 Test WASM Init</button>
+        <button onclick="testLogging()">📝 Test Logging</button>
+        <button onclick="clearOutput()">🗑️ Clear</button>
+    </div>
+
+    <div>
+        <h3>Test Output</h3>
+        <div id="output">Click any test button to verify the consolidation...</div>
+    </div>
+
+    <script type="module">
+        // Test importing functions from the consolidated JS file
+        import { 
+            initializeWasm,
+            log,
+            runKeyGeneration,
+            runAuxGeneration,
+            runSigning,
+            runFullPipelineTest,
+            setupBrowserEventListeners
+        } from './test_stateful_signing.js';
+
+        // Global reference to imported functions for testing
+        window.testFunctions = {
+            initializeWasm,
+            log,
+            runKeyGeneration,
+            runAuxGeneration,
+            runSigning,
+            runFullPipelineTest,
+            setupBrowserEventListeners
+        };
+
+        // Test functions
+        window.testImports = function() {
+            const output = document.getElementById('output');
+            output.textContent += 'Testing imports...\n';
+            
+            const expectedFunctions = [
+                'initializeWasm',
+                'log', 
+                'runKeyGeneration',
+                'runAuxGeneration',
+                'runSigning',
+                'runFullPipelineTest',
+                'setupBrowserEventListeners'
+            ];
+            
+            let allPresent = true;
+            for (const funcName of expectedFunctions) {
+                if (typeof window.testFunctions[funcName] === 'function') {
+                    output.textContent += `✅ ${funcName} imported successfully\n`;
+                } else {
+                    output.textContent += `❌ ${funcName} import failed\n`;
+                    allPresent = false;
+                }
+            }
+            
+            if (allPresent) {
+                output.textContent += '\n🎉 All functions imported successfully!\n';
+            } else {
+                output.textContent += '\n❌ Some imports failed!\n';
+            }
+        };
+
+        window.testWasmInit = async function() {
+            const output = document.getElementById('output');
+            output.textContent += '\nTesting WASM initialization...\n';
+            
+            try {
+                await window.testFunctions.initializeWasm();
+                output.textContent += '✅ WASM initialization test passed!\n';
+            } catch (error) {
+                output.textContent += `❌ WASM initialization failed: ${error.message}\n`;
+            }
+        };
+
+        window.testLogging = function() {
+            const output = document.getElementById('output');
+            output.textContent += '\nTesting logging function...\n';
+            
+            try {
+                window.testFunctions.log('Test message - normal', 'normal');
+                window.testFunctions.log('Test message - success', 'success');
+                window.testFunctions.log('Test message - error', 'error');
+                window.testFunctions.log('Test message - phase', 'phase');
+                window.testFunctions.log('Test message - round', 'round');
+                output.textContent += '\n✅ Logging function test passed!\n';
+            } catch (error) {
+                output.textContent += `❌ Logging function failed: ${error.message}\n`;
+            }
+        };
+
+        window.clearOutput = function() {
+            document.getElementById('output').textContent = 'Output cleared. Ready for tests...\n';
+        };
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const output = document.getElementById('output');
+            output.textContent = '🔧 JavaScript Consolidation Verification Ready\n';
+            output.textContent += 'All test functions are available. Click buttons to test.\n\n';
+        });
+    </script>
+</body>
+</html> 
