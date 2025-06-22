@@ -450,6 +450,7 @@ dependencies = [
  "include_dir",
  "lazy_static",
  "num-bigint 0.4.6",
+ "paillier-zk",
  "pin-project",
  "rand",
  "rand_dev",

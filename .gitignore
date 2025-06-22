@@ -11,3 +11,5 @@
 spec/main.*
 
 /alice-go
+
+/node_modules

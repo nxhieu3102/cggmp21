@@ -11,6 +11,10 @@ pub use messages::*;
 mod threshold;
 pub use threshold::*;
 
+// Stateful hierarchical threshold key generation protocol
+mod hierarchical_threshold;
+pub use hierarchical_threshold::*;
+
 // // Error types
 // #[derive(Serialize, Deserialize)]
 // pub struct KeygenError {

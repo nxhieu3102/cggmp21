@@ -17,7 +17,9 @@ pub mod progress;
 pub mod security_level;
 
 /// Hierarchical threshold DKG specific types
-mod hierarchical_threshold;
+pub mod hierarchical_threshold;
+/// Stateful hierarchical threshold DKG implementation
+pub mod hierarchical_threshold_stateful;
 /// Non-threshold DKG specific types
 mod non_threshold;
 /// Threshold DKG specific types

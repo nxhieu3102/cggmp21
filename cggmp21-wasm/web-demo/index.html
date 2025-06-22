@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGGMP21 Hierarchical Threshold Secret Sharing Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            height: fit-content;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .party-config {
+            margin-bottom: 25px;
+        }
+
+        .party-config h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .protocol-phases {
+            margin-bottom: 25px;
+        }
+
+        .phase-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .phase-card.active {
+            border-color: #667eea;
+            background: #eef2ff;
+        }
+
+        .phase-card.completed {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .phase-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .phase-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .phase-icon.pending { background: #a0aec0; }
+        .phase-icon.active { background: #667eea; }
+        .phase-icon.completed { background: #48bb78; }
+
+        .button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .button.primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .button.primary:hover:not(:disabled) {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .button.success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .button.danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .parties-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .party-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .party-card.connected {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .party-card.active {
+            border-color: #667eea;
+            background: #eef2ff;
+        }
+
+        .party-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .party-status.offline { background: #a0aec0; }
+        .party-status.online { background: #48bb78; }
+        .party-status.active { background: #667eea; }
+
+        .progress-section {
+            margin-bottom: 25px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .log-section {
+            background: #1a202c;
+            color: #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .log-entry.info { background: rgba(102, 126, 234, 0.2); }
+        .log-entry.success { background: rgba(72, 187, 120, 0.2); }
+        .log-entry.error { background: rgba(245, 101, 101, 0.2); }
+        .log-entry.warning { background: rgba(237, 137, 54, 0.2); }
+
+        .results-section {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .results-section.success {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .signature-display {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .connection-status.connected {
+            background: #f0fff4;
+            color: #22543d;
+        }
+
+        .connection-status.disconnected {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .threshold-info {
+            background: #eef2ff;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .threshold-info h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .parties-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 CGGMP21 Threshold Secret Sharing</h1>
+            <p>Hierarchical Multi-Party Cryptographic Protocol Demonstration</p>
+        </div>
+
+        <div class="demo-grid">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="party-status offline"></span>
+                    <span>Disconnected from server</span>
+                </div>
+
+                <div class="party-config">
+                    <h3>Party Configuration</h3>
+                    <div class="input-group">
+                        <label for="partyId">Party ID</label>
+                        <input type="number" id="partyId" min="0" max="2" value="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="threshold">Threshold (t)</label>
+                        <input type="number" id="threshold" value="2" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label for="totalParties">Total Parties (n)</label>
+                        <input type="number" id="totalParties" value="3" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label for="messageToSign">Message to Sign</label>
+                        <input type="text" id="messageToSign" value="Hello, World!" placeholder="Enter message">
+                    </div>
+                </div>
+
+                <div class="threshold-info">
+                    <h4>Protocol Information</h4>
+                    <p><strong>Scheme:</strong> 2-of-3 Threshold</p>
+                    <p><strong>Security:</strong> CGGMP21</p>
+                    <p><strong>Communication:</strong> WebSocket</p>
+                    <p><strong>Computation:</strong> Web Workers</p>
+                </div>
+
+                <div class="protocol-phases">
+                    <h3>Protocol Phases</h3>
+                    <div class="phase-card" id="keygenPhase">
+                        <div class="phase-header">
+                            <div class="phase-icon pending">1</div>
+                            <div>
+                                <strong>Key Generation</strong>
+                                <div style="font-size: 12px; color: #666;">Generate secret shares</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="phase-card" id="auxgenPhase">
+                        <div class="phase-header">
+                            <div class="phase-icon pending">2</div>
+                            <div>
+                                <strong>Auxiliary Generation</strong>
+                                <div style="font-size: 12px; color: #666;">Create auxiliary info</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="phase-card" id="signingPhase">
+                        <div class="phase-header">
+                            <div class="phase-icon pending">3</div>
+                            <div>
+                                <strong>Threshold Signing</strong>
+                                <div style="font-size: 12px; color: #666;">Generate signature</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="button primary" id="connectBtn">🔗 Connect to Server</button>
+                <button class="button primary" id="startProtocolBtn" disabled>🚀 Start Full Protocol</button>
+                <button class="button success" id="runKeygenBtn" disabled>🔑 Run Keygen Only</button>
+                <button class="button success" id="runSigningBtn" disabled>✍️ Run Signing Only</button>
+                <button class="button success" id="checkReadinessBtn" disabled>📊 Check Readiness</button>
+                <button class="button danger" id="resetBtn">🔄 Reset</button>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="parties-overview">
+                    <div class="party-card" id="party0">
+                        <div><span class="party-status offline"></span>Party 0</div>
+                        <div style="font-size: 12px; margin-top: 5px;">Waiting...</div>
+                    </div>
+                    <div class="party-card" id="party1">
+                        <div><span class="party-status offline"></span>Party 1</div>
+                        <div style="font-size: 12px; margin-top: 5px;">Waiting...</div>
+                    </div>
+                    <div class="party-card" id="party2">
+                        <div><span class="party-status offline"></span>Party 2</div>
+                        <div style="font-size: 12px; margin-top: 5px;">Waiting...</div>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <h3>Protocol Progress</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill">0%</div>
+                    </div>
+                    <div id="progressText">Ready to start protocol</div>
+                </div>
+
+                <div class="log-section" id="logSection">
+                    <div class="log-entry info">[System] CGGMP21 Threshold Secret Sharing Demo Ready</div>
+                    <div class="log-entry info">[System] Configure your party ID and connect to start</div>
+                </div>
+
+                <div class="results-section" id="resultsSection" style="display: none;">
+                    <h3>🎉 Protocol Results</h3>
+                    <div id="resultsContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="demo.js"></script>
+</body>
+</html> 

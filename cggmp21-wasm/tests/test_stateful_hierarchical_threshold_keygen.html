@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Hierarchical Threshold Key Generation Test</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="a" patternUnits="userSpaceOnUse" width="20" height="20"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23a)"/></svg>') repeat;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .section {
+            padding: 25px 30px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .section:last-child {
+            border-bottom: none;
+        }
+        
+        .protocol-info {
+            background: linear-gradient(135deg, #e8f4f8 0%, #d6eaf8 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 5px solid #3498db;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .protocol-info::before {
+            content: '🔐';
+            font-size: 4em;
+            position: absolute;
+            top: -10px;
+            right: 15px;
+            opacity: 0.1;
+        }
+        
+        .protocol-info h3 {
+            margin-top: 0;
+            color: #2980b9;
+            font-size: 1.4em;
+        }
+        
+        .htss-explanation {
+            background: linear-gradient(135deg, #fff3cd 0%, #fdeaa7 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #f39c12;
+            position: relative;
+        }
+        
+        .htss-explanation::before {
+            content: '🏛️';
+            font-size: 3em;
+            position: absolute;
+            top: 5px;
+            right: 15px;
+            opacity: 0.2;
+        }
+        
+        .config-selector {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #dee2e6;
+        }
+        
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .config-table th, .config-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .config-table th {
+            background: linear-gradient(135deg, #6c7b7f 0%, #5a6c72 100%);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+        }
+        
+        .config-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .config-table tr:hover {
+            background-color: #e3f2fd;
+            transition: background-color 0.3s ease;
+        }
+        
+        .rank-examples {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #dee2e6;
+        }
+        
+        .rank-example {
+            margin: 10px 0;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .rank-example.valid {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+        
+        .rank-example.invalid {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+        
+        select {
+            padding: 12px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+            font-size: 16px;
+            width: 100%;
+            max-width: 300px;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+        }
+        
+        button { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px 5px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .test-all-button {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        }
+        
+        .clear-button {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+        
+        .progress-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .progress-bar-container {
+            background-color: #e9ecef;
+            border-radius: 20px;
+            height: 30px;
+            overflow: hidden;
+            position: relative;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            height: 100%;
+            width: 0%;
+            border-radius: 20px;
+            transition: width 0.4s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-image: linear-gradient(
+                -45deg,
+                rgba(255, 255, 255, .2) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, .2) 50%,
+                rgba(255, 255, 255, .2) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 50px 50px;
+            animation: move 2s linear infinite;
+        }
+        
+        @keyframes move {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            z-index: 1;
+        }
+        
+        .phase-text {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        
+        pre { 
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%); 
+            color: #e2e8f0;
+            padding: 20px; 
+            border-radius: 10px; 
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #4a5568;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .output { 
+            white-space: pre-wrap; 
+            word-wrap: break-word;
+        }
+        
+        .status {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.1;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.1) 10px,
+                rgba(255,255,255,0.1) 20px
+            );
+        }
+        
+        .status.running {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            color: #856404;
+            border: 2px solid #ffc107;
+        }
+        
+        .status.success {
+            background: linear-gradient(135deg, #d4edda 0%, #b3e5c1 100%);
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+        
+        .status.error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f1b4bb 100%);
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+        
+        .round-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+        }
+        
+        .test-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .config-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin: 2px;
+        }
+        
+        .badge.rank-0 { background-color: #e3f2fd; color: #1565c0; }
+        .badge.rank-1 { background-color: #f3e5f5; color: #7b1fa2; }
+        .badge.rank-2 { background-color: #e8f5e8; color: #2e7d32; }
+        .badge.rank-3 { background-color: #fff3e0; color: #ef6c00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1>🏛️ Hierarchical Threshold Key Generation</h1>
+                <p>CGGMP21 - Advanced Cryptographic Protocol Testing Suite</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="protocol-info">
+                <h3>📋 Protocol Overview</h3>
+                <p>This test demonstrates the hierarchical threshold secret sharing (HTSS) key generation protocol, an advanced variant of the CGGMP21 threshold signature scheme that provides fine-grained access control through party rankings.</p>
+                
+                <div class="round-info">
+                    <strong>Protocol Flow:</strong>
+                    <ol>
+                        <li><strong>Round 1:</strong> Generate commitments using rank information</li>
+                        <li><strong>Reliability Check:</strong> Optional verification of broadcast channel integrity</li>
+                        <li><strong>Round 2:</strong> Broadcast decommitments and distribute rank-based polynomial shares</li>
+                        <li><strong>Round 3:</strong> Generate and verify Schnorr proofs with rank constraints</li>
+                        <li><strong>Finalization:</strong> Create hierarchical threshold key shares with preserved rank information</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="htss-explanation">
+                <h3>🏛️ Hierarchical Threshold Secret Sharing (HTSS)</h3>
+                <p><strong>Key Concept:</strong> Unlike traditional threshold schemes where any <em>t</em> out of <em>n</em> parties can recover the secret, HTSS assigns <strong>ranks</strong> to parties that determine their access privileges.</p>
+                
+                <div class="rank-examples">
+                    <h4>Access Control Rules:</h4>
+                    <div class="rank-example valid">
+                        ✅ <strong>Valid Access:</strong> For threshold t=3, parties with ranks (0,1,1) can recover the secret
+                    </div>
+                    <div class="rank-example valid">
+                        ✅ <strong>Valid Access:</strong> For threshold t=3, parties with ranks (0,1,2) can recover the secret
+                    </div>
+                    <div class="rank-example invalid">
+                        ❌ <strong>Invalid Access:</strong> For threshold t=3, parties with ranks (1,1,2) cannot recover the secret
+                    </div>
+                    <p><em>Rule: For any t shares with ranks (r₁, r₂, ..., rₜ) sorted by rank, recovery is possible if and only if rᵢ ≤ i-1 for all i ∈ {1, 2, ..., t}</em></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>🧪 Test Configuration</h3>
+            
+            <div class="config-selector">
+                <h4>Select Test Configuration:</h4>
+                <select id="configSelect">
+                    <option value="small">Small: 2-of-3 Hierarchical Threshold (ranks: [0, 1, 1])</option>
+                    <option value="medium" selected>Medium: 3-of-4 Hierarchical Threshold (ranks: [0, 1, 1, 2])</option>
+                    <option value="large">Large: 4-of-6 Hierarchical Threshold (ranks: [0, 1, 1, 2, 2, 3])</option>
+                </select>
+                
+                <div class="config-info" id="configInfo">
+                    <h4>Current Configuration: Medium (3-of-4)</h4>
+                    <p><strong>Threshold:</strong> 3 | <strong>Parties:</strong> 4 | <strong>Ranks:</strong> 
+                        <span class="badge rank-0">Party 0: Rank 0</span>
+                        <span class="badge rank-1">Party 1: Rank 1</span>
+                        <span class="badge rank-1">Party 2: Rank 1</span>
+                        <span class="badge rank-2">Party 3: Rank 2</span>
+                    </p>
+                    <p><strong>Valid Authorized Sets:</strong> {0,1,2}, {0,1,3}, {0,2,3}, {0,1,2,3}</p>
+                </div>
+            </div>
+
+            <table class="config-table">
+                <tr>
+                    <th>Parameter</th>
+                    <th>Small</th>
+                    <th>Medium</th>
+                    <th>Large</th>
+                </tr>
+                <tr>
+                    <td>Threshold (t)</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>4</td>
+                </tr>
+                <tr>
+                    <td>Parties (n)</td>
+                    <td>3</td>
+                    <td>4</td>
+                    <td>6</td>
+                </tr>
+                <tr>
+                    <td>Rank Distribution</td>
+                    <td>[0, 1, 1]</td>
+                    <td>[0, 1, 1, 2]</td>
+                    <td>[0, 1, 1, 2, 2, 3]</td>
+                </tr>
+                <tr>
+                    <td>Valid Authorized Sets</td>
+                    <td>3</td>
+                    <td>4</td>
+                    <td>9</td>
+                </tr>
+                <tr>
+                    <td>Computational Complexity</td>
+                    <td>Low</td>
+                    <td>Medium</td>
+                    <td>High</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="section">
+            <h3>🚀 Test Controls</h3>
+            <div class="test-controls">
+                <button id="testButton" class="test-button">🧪 Run Selected Test</button>
+                <button id="testAllButton" class="test-all-button">🔬 Run All Configurations</button>
+                <button id="clearButton" class="clear-button">🗑️ Clear Output</button>
+            </div>
+            
+            <div id="status" class="status" style="display: none;"></div>
+            
+            <div class="progress-container">
+                <div class="phase-text" id="phaseText">Ready to start hierarchical threshold key generation test</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                    <div class="progress-text" id="progressText">0%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>📊 Test Output</h3>
+            <pre id="output" class="output">Ready to run hierarchical threshold key generation test...
+
+Select a configuration and click "Run Selected Test" to execute the protocol.
+
+📚 Educational Notes:
+• Hierarchical threshold schemes provide more granular access control than traditional threshold schemes
+• Ranks determine the "priority" or "level" of each party in the hierarchy
+• Lower ranks have higher privileges (rank 0 > rank 1 > rank 2, etc.)
+• The polynomial evaluation uses derivatives based on ranks for enhanced security
+• This implementation maintains compatibility with the existing CGGMP21 infrastructure
+
+🔬 Test Features:
+• Real-time progress tracking with detailed logging
+• Comprehensive validation of rank constraints and authorized sets
+• Multiple test configurations (small, medium, large)
+• Error handling and detailed debugging information
+• Browser-friendly interface with responsive design</pre>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>🔬 CGGMP21 Hierarchical Threshold Key Generation Protocol Test Suite</p>
+        <p>Built with WebAssembly, Rust, and Modern Web Technologies</p>
+        <p>This test demonstrates advanced cryptographic protocols for decentralized systems</p>
+    </div>
+    
+    <script type="module">
+        import { runTest, runAllTests, testConfigurations } from './test_stateful_hierarchical_threshold_keygen.js';
+        
+        const testButton = document.getElementById('testButton');
+        const testAllButton = document.getElementById('testAllButton');
+        const clearButton = document.getElementById('clearButton');
+        const configSelect = document.getElementById('configSelect');
+        const configInfo = document.getElementById('configInfo');
+        const outputElement = document.getElementById('output');
+        const statusElement = document.getElementById('status');
+        
+        // Configuration info for each test size
+        const configDetails = {
+            small: {
+                title: "Small (2-of-3)",
+                threshold: 2,
+                parties: 3,
+                ranks: "[0, 1, 1]",
+                badges: [
+                    { party: 0, rank: 0, class: "rank-0" },
+                    { party: 1, rank: 1, class: "rank-1" },
+                    { party: 2, rank: 1, class: "rank-1" }
+                ],
+                authorizedSets: "{0,1}, {0,2}, {0,1,2}",
+                validSets: 3
+            },
+            medium: {
+                title: "Medium (3-of-4)",
+                threshold: 3,
+                parties: 4,
+                ranks: "[0, 1, 1, 2]",
+                badges: [
+                    { party: 0, rank: 0, class: "rank-0" },
+                    { party: 1, rank: 1, class: "rank-1" },
+                    { party: 2, rank: 1, class: "rank-1" },
+                    { party: 3, rank: 2, class: "rank-2" }
+                ],
+                authorizedSets: "{0,1,2}, {0,1,3}, {0,2,3}, {0,1,2,3}",
+                validSets: 4
+            },
+            large: {
+                title: "Large (4-of-6)",
+                threshold: 4,
+                parties: 6,
+                ranks: "[0, 1, 1, 2, 2, 3]",
+                badges: [
+                    { party: 0, rank: 0, class: "rank-0" },
+                    { party: 1, rank: 1, class: "rank-1" },
+                    { party: 2, rank: 1, class: "rank-1" },
+                    { party: 3, rank: 2, class: "rank-2" },
+                    { party: 4, rank: 2, class: "rank-2" },
+                    { party: 5, rank: 3, class: "rank-3" }
+                ],
+                authorizedSets: "9 different valid combinations",
+                validSets: 9
+            }
+        };
+        
+        function updateConfigInfo() {
+            const selectedConfig = configSelect.value;
+            const config = configDetails[selectedConfig];
+            
+            const badgesHtml = config.badges.map(b => 
+                `<span class="badge ${b.class}">Party ${b.party}: Rank ${b.rank}</span>`
+            ).join(' ');
+            
+            configInfo.innerHTML = `
+                <h4>Current Configuration: ${config.title}</h4>
+                <p><strong>Threshold:</strong> ${config.threshold} | <strong>Parties:</strong> ${config.parties} | <strong>Ranks:</strong> ${badgesHtml}</p>
+                <p><strong>Valid Authorized Sets (${config.validSets}):</strong> ${config.authorizedSets}</p>
+            `;
+        }
+        
+        function showStatus(message, type) {
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+            statusElement.style.display = 'block';
+        }
+        
+        function hideStatus() {
+            statusElement.style.display = 'none';
+        }
+        
+        // Update config info when selection changes
+        configSelect.addEventListener('change', updateConfigInfo);
+        
+        testButton.addEventListener('click', async () => {
+            testButton.disabled = true;
+            testAllButton.disabled = true;
+            outputElement.textContent = '';
+            
+            const selectedConfig = configSelect.value;
+            const config = configDetails[selectedConfig];
+            
+            showStatus(`🔄 Running ${config.title} hierarchical threshold key generation test...`, 'running');
+            
+            // Capture console output
+            const originalLog = console.log;
+            const originalError = console.error;
+            
+            console.log = (...args) => {
+                outputElement.textContent += args.join(' ') + '\n';
+                outputElement.scrollTop = outputElement.scrollHeight;
+                originalLog.apply(console, args);
+            };
+            
+            console.error = (...args) => {
+                outputElement.textContent += '❌ ERROR: ' + args.join(' ') + '\n';
+                outputElement.scrollTop = outputElement.scrollHeight;
+                originalError.apply(console, args);
+            };
+            
+            try {
+                const startTime = performance.now();
+                const result = await runTest(selectedConfig);
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+                
+                outputElement.textContent += `\n🎉 Test completed successfully in ${duration}ms!\n`;
+                outputElement.textContent += `✅ Generated ${result.keyShares.length} hierarchical threshold key shares\n`;
+                outputElement.textContent += `🏛️ Configuration: ${result.config.t}-of-${result.config.n} with ${result.config.validSets} valid authorized sets\n`;
+                outputElement.textContent += `📊 Protocol completed all rounds successfully\n`;
+                
+                showStatus(`✅ ${config.title} test completed successfully!`, 'success');
+            } catch (error) {
+                outputElement.textContent += `\n💥 Test failed with error: ${error.message}\n`;
+                if (error.stack) {
+                    outputElement.textContent += `📋 Stack trace: ${error.stack}\n`;
+                }
+                showStatus(`❌ ${config.title} test failed. Check output for details.`, 'error');
+            } finally {
+                // Restore original console functions
+                console.log = originalLog;
+                console.error = originalError;
+                testButton.disabled = false;
+                testAllButton.disabled = false;
+                outputElement.scrollTop = outputElement.scrollHeight;
+            }
+        });
+        
+        testAllButton.addEventListener('click', async () => {
+            testButton.disabled = true;
+            testAllButton.disabled = true;
+            outputElement.textContent = '';
+            
+            showStatus('🔄 Running all hierarchical threshold test configurations...', 'running');
+            
+            // Capture console output
+            const originalLog = console.log;
+            const originalError = console.error;
+            
+            console.log = (...args) => {
+                outputElement.textContent += args.join(' ') + '\n';
+                outputElement.scrollTop = outputElement.scrollHeight;
+                originalLog.apply(console, args);
+            };
+            
+            console.error = (...args) => {
+                outputElement.textContent += '❌ ERROR: ' + args.join(' ') + '\n';
+                outputElement.scrollTop = outputElement.scrollHeight;
+                originalError.apply(console, args);
+            };
+            
+            try {
+                const startTime = performance.now();
+                const results = await runAllTests();
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+                
+                const successCount = Object.values(results).filter(r => !r.error).length;
+                const totalCount = Object.keys(results).length;
+                
+                outputElement.textContent += `\n🎊 All tests completed in ${duration}ms!\n`;
+                outputElement.textContent += `📊 Results: ${successCount}/${totalCount} configurations passed\n`;
+                
+                Object.entries(results).forEach(([configName, result]) => {
+                    if (result.error) {
+                        outputElement.textContent += `❌ ${configName}: ${result.error}\n`;
+                    } else {
+                        outputElement.textContent += `✅ ${configName}: ${result.keyShares.length} key shares generated\n`;
+                    }
+                });
+                
+                if (successCount === totalCount) {
+                    showStatus(`✅ All ${totalCount} test configurations completed successfully!`, 'success');
+                } else {
+                    showStatus(`⚠️ ${successCount}/${totalCount} tests passed. Some configurations failed.`, 'error');
+                }
+            } catch (error) {
+                outputElement.textContent += `\n💥 Test suite failed with error: ${error.message}\n`;
+                showStatus('❌ Test suite execution failed. Check output for details.', 'error');
+            } finally {
+                // Restore original console functions
+                console.log = originalLog;
+                console.error = originalError;
+                testButton.disabled = false;
+                testAllButton.disabled = false;
+                outputElement.scrollTop = outputElement.scrollHeight;
+            }
+        });
+        
+        clearButton.addEventListener('click', () => {
+            outputElement.textContent = `Ready to run hierarchical threshold key generation test...
+
+Select a configuration and click "Run Selected Test" to execute the protocol.
+
+📚 Educational Notes:
+• Hierarchical threshold schemes provide more granular access control than traditional threshold schemes
+• Ranks determine the "priority" or "level" of each party in the hierarchy
+• Lower ranks have higher privileges (rank 0 > rank 1 > rank 2, etc.)
+• The polynomial evaluation uses derivatives based on ranks for enhanced security
+• This implementation maintains compatibility with the existing CGGMP21 infrastructure
+
+🔬 Test Features:
+• Real-time progress tracking with detailed logging
+• Comprehensive validation of rank constraints and authorized sets
+• Multiple test configurations (small, medium, large)
+• Error handling and detailed debugging information
+• Browser-friendly interface with responsive design`;
+            hideStatus();
+            
+            // Reset progress bar
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const phaseText = document.getElementById('phaseText');
+            
+            if (progressBar) progressBar.style.width = '0%';
+            if (progressText) progressText.textContent = '0%';
+            if (phaseText) phaseText.textContent = 'Ready to start hierarchical threshold key generation test';
+        });
+        
+        // Initialize with default config info
+        updateConfigInfo();
+    </script>
+</body>
+</html> 

@@ -353,10 +353,10 @@ where
 
         // Encrypt k_i and gamma_i
         let dec_i = &self.key_share.aux.dec;
-        let K_i = dec_i
+        let K_i = dec_i.encryption_key()
             .encrypt_with(&utils::scalar_to_bignumber(&k_i), &rho_i)
             .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt K_i: {:?}", e))))?;
-        let G_i = dec_i
+        let G_i: BigInt = dec_i
             .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &nu_i)
             .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt G_i: {:?}", e))))?;
 

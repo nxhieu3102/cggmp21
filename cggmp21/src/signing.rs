@@ -2,7 +2,6 @@
 #![allow(unused_extern_crates)]
 
 pub mod signing_stateful;
-
 use digest::Digest;
 use futures::SinkExt;
 use generic_ec::{coords::AlwaysHasAffineX, Curve, NonZero, Point, Scalar, SecretScalar};
@@ -315,6 +314,9 @@ pub struct SigningBuilder<
 
     #[cfg(feature = "hd-wallet")]
     additive_shift: Option<Scalar<E>>,
+    
+    /// Cached precompute tables for benchmarking purposes
+    cached_precompute_tables: Option<Vec<fast_paillier::precomputed_table::PrecomputeTable>>,
 }
 
 impl<'r, E, L, D> SigningBuilder<'r, E, L, D>
@@ -341,6 +343,7 @@ where
             _digest: std::marker::PhantomData,
             #[cfg(feature = "hd-wallet")]
             additive_shift: None,
+            cached_precompute_tables: None,
         }
     }
 
@@ -359,6 +362,7 @@ where
             _digest: std::marker::PhantomData,
             #[cfg(feature = "hd-wallet")]
             additive_shift: self.additive_shift,
+            cached_precompute_tables: self.cached_precompute_tables,
         }
     }
 
@@ -440,6 +444,18 @@ where
         Ok(self)
     }
 
+    /// Sets cached precompute tables for benchmarking purposes
+    ///
+    /// When cached precompute tables are provided, they will be used instead of creating
+    /// new tables during signing, which can significantly improve performance in benchmarks.
+    pub fn set_cached_precompute_tables(
+        mut self,
+        tables: Vec<fast_paillier::precomputed_table::PrecomputeTable>,
+    ) -> Self {
+        self.cached_precompute_tables = Some(tables);
+        self
+    }
+
     /// Starts presignature generation protocol
     pub async fn generate_presignature<R, M>(
         self,
@@ -450,6 +466,7 @@ where
         R: RngCore + CryptoRng,
         M: Mpc<ProtocolMessage = Msg<E, D>>,
     {
+        let cached_tables = self.cached_precompute_tables.as_deref();
         match signing_t_out_of_n(
             self.tracer,
             rng,
@@ -464,6 +481,7 @@ where
             self.additive_shift,
             #[cfg(not(feature = "hd-wallet"))]
             None,
+            cached_tables,
         )
         .await?
         {
@@ -501,6 +519,8 @@ where
         M: Mpc<ProtocolMessage = Msg<E, D>>,
     {
         std::println!("Start signing...");
+        let cached_tables = self.cached_precompute_tables.as_deref();
+        std::println!("cached_tables null: {:?}", cached_tables.is_none());
         match signing_t_out_of_n(
             self.tracer,
             rng,
@@ -515,6 +535,7 @@ where
             self.additive_shift,
             #[cfg(not(feature = "hd-wallet"))]
             None,
+            cached_tables,
         )
         .await?
         {
@@ -558,6 +579,8 @@ where
 /// message_to_sign: message to sign
 /// enforce_reliable_broadcast: whether to enforce reliable broadcast
 /// additive_shift: additive shift for the key
+/// cached_precompute_tables: optional cached precompute tables for benchmarking
+#[allow(clippy::too_many_arguments)]
 async fn signing_t_out_of_n<M, E, L, D, R>(
     mut tracer: Option<&mut dyn Tracer>,
     rng: &mut R,
@@ -569,6 +592,7 @@ async fn signing_t_out_of_n<M, E, L, D, R>(
     message_to_sign: Option<DataToSign<E>>,
     enforce_reliable_broadcast: bool,
     additive_shift: Option<Scalar<E>>,
+    cached_precompute_tables: Option<&[fast_paillier::precomputed_table::PrecomputeTable]>,
 ) -> Result<ProtocolOutput<E>, SigningError>
 where
     M: Mpc<ProtocolMessage = Msg<E, D>>,
@@ -717,6 +741,7 @@ where
         &R,
         message_to_sign,
         enforce_reliable_broadcast,
+        cached_precompute_tables,
     )
     .await
 }
@@ -725,6 +750,9 @@ where
 ///
 /// Implementation has very little differences compared to original CGGMP protocol: we added broadcast
 /// reliability check, fixed some typos in CGGMP, etc. Differences are covered in the specs.
+use fast_paillier::precomputed_table;
+
+use paillier_zk::fast_paillier::AnyEncryptionKey;
 async fn signing_n_out_of_n<M, E, L, D, R>(
     mut tracer: Option<&mut dyn Tracer>,
     rng: &mut R,
@@ -739,6 +767,7 @@ async fn signing_n_out_of_n<M, E, L, D, R>(
     R: &[PartyAux],
     message_to_sign: Option<DataToSign<E>>,
     enforce_reliable_broadcast: bool,
+    cached_precompute_tables: Option<&[fast_paillier::precomputed_table::PrecomputeTable]>,
 ) -> Result<ProtocolOutput<E>, SigningError>
 where
     M: Mpc<ProtocolMessage = Msg<E, D>>,
@@ -783,21 +812,59 @@ where
     let gamma_i = Scalar::<E>::random(rng);
 
     // rho_i, nu_i in Z_{N_i}*
-    let rho_i = BigInt::gen_invertible(N_i, rng);
-    let nu_i = BigInt::gen_invertible(N_i, rng);
-
+    // let rho_i = BigInt::gen_invertible(N_i, rng);
+    // let nu_i = BigInt::gen_invertible(N_i, rng);
+    let rho_i = fast_paillier::utils::sample_with_size(rng, dec_i.nounce_size());
+    let nu_i = fast_paillier::utils::sample_with_size(rng, dec_i.nounce_size());
     std::println!("signing_n_out_of_n: 5");
 
     tracer.stage("Encrypt k_i and gamma_i");
     // K_i = enc_i(k_i, rho_i)
-    let K_i = dec_i
-        .encrypt_with(&utils::scalar_to_bignumber(&k_i), &rho_i)
+
+    let ek_i = dec_i.encryption_key();
+    
+    // Use cached precompute table if available, otherwise create a new one
+    let precomputable = if let Some(cached_tables) = cached_precompute_tables {
+        if let Some(cached_table) = cached_tables.get(usize::from(i)) {
+            std::println!("cached_tables not null: {:?}", i);
+            cached_table.clone()
+        } else {
+            std::println!("cached_tables null: {:?}", i);
+            // Fallback to creating a new table if not enough cached tables
+            let h_pow_n = ek_i.h_pow_n().clone();
+            let nn = ek_i.nn().clone();
+            let a_size = ek_i.a_size() as usize;
+            precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn)
+        }
+    } else {
+        // No cached tables available, create a new one
+        std::println!("cached_tables null: {:?}", i);
+        let h_pow_n = ek_i.h_pow_n().clone();
+        let nn = ek_i.nn().clone();
+        let a_size = ek_i.a_size() as usize;
+        precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn)
+    };
+    
+    // Now use the precomputable table for encryptions
+    tracer.stage("Encrypt k_i and gamma_i");
+    // K_i = enc_i(k_i, rho_i)
+
+    let K_i = ek_i
+        .encrypt_with_precompute_table(rng, &precomputable, &utils::scalar_to_bignumber(&k_i), Some(&rho_i))
         .map_err(|e| Bug::PaillierEnc(BugSource::K_i, e))?;
     // G_i = enc_i(gamma_i, nu_i)
-    let G_i = dec_i
-        .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &nu_i)
+    let G_i = ek_i
+        .encrypt_with_precompute_table(rng, &precomputable, &utils::scalar_to_bignumber(&gamma_i), Some(&nu_i))
         .map_err(|e| Bug::PaillierEnc(BugSource::G_i, e))?;
-    runtime.yield_now().await;
+
+    // let K_i = dec_i
+    //     .encrypt_with(&utils::scalar_to_bignumber(&k_i), &rho_i)
+    //     .map_err(|e| Bug::PaillierEnc(BugSource::K_i, e))?;
+    // // G_i = enc_i(gamma_i, nu_i)
+    // let G_i = dec_i
+    //     .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &nu_i)
+    //     .map_err(|e| Bug::PaillierEnc(BugSource::G_i, e))?;
+    // runtime.yield_now().await;
 
     // TODO: sample Y_i <- G; a_i, b_i <- F_q (G is elliptic curve point, F_q is field element) (DONE)
     let Y_i = Point::generator() * Scalar::<E>::random(rng);
@@ -1042,17 +1109,66 @@ where
     // Q: what are beta_sum, hat_beta_sum?
     let mut beta_sum = Scalar::zero();
     let mut hat_beta_sum = Scalar::zero();
+    
+    // Create precompute table for dec_i (used for encryption)
+    let dec_i_ek = dec_i.encryption_key();
+    let precompute_dec_i = precomputed_table::PrecomputeTable::new_dp(
+        dec_i_ek.h_pow_n().clone(),
+        10, // Increased block size for better performance
+        dec_i_ek.a_size() as usize,
+        dec_i_ek.nn().clone(),
+    );
+    
+    // Create precompute tables for all enc_j upfront
+    let mut precompute_tables_j = std::collections::HashMap::new();
+    for (j, _, _) in round1a_msgs.iter_indexed() {
+        let R_j = &R[usize::from(j)];
+        let enc_j = &R_j.enc;
+        
+        // Use cached precompute table if available, otherwise create a new one
+        let precompute_enc_j = if let Some(cached_tables) = cached_precompute_tables {
+            if let Some(cached_table) = cached_tables.get(usize::from(j)) {
+                cached_table.clone()
+            } else {
+                // Fallback to creating a new table if not enough cached tables
+                precomputed_table::PrecomputeTable::new_dp(
+                    enc_j.h_pow_n().clone(),
+                    5,
+                    enc_j.a_size() as usize,
+                    enc_j.nn().clone(),
+                )
+            }
+        } else {
+            // No cached tables available, create a new one
+            precomputed_table::PrecomputeTable::new_dp(
+                enc_j.h_pow_n().clone(),
+                5,
+                enc_j.a_size() as usize,
+                enc_j.nn().clone(),
+            )
+        };
+        
+        precompute_tables_j.insert(j, precompute_enc_j);
+    }
+    
     for (j, _, round1a_msg) in round1a_msgs.iter_indexed() {
         tracer.stage("Sample random r, hat_r, s, hat_s, beta, hat_beta");
         let R_j = &R[usize::from(j)];
         let enc_j = &R_j.enc.clone();
 
+        // Get the precomputed table for this party j
+        let precompute_enc_j = &precompute_tables_j[&j];
+
         // r_ij, hat_r_ij, s_ij, hat_s_ij in Z_Nj
         // TODO: N_j or N_i here => N_i (DONE)
-        let r_ij = rng.gen_bigint_range(&BigInt::from(0), &N_i);
-        let hat_r_ij = rng.gen_bigint_range(&BigInt::from(0), &N_i);
-        let s_ij = rng.gen_bigint_range(&BigInt::from(0), &N_i);
-        let hat_s_ij = rng.gen_bigint_range(&BigInt::from(0), &N_i);
+        // let r_ij = rng.gen_bigint_range(&BigInt::from(0), &N_i);
+        let r_ij = fast_paillier::utils::sample_with_size(rng, dec_i.nounce_size());
+        // let hat_r_ij = rng.gen_bigint_range(&BigInt::from(0), &N_i);
+        let hat_r_ij = fast_paillier::utils::sample_with_size(rng, dec_i.nounce_size());
+        // let s_ij = rng.gen_bigint_range(&BigInt::from(0), &N_i);
+        let s_ij = fast_paillier::utils::sample_with_size(rng, dec_i.nounce_size());
+        // let hat_s_ij = rng.gen_bigint_range(&BigInt::from(0), &N_i);
+        let hat_s_ij = fast_paillier::utils::sample_with_size(rng, dec_i.nounce_size());
 
         // 0 <= beta_ij, hat_beta_ij < J
         let beta_ij = BigInt::from_rng_pm(&J, rng);
@@ -1068,9 +1184,9 @@ where
             let gamma_i_times_K_j = enc_j
                 .omul(&utils::scalar_to_bignumber(&gamma_i), &round1a_msg.K_i)
                 .map_err(|e| Bug::PaillierOp(BugSource::gamma_i_times_K_j, e))?;
-            // enc_j(-beta_ij, s_ij)
+            // enc_j(-beta_ij, s_ij) using precompute table
             let neg_beta_ij_enc = enc_j
-                .encrypt_with(&(-&beta_ij), &s_ij)
+                .encrypt_with_precompute_table(rng, precompute_enc_j, &(-&beta_ij), Some(&s_ij))
                 .map_err(|e| Bug::PaillierEnc(BugSource::neg_beta_ij_enc, e))?;
             // D_ji = gamma_i * K_j + enc_j(-beta_ij, s_ij) ~ ciphertext + ciphertext
             enc_j
@@ -1081,9 +1197,9 @@ where
         std::println!("signing_n_out_of_n: 11");
 
         tracer.stage("Encrypt F_ji");
-        // F_ji = enc_i(beta_ij, r_ij)
-        let F_ji = dec_i
-            .encrypt_with(&(-&beta_ij), &r_ij)
+        // F_ji = enc_i(beta_ij, r_ij) using precompute table
+        let F_ji = dec_i_ek
+            .encrypt_with_precompute_table(rng, &precompute_dec_i, &(-&beta_ij), Some(&r_ij))
             .map_err(|e| Bug::PaillierEnc(BugSource::F_ji, e))?;
 
         tracer.stage("Encrypt hat_D_ji");
@@ -1093,9 +1209,9 @@ where
             let x_i_times_K_j = enc_j
                 .omul(&utils::scalar_to_bignumber(x_i), &round1a_msg.K_i)
                 .map_err(|e| Bug::PaillierOp(BugSource::x_i_times_K_j, e))?;
-            // enc_j(-hat_beta_ij, hat_s_ij)
+            // enc_j(-hat_beta_ij, hat_s_ij) using precompute table
             let neg_hat_beta_ij_enc = enc_j
-                .encrypt_with(&(-&hat_beta_ij), &hat_s_ij)
+                .encrypt_with_precompute_table(rng, precompute_enc_j, &(-&hat_beta_ij), Some(&hat_s_ij))
                 .map_err(|e| Bug::PaillierEnc(BugSource::neg_hat_beta_ij_enc, e))?;
             // hat_D_ji = x_i * K_j + enc_j(-hat_beta_ij, hat_s_ij) ~ ciphertext + ciphertext
             enc_j
@@ -1105,9 +1221,9 @@ where
         runtime.yield_now().await;
 
         tracer.stage("Encrypt hat_F_ji");
-        // Fˆ_ji = enc_i(hat_beta_ij, hat_r_ij)
-        let hat_F_ji = dec_i
-            .encrypt_with(&(-&hat_beta_ij), &hat_r_ij)
+        // Fˆ_ji = enc_i(hat_beta_ij, hat_r_ij) using precompute table
+        let hat_F_ji = dec_i_ek
+            .encrypt_with_precompute_table(rng, &precompute_dec_i, &(-&hat_beta_ij), Some(&hat_r_ij))
             .map_err(|e| Bug::PaillierEnc(BugSource::hat_F_ji, e))?;
 
         tracer.stage("Prove psi_ji");
@@ -1619,6 +1735,7 @@ impl<E: Curve> Presignature<E> {
 
         Ok(self)
     }
+
 }
 
 #[cfg(feature = "hd-wallet")]

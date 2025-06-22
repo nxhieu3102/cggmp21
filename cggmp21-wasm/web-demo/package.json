@@ -1,0 +1,29 @@
+{
+  "name": "cggmp21-web-demo",
+  "version": "1.0.0",
+  "description": "CGGMP21 Hierarchical Threshold Secret Sharing Web Demonstration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "debug": "LOG_LEVEL=debug node server.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "cggmp21",
+    "threshold",
+    "cryptography",
+    "multi-party-computation",
+    "websocket",
+    "wasm",
+    "demo"
+  ],
+  "author": "CGGMP21 Demo",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.14.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+} 

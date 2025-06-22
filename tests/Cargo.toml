@@ -29,7 +29,7 @@ round-based = { workspace = true, features = [
     "state-machine",
 ] }
 generic-ec = { workspace = true, features = ["serde", "all-curves"] }
-
+paillier-zk = { workspace = true, features = ["serde"] }
 bpaf = "0.7"
 include_dir = "0.7"
 ciborium = "0.2"

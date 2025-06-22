@@ -310,17 +310,40 @@ fn do_benchmarks<L: SecurityLevel>(args: Args) {
             let message_to_sign = b"Dfns rules!";
             let message_to_sign = DataToSign::digest::<Sha256>(message_to_sign);
 
+            // Prepare cached precompute tables if available
+            let cached_tables = if cggmp21_tests::CACHED_PRECOMPUTE_TABLES.len() >= shares.len() {
+                let tables: Vec<_> = (0..shares.len())
+                    .filter_map(|i| cggmp21_tests::CACHED_PRECOMPUTE_TABLES.get(i))
+                    .collect();
+                if tables.len() == shares.len() {
+                    Some(tables)
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+
             let perf_reports = round_based::sim::run_with_setup(&shares, |i, party, share| {
                 let mut party_rng = rng.fork();
+                let cached_tables_clone = cached_tables.clone();
 
                 let mut profiler = PerfProfiler::new();
 
                 async move {
-                    let _signature = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
-                        .set_progress_tracer(&mut profiler)
+                    let mut signing_builder = cggmp21::signing(eid, i, signers_indexes_at_keygen, share)
+                        .set_progress_tracer(&mut profiler);
+                    
+                    // Set cached precompute tables if available
+                    if let Some(ref cached_tables) = cached_tables_clone {
+                        signing_builder = signing_builder.set_cached_precompute_tables(cached_tables.clone());
+                    }
+                    
+                    let _signature = signing_builder
                         .sign(&mut party_rng, party, message_to_sign)
                         .await
                         .context("signing failed")?;
+                        
                     profiler.get_report().context("get perf report")
                 }
             })
@@ -329,6 +352,11 @@ fn do_benchmarks<L: SecurityLevel>(args: Args) {
             .into_vec();
 
             println!("Signing protocol");
+            if cached_tables.is_some() {
+                println!("Using {} cached precompute tables", cached_tables.unwrap().len());
+            } else {
+                println!("No cached precompute tables available, creating fresh tables");
+            }
             println!("{}", perf_reports[0].clone().display_io(false));
             println!();
         }

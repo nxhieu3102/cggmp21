@@ -156,6 +156,38 @@ mod unambiguous {
     }
 }
 
+/// Run hierarchical threshold key generation protocol
+///
+/// This function executes the full hierarchical threshold distributed key generation (DKG)
+/// protocol among a group of parties. Unlike regular threshold schemes, this uses hierarchical
+/// threshold secret sharing (HTSS) where parties have different ranks that affect their
+/// signing capabilities.
+///
+/// # Parameters
+/// * `tracer` - Optional progress tracer for monitoring protocol execution
+/// * `i` - Index of this party (0-based)
+/// * `t` - Threshold (minimum number of parties required for operations)
+/// * `ranks` - Vector of ranks for all parties (each rank must be < t)
+/// * `n` - Total number of parties
+/// * `reliable_broadcast_enforced` - Whether to enforce reliable broadcast
+/// * `sid` - Session/execution identifier
+/// * `rng` - Random number generator
+/// * `party` - MPC party for network communication
+/// * `hd_enabled` - Whether HD wallet features are enabled (if compiled with hd-wallet feature)
+///
+/// # Returns
+/// Returns a `CoreKeyShare<E>` containing the generated hierarchical threshold key share
+/// with rank information preserved for proper threshold operations.
+///
+/// # Protocol Overview
+/// The protocol follows these main phases:
+/// 1. **Round 1**: Each party commits to their polynomial and Schnorr proof
+/// 2. **Round 2**: Parties broadcast decommitments and send polynomial evaluations using ranks
+/// 3. **Round 3**: Parties provide Schnorr proofs of their secret shares
+/// 4. **Verification**: All proofs are validated and the final key share is constructed
+///
+/// The key difference from regular threshold is that polynomial evaluations use
+/// `nth_derivative_at(x, rank)` instead of `value(x)`, enabling hierarchical access control.
 pub async fn run_hierarchical_threshold_keygen<E, R, M, L, D>(
     mut tracer: Option<&mut dyn Tracer>,
     i: u16,

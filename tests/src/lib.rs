@@ -7,7 +7,8 @@ use generic_ec::Curve;
 use num_bigint::BigInt;
 use rand::{CryptoRng, RngCore};
 use serde_json::{Map, Value};
-
+use cggmp21::security_level;
+use paillier_zk::fast_paillier::utils::{serializable_bigint, serializable_vec_vec_bigint};
 /// Wraps a sink to buffer the messages. Used in [`buffer_outgoing`]
 #[pin_project::pin_project]
 pub struct BufferedSink<M, Inner> {
@@ -101,6 +102,17 @@ lazy_static::lazy_static! {
         PregeneratedPaillierKeys::from_serialized(
             include_str!("../../test-data/precomputed_paillier_keys.json")
         ).unwrap();
+    pub static ref CACHED_PRECOMPUTE_TABLES: PregeneratedPrecomputeTables = {
+        let file_path = "/Users/hieunguyen/WorkSpace/Personal/thesis/fork-cggmp21/test-data/precomputed_precompute_tables.json";
+        if std::path::Path::new(file_path).exists() {
+            let content = std::fs::read_to_string(file_path)
+                .unwrap_or_else(|_| "{}".to_string());
+            PregeneratedPrecomputeTables::from_serialized(&content)
+                .unwrap_or_else(|_| PregeneratedPrecomputeTables::empty())
+        } else {
+            PregeneratedPrecomputeTables::empty()
+        }
+    };
 }
 
 use std::any::type_name;
@@ -170,6 +182,104 @@ pub struct PregeneratedPaillierKeys {
     paillier_keys: Vec<fast_paillier::DecryptionKey>,
     n_size: u32,
     a_size: u32,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct CachedPrecomputeTable {
+    #[serde(with = "serializable_bigint")]
+    h_pow_n: num_bigint::BigInt,
+    block_size: usize,
+    a_size: usize,
+    #[serde(with = "serializable_bigint")]
+    nn: num_bigint::BigInt,
+    // We'll store the serialized table data
+    #[serde(with = "serializable_vec_vec_bigint")]
+    table_data: Vec<Vec<num_bigint::BigInt>>,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct PregeneratedPrecomputeTables {
+    tables: Vec<CachedPrecomputeTable>,
+}
+
+impl PregeneratedPrecomputeTables {
+    pub fn empty() -> Self {
+        Self {
+            tables: Vec::new(),
+        }
+    }
+
+    pub fn from_serialized(repr: &str) -> Result<Self> {
+        serde_json::from_str(repr).context("parse precompute tables")
+    }
+
+    pub fn to_serialized(&self) -> Result<String> {
+        serde_json::to_string_pretty(self).context("serialize precompute tables")
+    }
+
+    /// Generate precompute tables from paillier keys
+    pub fn generate_from_paillier_keys<L>(
+        paillier_keys: &PregeneratedPaillierKeys,
+        block_size: usize,
+    ) -> Self
+    where
+        L: crate::security_level::SecurityLevel,
+    {
+        let mut tables = Vec::new();
+        
+        for dec_key in &paillier_keys.paillier_keys {
+            let ek = dec_key.encryption_key();
+            let h_pow_n = ek.h_pow_n().clone();
+            let nn = ek.nn().clone();
+            let a_size = ek.a_size() as usize;
+            
+            // Create the precompute table
+            let table_data = fast_paillier::precomputed_table::PrecomputeTable::new_dp(
+                h_pow_n.clone(),
+                block_size,
+                a_size,
+                nn.clone(),
+            );
+            tables.push(CachedPrecomputeTable {
+                h_pow_n,
+                block_size,
+                a_size,
+                nn,
+                table_data:table_data.table().clone(),
+            });
+        }
+
+        Self { tables }
+    }
+
+         /// Get iterator over precompute tables
+     pub fn iter(&self) -> impl Iterator<Item = fast_paillier::precomputed_table::PrecomputeTable> + '_ {
+         self.tables.iter().map(|cached| {
+             // Recreate the table from stored parameters
+             fast_paillier::precomputed_table::PrecomputeTable::new_dp(
+                 cached.h_pow_n.clone(),
+                 cached.block_size,
+                 cached.a_size,
+                 cached.nn.clone(),
+             )
+         })
+     }
+
+     /// Get a specific table by index
+     pub fn get(&self, index: usize) -> Option<fast_paillier::precomputed_table::PrecomputeTable> {
+         self.tables.get(index).map(|cached| {
+             fast_paillier::precomputed_table::PrecomputeTable::new_dp(
+                 cached.h_pow_n.clone(),
+                 cached.block_size,
+                 cached.a_size,
+                 cached.nn.clone(),
+             )
+         })
+     }
+
+    pub fn len(&self) -> usize {
+        self.tables.len()
+    }
 }
 
 impl PregeneratedPaillierKeys {
