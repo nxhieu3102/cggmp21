@@ -14,6 +14,7 @@ use paillier_zk::{
 };
 use num_bigint::{BigInt, RandBigInt};
 use paillier_zk::fast_paillier;
+use paillier_zk::fast_paillier::precomputed_table;
 use rand_core::{CryptoRng, RngCore};
 use round_based::rounds_router::simple_store::RoundMsgs;
 use thiserror::Error;
@@ -172,6 +173,8 @@ pub struct SigningProtocol<
     pub shared_public_key: Point<E>,
     /// Party auxiliary data
     pub R: Vec<PartyAux>,
+    /// Cached precompute tables for benchmarking purposes
+    pub cached_precompute_tables: Option<Vec<precomputed_table::PrecomputeTable>>,
 }
 
 impl<
@@ -227,8 +230,8 @@ where
         rng: R,
         message_to_sign: Option<DataToSign<E>>,
         reliable_broadcast_enforced: bool,
-        
         additive_shift: Option<Scalar<E>>,
+        cached_precompute_tables: Option<Vec<precomputed_table::PrecomputeTable>>,
     ) -> Result<Self, SigningParameterError> {
         Self::validate_parameters(i, &signing_parties, &key_share)?;
 
@@ -337,6 +340,7 @@ where
             X,
             shared_public_key,
             R,
+            cached_precompute_tables,
         })
     }
 
@@ -353,11 +357,32 @@ where
 
         // Encrypt k_i and gamma_i
         let dec_i = &self.key_share.aux.dec;
-        let K_i = dec_i.encryption_key()
-            .encrypt_with(&utils::scalar_to_bignumber(&k_i), &rho_i)
+        let ek_i = dec_i.encryption_key();
+        
+        // Use cached precompute table if available, otherwise create a new one
+        let precomputable = if let Some(ref cached_tables) = self.cached_precompute_tables {
+            if let Some(cached_table) = cached_tables.get(usize::from(self.state.i)) {
+                cached_table.clone()
+            } else {
+                // Fallback to creating a new table if not enough cached tables
+                let h_pow_n = ek_i.h_pow_n().clone();
+                let nn = ek_i.nn().clone();
+                let a_size = ek_i.a_size() as usize;
+                precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn)
+            }
+        } else {
+            // No cached tables available, create a new one
+            let h_pow_n = ek_i.h_pow_n().clone();
+            let nn = ek_i.nn().clone();
+            let a_size = ek_i.a_size() as usize;
+            precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn)
+        };
+        
+        let K_i = ek_i
+            .encrypt_with_precompute_table(&mut self.rng, &precomputable, &utils::scalar_to_bignumber(&k_i), Some(&rho_i))
             .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt K_i: {:?}", e))))?;
-        let G_i: BigInt = dec_i
-            .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &nu_i)
+        let G_i = ek_i
+            .encrypt_with_precompute_table(&mut self.rng, &precomputable, &utils::scalar_to_bignumber(&gamma_i), Some(&nu_i))
             .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt G_i: {:?}", e))))?;
 
         // Generate ElGamal commitment values
@@ -643,11 +668,63 @@ where
         let mut hat_beta_sum = Scalar::zero();
         let mut messages = Vec::new();
 
+        // Create precompute table for dec_i (used for encryption)
+        let dec_i = &self.key_share.aux.dec;
+        let dec_i_ek = dec_i.encryption_key();
+        let precompute_dec_i = if let Some(ref cached_tables) = self.cached_precompute_tables {
+            if let Some(cached_table) = cached_tables.get(usize::from(self.state.i)) {
+                cached_table.clone()
+            } else {
+                precomputed_table::PrecomputeTable::new_dp(
+                    dec_i_ek.h_pow_n().clone(),
+                    10,
+                    dec_i_ek.a_size() as usize,
+                    dec_i_ek.nn().clone(),
+                )
+            }
+        } else {
+            precomputed_table::PrecomputeTable::new_dp(
+                dec_i_ek.h_pow_n().clone(),
+                10,
+                dec_i_ek.a_size() as usize,
+                dec_i_ek.nn().clone(),
+            )
+        };
+        
+        // Create precompute tables for all enc_j upfront
+        let mut precompute_tables_j = std::collections::HashMap::new();
+        for (j, _, _) in round1a_msgs.iter_indexed() {
+            let R_j = &self.R[usize::from(j)];
+            let enc_j = &R_j.enc;
+            
+            // Use cached precompute table if available, otherwise create a new one
+            let precompute_enc_j = if let Some(ref cached_tables) = self.cached_precompute_tables {
+                if let Some(cached_table) = cached_tables.get(usize::from(j)) {
+                    cached_table.clone()
+                } else {
+                    precomputed_table::PrecomputeTable::new_dp(
+                        enc_j.h_pow_n().clone(),
+                        5,
+                        enc_j.a_size() as usize,
+                        enc_j.nn().clone(),
+                    )
+                }
+            } else {
+                precomputed_table::PrecomputeTable::new_dp(
+                    enc_j.h_pow_n().clone(),
+                    5,
+                    enc_j.a_size() as usize,
+                    enc_j.nn().clone(),
+                )
+            };
+            
+            precompute_tables_j.insert(j, precompute_enc_j);
+        }
+
         for (j, _, round1a_msg) in round1a_msgs.iter_indexed() {
             let R_j = &self.R[usize::from(j)];
             let R_i = &self.R[usize::from(self.state.i)];
             let enc_j = &R_j.enc.clone();
-            let dec_i = &self.key_share.aux.dec;
             let N_i = &R_i.N;
 
             // Generate random values
@@ -662,21 +739,24 @@ where
             beta_sum += beta_ij.to_scalar();
             hat_beta_sum += hat_beta_ij.to_scalar();
 
-            // Compute D_ji, F_ji, hat_D_ji, hat_F_ji
+            // Get precompute tables for this specific party j
+            let precompute_enc_j = precompute_tables_j.get(&j).unwrap();
+            
+            // Compute D_ji, F_ji, hat_D_ji, hat_F_ji using precompute tables
             let D_ji = {
                 let gamma_i_times_K_j = enc_j
                     .omul(&utils::scalar_to_bignumber(gamma_i), &round1a_msg.K_i)
                     .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to compute gamma_i * K_j: {:?}", e))))?;
                 let neg_beta_ij_enc = enc_j
-                    .encrypt_with(&(-&beta_ij), &s_ij)
+                    .encrypt_with_precompute_table(&mut self.rng, precompute_enc_j, &(-&beta_ij), Some(&s_ij))
                     .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt -beta_ij: {:?}", e))))?;
                 enc_j
                     .oadd(&gamma_i_times_K_j, &neg_beta_ij_enc)
                     .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to compute D_ji: {:?}", e))))?
             };
 
-            let F_ji = dec_i
-                .encrypt_with(&(-&beta_ij), &r_ij)
+            let F_ji = dec_i.encryption_key()
+                .encrypt_with_precompute_table(&mut self.rng, &precompute_dec_i, &(-&beta_ij), Some(&r_ij))
                 .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt F_ji: {:?}", e))))?;
 
             let hat_D_ji = {
@@ -684,15 +764,15 @@ where
                     .omul(&utils::scalar_to_bignumber(&self.x_i), &round1a_msg.K_i)
                     .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to compute x_i * K_j: {:?}", e))))?;
                 let neg_hat_beta_ij_enc = enc_j
-                    .encrypt_with(&(-&hat_beta_ij), &hat_s_ij)
+                    .encrypt_with_precompute_table(&mut self.rng, precompute_enc_j, &(-&hat_beta_ij), Some(&hat_s_ij))
                     .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt -hat_beta_ij: {:?}", e))))?;
                 enc_j
                     .oadd(&x_i_times_K_j, &neg_hat_beta_ij_enc)
                     .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to compute hat_D_ji: {:?}", e))))?
             };
 
-            let hat_F_ji = dec_i
-                .encrypt_with(&(-&hat_beta_ij), &hat_r_ij)
+            let hat_F_ji = dec_i.encryption_key()
+                .encrypt_with_precompute_table(&mut self.rng, &precompute_dec_i, &(-&hat_beta_ij), Some(&hat_r_ij))
                 .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt hat_F_ji: {:?}", e))))?;
 
             // Generate π_aff_batch proof
@@ -1149,6 +1229,56 @@ where
 
         self.state.signature = Some(sig);
         Ok(sig)
+    }
+
+    /// Set cached precompute tables for benchmarking purposes
+    pub fn set_cached_precompute_tables(&mut self, tables: Vec<precomputed_table::PrecomputeTable>) {
+        self.cached_precompute_tables = Some(tables);
+    }
+
+    /// Generate precompute tables for all parties participating in signing
+    /// This creates tables for encryption with each party's encryption key
+    pub fn generate_precompute_tables(&self) -> Vec<precomputed_table::PrecomputeTable> {
+        let mut tables = Vec::new();
+        
+        for (party_idx, _) in self.state.signing_parties.iter().enumerate() {
+            let party_i = self.state.signing_parties[party_idx];
+            let R_i = &self.R[usize::from(party_i)];
+            let enc_i = &R_i.enc;
+            
+            // Create precompute table for this party's encryption key
+            let table = precomputed_table::PrecomputeTable::new_dp(
+                enc_i.h_pow_n().clone(),
+                5, // depth for signing operations
+                enc_i.a_size() as usize,
+                enc_i.nn().clone(),
+            );
+            
+            tables.push(table);
+        }
+        
+        tables
+    }
+
+    /// Generate precompute table for a specific party's encryption key
+    /// This is useful for WASM where we might want to generate tables on-demand
+    pub fn generate_precompute_table_for_party(&self, party_index: u16) -> Result<precomputed_table::PrecomputeTable, SigningError> {
+        let party_pos = self.state.signing_parties.iter().position(|&p| p == party_index)
+            .ok_or_else(|| SigningError(SigningErrorReason::InvalidArgs(
+                format!("Party {} is not in signing parties list", party_index)
+            )))?;
+        
+        let R_party = &self.R[party_pos];
+        let enc_party = &R_party.enc;
+        
+        let table = precomputed_table::PrecomputeTable::new_dp(
+            enc_party.h_pow_n().clone(),
+            5, // depth for signing operations
+            enc_party.a_size() as usize,
+            enc_party.nn().clone(),
+        );
+        
+        Ok(table)
     }
 
     /// Get the current state for debugging/inspection

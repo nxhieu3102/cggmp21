@@ -1,9 +1,8 @@
 use digest::Digest;
 use futures::SinkExt;
 use paillier_zk::{
-    fast_paillier, no_small_factor::non_interactive as π_fac, paillier_blum_modulus as π_mod,
-    BigIntExt,
-    fast_paillier::utils::{serializable_bigint}
+    fast_paillier, fast_paillier::utils::serializable_bigint,
+    no_small_factor::non_interactive as π_fac, paillier_blum_modulus as π_mod, BigIntExt,
 };
 use rand_core::{CryptoRng, RngCore};
 use round_based::{

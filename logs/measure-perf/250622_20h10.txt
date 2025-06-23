@@ -1,0 +1,188 @@
+RUST_TESTS_SEED=512b5decd8aabf09ed92ff07d0ee9a03a7fdc8eacfee58f972f663895c134b4f
+n = 3
+
+Non-threshold DKG
+Protocol Performance:
+  - Protocol took 9.96ms to complete
+In particular:
+  - Stage: 433.46µs
+    - Setup networking: 433.17µs (99.9%)
+    - Unstaged: 292.00ns (0.1%)
+  - Round 1: 4.61ms
+    - Sample x_i, rid_i, chain_code: 2.04ms (44.2%)
+    - Sample schnorr commitment: 1.81ms (39.2%)
+    - Commit to public data: 762.25µs (16.5%)
+    - Unstaged: 1.54µs (0.0%)
+  - Round 2: 137.92µs
+    - Hash received msgs (reliability check): 136.79µs (99.2%)
+    - Unstaged: 1.12µs (0.8%)
+  - Round 3: 3.21µs
+    - Assert other parties hashed messages (reliability check): 2.25µs (70.1%)
+    - Unstaged: 959.00ns (29.9%)
+  - Round 4: 1.21ms
+    - Validate decommitments: 995.92µs (82.5%)
+    - Calculate challege rid: 200.42µs (16.6%)
+    - Prove knowledge of `x_i`: 9.75µs (0.8%)
+    - Unstaged: 1.46µs (0.1%)
+  - Round 5: 3.56ms
+    - Validate schnorr proofs: 3.56ms (99.8%)
+    - Unstaged: 7.83µs (0.2%)
+
+
+Threshold DKG
+Protocol Performance:
+  - Protocol took 13.84ms to complete
+In particular:
+  - Stage: 384.46µs
+    - Setup networking: 384.04µs (99.9%)
+    - Unstaged: 417.00ns (0.1%)
+  - Round 1: 1.79ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 1.60ms (89.7%)
+    - Commit to public data: 182.67µs (10.2%)
+    - Unstaged: 1.25µs (0.1%)
+  - Round 2: 47.17µs
+    - Hash received msgs (reliability check): 46.79µs (99.2%)
+    - Unstaged: 376.00ns (0.8%)
+  - Round 3: 1.04µs
+    - Assert other parties hashed messages (reliability check): 750.00ns (72.0%)
+    - Unstaged: 292.00ns (28.0%)
+  - Round 4: 9.06ms
+    - Validate decommitments: 339.54µs (3.7%)
+    - Validate data size: 1.50µs (0.0%)
+    - Validate Feldmann VSS: 4.29ms (47.4%)
+    - Compute rid: 9.13µs (0.1%)
+    - Compute Ys: 3.64ms (40.1%)
+    - Compute sigma: 533.83µs (5.9%)
+    - Calculate challenge: 248.00µs (2.7%)
+    - Prove knowledge of `sigma_i`: 2.04µs (0.0%)
+    - Unstaged: 540.00ns (0.0%)
+  - Round 5: 2.56ms
+    - Validate schnorr proofs: 2.54ms (99.4%)
+    - Derive resulting public key and other data: 14.88µs (0.6%)
+    - Unstaged: 1.29µs (0.1%)
+
+
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 24.68ms to complete
+In particular:
+  - Stage: 16.38µs
+    - Setup networking: 16.29µs (99.5%)
+    - Unstaged: 83.00ns (0.5%)
+  - Round 1: 3.24ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 3.05ms (94.3%)
+    - Commit to public data: 183.92µs (5.7%)
+    - Unstaged: 500.00ns (0.0%)
+  - Round 2: 46.21µs
+    - Hash received msgs (reliability check): 45.92µs (99.4%)
+    - Unstaged: 291.00ns (0.6%)
+  - Round 3: 1.04µs
+    - Assert other parties hashed messages (reliability check): 750.00ns (72.0%)
+    - Unstaged: 292.00ns (28.0%)
+  - Round 4: 18.27ms
+    - Validate decommitments: 352.08µs (1.9%)
+    - Validate data size: 2.63µs (0.0%)
+    - Validate Feldmann VSS: 5.80ms (31.8%)
+    - Compute rid: 16.29µs (0.1%)
+    - Compute Ys: 10.32ms (56.5%)
+    - Compute sigma: 1.50ms (8.2%)
+    - Calculate challenge: 262.04µs (1.4%)
+    - Prove knowledge of `sigma_i`: 4.38µs (0.0%)
+    - Unstaged: 292.00ns (0.0%)
+  - Round 5: 3.11ms
+    - Validate schnorr proofs: 3.04ms (97.9%)
+    - Derive resulting public key and other data: 62.42µs (2.0%)
+    - Unstaged: 2.50µs (0.1%)
+
+
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
