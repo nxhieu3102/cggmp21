@@ -183,17 +183,19 @@
                 <li><strong>Message to Sign:</strong> "Hello, World!" (hex: 48656c6c6f2c20576f726c6421)</li>
                 <li><strong>Reliable Broadcast:</strong> Disabled (for testing)</li>
                 <li><strong>Execution:</strong> <span class="performance-benefit">Web Worker (Non-blocking UI)</span></li>
+                <li><strong>Precompute Tables:</strong> <span id="precomputeStatus" class="performance-benefit">Enabled (Dynamic Generation)</span></li>
             </ul>
         </div>
     </div>
 
     <div class="performance-info">
         <h4>🚀 Performance Benefits</h4>
-        <p>This implementation uses <strong>Web Workers</strong> to run heavy cryptographic computations in the background, ensuring:</p>
+        <p>This implementation uses <strong>Web Workers</strong> and <strong>Precompute Tables</strong> for optimal performance:</p>
         <ul>
             <li>✅ <span class="performance-benefit">Non-blocking UI</span> - Interface remains responsive during computation</li>
             <li>✅ <span class="performance-benefit">Real-time progress</span> - Live updates on computation progress</li>
-            <li>✅ <span class="performance-benefit">Better user experience</span> - No browser freezing or lag</li>
+            <li>✅ <span class="performance-benefit">Precompute Tables</span> - Accelerated Paillier encryption operations</li>
+            <li>✅ <span class="performance-benefit">Dynamic table generation</span> - Tables created on-demand for benchmarking</li>
             <li>✅ <span class="performance-benefit">Automatic fallback</span> - Falls back to main thread if workers aren't supported</li>
         </ul>
         <div id="workerStatus" class="worker-status">
@@ -212,9 +214,16 @@
 
     <div class="container">
         <h2>Test Controls</h2>
+        <div style="margin-bottom: 20px;">
+            <label>
+                <input type="checkbox" id="usePrecomputeTablesCheckbox" checked>
+                <strong>Enable Precompute Tables</strong> (for performance comparison)
+            </label>
+        </div>
         <button id="fullPipelineBtn">🚀 Run Full Pipeline Test</button>
         <button id="keygenOnlyBtn">🔑 Run Keygen Only</button>
         <button id="auxgenOnlyBtn">⚙️ Run AuxGen Only</button>
+        <button id="signingOnlyBtn">✍️ Run Signing Only</button>
         <button id="clearBtn">🗑️ Clear Output</button>
     </div>
 

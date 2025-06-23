@@ -8,6 +8,10 @@ import init, {
 // Worker state
 let wasmInitialized = false;
 
+// Global state for precompute tables
+let usePrecomputeTables = true;
+let precomputeTablesCache = new Map();
+
 // Test configuration for 2-of-3 threshold signing
 const parties = [
     {
@@ -63,6 +67,37 @@ const sendProgress = (phase, round, message, progress = null) => {
         data: { phase, round, message, progress }
     });
 };
+
+// Helper functions for precompute table management
+async function generatePrecomputeTables(signingProtocol, cacheKey) {
+    if (!usePrecomputeTables) {
+        return null;
+    }
+    
+    // Check cache first
+    if (precomputeTablesCache.has(cacheKey)) {
+        sendProgress('precompute', 'cache', `Using cached precompute tables for ${cacheKey}`);
+        return precomputeTablesCache.get(cacheKey);
+    }
+    
+    sendProgress('precompute', 'generate', `Generating precompute tables for ${cacheKey}...`);
+    const start = performance.now();
+    
+    try {
+        const tables = signingProtocol.generate_precompute_tables();
+        const end = performance.now();
+        
+        sendProgress('precompute', 'complete', `Generated precompute tables in ${(end - start).toFixed(2)}ms`);
+        
+        // Cache the tables
+        precomputeTablesCache.set(cacheKey, tables);
+        
+        return tables;
+    } catch (error) {
+        sendProgress('precompute', 'error', `Failed to generate precompute tables: ${error.message}`);
+        throw error;
+    }
+}
 
 // Initialize WASM module
 async function initializeWasm() {
@@ -302,27 +337,59 @@ async function runAuxGeneration(incompleteKeyShares) {
 // Phase 3: Signing
 async function runSigning(completeKeyShares) {
     sendProgress('signing', 'start', 'Starting Signing Phase');
+    sendProgress('signing', 'config', `Precompute tables: ${usePrecomputeTables ? 'ENABLED' : 'DISABLED'}`);
 
     const signingParties = [0, 1];
     const signingKeyShares = signingParties.map(idx => completeKeyShares[idx]);
 
-    const signingProtocols = signingParties.map((globalIdx, localIdx) =>
-        new StatefulSigningProtocol({
+    // Create a test protocol instance to generate precompute tables if needed
+    let precomputeTables = null;
+    if (usePrecomputeTables) {
+        sendProgress('signing', 'precompute', 'Generating precompute tables for signing parties...');
+        const testProtocol = new StatefulSigningProtocol({
+            i: 0,
+            signing_parties: [0, 1],
+            sid: parties[0].sid + "-signing-precompute",
+            reliable_broadcast_enforced: false,
+            message_hex: MESSAGE_TO_SIGN
+        }, signingKeyShares[0]);
+        
+        precomputeTables = await generatePrecomputeTables(testProtocol, "signing-2of3");
+    }
+
+    const signingProtocols = signingParties.map((globalIdx, localIdx) => {
+        const protocol = new StatefulSigningProtocol({
             i: localIdx,
             signing_parties: [0, 1],
             sid: parties[globalIdx].sid + "-signing",
             reliable_broadcast_enforced: false,
-            message_hex: MESSAGE_TO_SIGN
-        }, signingKeyShares[localIdx])
-    );
+            message_hex: MESSAGE_TO_SIGN,
+            precompute_tables: precomputeTables
+        }, signingKeyShares[localIdx]);
+        
+        // Set precompute tables if available
+        if (precomputeTables && usePrecomputeTables) {
+            try {
+                protocol.set_cached_precompute_tables(precomputeTables);
+                sendProgress('signing', 'setup', `Precompute tables set for party ${localIdx}`);
+            } catch (error) {
+                sendProgress('signing', 'error', `Failed to set precompute tables for party ${localIdx}: ${error.message}`);
+            }
+        }
+        
+        return protocol;
+    });
 
     // Round 1a: Generate broadcast messages (parallelized)
     sendProgress('signing', 'round1a', 'Generating broadcast messages...', 15);
+    const start1a = performance.now();
     const round1aMessages = await Promise.all(
         signingProtocols.map(protocol =>
             Promise.resolve(protocol.round1a_generate_message())
         )
     );
+    const end1a = performance.now();
+    sendProgress('signing', 'timing', `Round 1a completed in ${(end1a - start1a).toFixed(2)}ms`);
 
     await Promise.all(
         signingProtocols.map(async (protocol, idx) => {
@@ -357,11 +424,14 @@ async function runSigning(completeKeyShares) {
 
     // Round 2: Generate P2P messages (parallelized)
     sendProgress('signing', 'round2', 'Generating P2P messages...', 45);
+    const start2 = performance.now();
     const round2Messages = await Promise.all(
         signingProtocols.map(protocol =>
             Promise.resolve(protocol.round2_generate_messages())
         )
     );
+    const end2 = performance.now();
+    sendProgress('signing', 'timing', `Round 2 completed in ${(end2 - start2).toFixed(2)}ms`);
 
     const round2Map = createP2PMap(round2Messages, signingParties);
     await Promise.all(
@@ -474,12 +544,26 @@ async function runSigning(completeKeyShares) {
         }
     }
 
+    // Performance summary
+    const totalSigningTime = (end2 - start1a);
+    sendProgress('signing', 'performance', `📊 Performance Summary:`);
+    sendProgress('signing', 'performance', `- Round 1a time: ${(end1a - start1a).toFixed(2)}ms`);
+    sendProgress('signing', 'performance', `- Round 2 time: ${(end2 - start2).toFixed(2)}ms`);
+    sendProgress('signing', 'performance', `- Total signing time: ${totalSigningTime.toFixed(2)}ms`);
+    sendProgress('signing', 'performance', `- Precompute tables: ${usePrecomputeTables ? 'ENABLED' : 'DISABLED'}`);
+    
     sendProgress('signing', 'complete', `Signing completed! Generated ${validSignatures.length} signatures, verification results: ${verificationResults.filter(r => r.isValid).length}/${verificationResults.length} valid`, 100);
 
     return {
         presignatures,
         signatures: validSignatures,
-        verificationResults
+        verificationResults,
+        performanceMetrics: {
+            round1aTime: end1a - start1a,
+            round2Time: end2 - start2,
+            totalSigningTime,
+            precomputeTablesEnabled: usePrecomputeTables
+        }
     };
 }
 
@@ -529,20 +613,24 @@ async function runFullPipelineTest() {
 
 // Handle messages from main thread
 self.onmessage = async function (e) {
-    const { type, data } = e.data;
+    const { type, data, messageId } = e.data;
+    console.log('🔧 Worker received message:', { type, messageId, hasData: !!data });
 
     try {
         switch (type) {
             case 'init':
+                console.log('🚀 Worker initializing WASM...');
                 await initializeWasm();
-                postMessage({ type: 'init_complete' });
+                console.log('✅ Worker WASM initialized, sending response...');
+                postMessage({ type: 'init_complete', messageId });
                 break;
 
             case 'run_keygen':
                 const keyShares = await runKeyGeneration();
                 postMessage({
                     type: 'keygen_complete',
-                    data: keyShares
+                    data: keyShares,
+                    messageId
                 });
                 break;
 
@@ -550,7 +638,8 @@ self.onmessage = async function (e) {
                 const completeShares = await runAuxGeneration(data.incompleteKeyShares);
                 postMessage({
                     type: 'auxgen_complete',
-                    data: completeShares
+                    data: completeShares,
+                    messageId
                 });
                 break;
 
@@ -558,7 +647,8 @@ self.onmessage = async function (e) {
                 const signingResults = await runSigning(data.completeKeyShares);
                 postMessage({
                     type: 'signing_complete',
-                    data: signingResults
+                    data: signingResults,
+                    messageId
                 });
                 break;
 
@@ -567,7 +657,41 @@ self.onmessage = async function (e) {
                 const results = await runFullPipelineTest();
                 postMessage({
                     type: 'pipeline_complete',
-                    data: results
+                    data: results,
+                    messageId
+                });
+                break;
+
+            case 'toggle_precompute_tables':
+                usePrecomputeTables = data.enabled;
+                if (!usePrecomputeTables) {
+                    precomputeTablesCache.clear();
+                }
+                sendProgress('config', 'precompute', `Precompute tables ${usePrecomputeTables ? 'ENABLED' : 'DISABLED'}`);
+                postMessage({
+                    type: 'precompute_toggled',
+                    data: { enabled: usePrecomputeTables },
+                    messageId
+                });
+                break;
+
+            case 'clear_precompute_cache':
+                precomputeTablesCache.clear();
+                sendProgress('config', 'cache', 'Precompute tables cache cleared');
+                postMessage({
+                    type: 'cache_cleared',
+                    messageId
+                });
+                break;
+                
+            case 'get_precompute_status':
+                postMessage({
+                    type: 'precompute_status',
+                    data: {
+                        enabled: usePrecomputeTables,
+                        cacheSize: precomputeTablesCache.size
+                    },
+                    messageId
                 });
                 break;
 
@@ -581,7 +705,8 @@ self.onmessage = async function (e) {
                 originalType: type,
                 message: error.message,
                 stack: error.stack
-            }
+            },
+            messageId
         });
     }
 }; 

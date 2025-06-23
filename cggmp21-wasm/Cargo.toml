@@ -24,7 +24,7 @@ generic-ec-zkp = { workspace = true }
 sha2 = { workspace = true }
 hex = { workspace = true }
 round-based = { workspace = true }
-
+paillier-zk = { workspace = true, features = ["serde"] }
 # Internal crates
 cggmp21-keygen = { workspace = true }
 cggmp21 = { workspace = true }

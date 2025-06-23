@@ -16,3 +16,4 @@ ws-server.cjs
 *~ 
 
 /web/node_modules/
+/web-demo/node_modules/

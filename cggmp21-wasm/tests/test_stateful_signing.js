@@ -38,6 +38,10 @@ const MESSAGE_TO_SIGN = "48656c6c6f2c20576f726c6421"; // "Hello, World!" in hex
 // Global state for WASM initialization
 let wasmInitialized = false;
 
+// Global state for precompute tables
+let usePrecomputeTables = true;
+let precomputeTablesCache = new Map();
+
 // Web Worker Manager for heavy computations
 class WorkerManager {
     constructor() {
@@ -55,12 +59,15 @@ class WorkerManager {
         }
 
         try {
+            console.log('🔧 Creating new Worker...');
             this.worker = new Worker('./test_worker.js', { type: 'module' });
             this.worker.onmessage = this.handleWorkerMessage.bind(this);
             this.worker.onerror = this.handleWorkerError.bind(this);
             
             // Initialize worker
+            console.log('📤 Sending init message to worker...');
             await this.sendMessage('init');
+            console.log('✅ Worker initialization completed');
             log("🔧 Web Worker initialized successfully", "success");
         } catch (error) {
             console.warn("Failed to initialize Web Worker, falling back to main thread:", error);
@@ -71,8 +78,17 @@ class WorkerManager {
     handleWorkerMessage(e) {
         const { type, data, messageId } = e.data;
         
-        if (type === 'progress' && this.progressCallback) {
-            this.progressCallback(data);
+        // Debug logging for worker messages
+        console.log('🔄 Worker message received:', { type, messageId, hasData: !!data });
+        
+        if (type === 'progress') {
+            console.log('🔍 Progress message received, callback exists:', !!this.progressCallback);
+            if (this.progressCallback) {
+                console.log('📊 Calling progress callback with:', data);
+                this.progressCallback(data);
+            } else {
+                console.warn('⚠️ Progress callback not set yet, message data:', data);
+            }
             return;
         }
 
@@ -85,6 +101,8 @@ class WorkerManager {
             } else {
                 resolve(data);
             }
+        } else if (messageId) {
+            console.warn('⚠️ Received message with unknown messageId:', messageId);
         }
     }
 
@@ -111,6 +129,7 @@ class WorkerManager {
     }
 
     setProgressCallback(callback) {
+        console.log('🔧 Setting progress callback:', !!callback);
         this.progressCallback = callback;
     }
 
@@ -128,6 +147,7 @@ const workerManager = new WorkerManager();
 
 // Browser-specific logging function
 function log(message, type = "normal") {
+    console.log("📝 log called:", message, type);
     const timestamp = new Date().toLocaleTimeString();
     let formattedMessage = `[${timestamp}] ${message}`;
     
@@ -145,30 +165,49 @@ function log(message, type = "normal") {
     // Log to console
     console.log(formattedMessage);
     
-    // If in browser environment, also log to DOM
+    // // If in browser environment, also log to DOM
     if (typeof document !== 'undefined') {
         const output = document.getElementById('output');
+        console.log('🎯 DOM output element found:', !!output);
         if (output) {
             output.textContent += formattedMessage + '\n';
             output.scrollTop = output.scrollHeight;
+            console.log('✅ Added to DOM output');
+        } else {
+            console.warn('⚠️ DOM output element not found');
         }
+    } else {
+        console.log('🌐 Not in browser environment');
     }
 }
 
 // Progress bar management
 function updateProgressBar(phase, progress, message) {
-    if (typeof document === 'undefined') return;
+    console.log('📊 updateProgressBar called:', { phase, progress, message });
+    
+    if (typeof document === 'undefined') {
+        console.log('🌐 Not in browser environment');
+        return;
+    }
     
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
     const phaseText = document.getElementById('phaseText');
     
+    console.log('🎯 Progress elements found:', {
+        progressBar: !!progressBar,
+        progressText: !!progressText,
+        phaseText: !!phaseText
+    });
+    
     if (progressBar && progressText && phaseText) {
         if (progress !== null) {
             progressBar.style.width = `${progress}%`;
             progressText.textContent = `${Math.round(progress)}%`;
+            console.log(`📈 Progress bar updated to ${progress}%`);
         }
         phaseText.textContent = `${phase}: ${message}`;
+        console.log(`📝 Phase text updated: ${phase}: ${message}`);
         
         // Change color based on progress
         if (progress >= 100) {
@@ -178,6 +217,8 @@ function updateProgressBar(phase, progress, message) {
         } else {
             progressBar.style.backgroundColor = '#ffc107'; // Warning yellow
         }
+    } else {
+        console.warn('⚠️ Some progress elements not found');
     }
 }
 
@@ -187,6 +228,56 @@ async function initializeWasm() {
         await init();
         wasmInitialized = true;
         log("WASM module initialized successfully", "success");
+    }
+}
+
+// Helper functions for precompute table management
+function getPrecomputeTablesEnabled() {
+    if (typeof document !== 'undefined') {
+        const checkbox = document.getElementById('usePrecomputeTablesCheckbox');
+        return checkbox ? checkbox.checked : usePrecomputeTables;
+    }
+    return usePrecomputeTables;
+}
+
+function updatePrecomputeStatus() {
+    if (typeof document !== 'undefined') {
+        const statusSpan = document.getElementById('precomputeStatus');
+        if (statusSpan) {
+            const enabled = getPrecomputeTablesEnabled();
+            statusSpan.textContent = enabled ? 'Enabled (Dynamic Generation)' : 'Disabled (Standard Encryption)';
+            statusSpan.className = enabled ? 'performance-benefit' : '';
+        }
+    }
+}
+
+async function generatePrecomputeTables(signingProtocol, cacheKey) {
+    if (!getPrecomputeTablesEnabled()) {
+        return null;
+    }
+    
+    // Check cache first
+    if (precomputeTablesCache.has(cacheKey)) {
+        log(`📋 Using cached precompute tables for ${cacheKey}`, "round");
+        return precomputeTablesCache.get(cacheKey);
+    }
+    
+    log(`🔧 Generating precompute tables for ${cacheKey}...`, "round");
+    const start = performance.now();
+    
+    try {
+        const tables = signingProtocol.generate_precompute_tables();
+        const end = performance.now();
+        
+        log(`✅ Generated precompute tables in ${(end - start).toFixed(2)}ms`, "success");
+        
+        // Cache the tables
+        precomputeTablesCache.set(cacheKey, tables);
+        
+        return tables;
+    } catch (error) {
+        log(`❌ Failed to generate precompute tables: ${error.message}`, "error");
+        throw error;
     }
 }
 
@@ -246,10 +337,15 @@ async function runSigning(completeKeyShares) {
 }
 
 async function runFullPipelineTest() {
+    console.log('🚀 runFullPipelineTest called');
+    console.log('Worker exists:', !!workerManager.worker);
+    console.log('Progress callback exists:', !!workerManager.progressCallback);
+    
     if (workerManager.worker) {
         log("🔧 Running full pipeline in Web Worker", "phase");
         return await workerManager.sendMessage('run_full_pipeline');
     } else {
+        log("🔧 Running full pipeline in main thread (fallback)", "phase");
         return await runFullPipelineTestMainThread();
     }
 }
@@ -401,24 +497,56 @@ async function runAuxGenerationMainThread(incompleteKeyShares) {
 
 async function runSigningMainThread(completeKeyShares) {
     log("Starting Signing Phase", "phase");
+    log(`Precompute tables: ${getPrecomputeTablesEnabled() ? 'ENABLED' : 'DISABLED'}`, "phase");
     
     const signingParties = [0, 1];
     const signingKeyShares = signingParties.map(idx => completeKeyShares[idx]);
     
-    const signingProtocols = signingParties.map((globalIdx, localIdx) => 
-        new StatefulSigningProtocol({
+    // Create a test protocol instance to generate precompute tables if needed
+    let precomputeTables = null;
+    if (getPrecomputeTablesEnabled()) {
+        log("Generating precompute tables for signing parties...", "round");
+        const testProtocol = new StatefulSigningProtocol({
+            i: 0,
+            signing_parties: [0, 1],
+            sid: parties[0].sid + "-signing-precompute",
+            reliable_broadcast_enforced: false,
+            message_hex: MESSAGE_TO_SIGN
+        }, signingKeyShares[0]);
+        
+        precomputeTables = await generatePrecomputeTables(testProtocol, "signing-2of3");
+    }
+    
+    const signingProtocols = signingParties.map((globalIdx, localIdx) => {
+        const protocol = new StatefulSigningProtocol({
             i: localIdx,
             signing_parties: [0, 1],
             sid: parties[globalIdx].sid + "-signing",
             reliable_broadcast_enforced: false,
-            message_hex: MESSAGE_TO_SIGN
-        }, signingKeyShares[localIdx])
-    );
+            message_hex: MESSAGE_TO_SIGN,
+            precompute_tables: precomputeTables
+        }, signingKeyShares[localIdx]);
+        
+        // Set precompute tables if available
+        if (precomputeTables && getPrecomputeTablesEnabled()) {
+            try {
+                protocol.set_cached_precompute_tables(precomputeTables);
+                log(`📋 Precompute tables set for party ${localIdx}`, "round");
+            } catch (error) {
+                log(`⚠️ Failed to set precompute tables for party ${localIdx}: ${error.message}`, "error");
+            }
+        }
+        
+        return protocol;
+    });
     
     log("Round 1a: Generating broadcast messages...", "round");
+    const start1a = performance.now();
     const round1aMessages = signingProtocols.map(protocol => 
         protocol.round1a_generate_message()
     );
+    const end1a = performance.now();
+    log(`Round 1a completed in ${(end1a - start1a).toFixed(2)}ms`, "round");
     
     signingProtocols.forEach((protocol, idx) => {
         const otherMessages = round1aMessages.filter((_, msgIdx) => msgIdx !== idx);
@@ -444,9 +572,12 @@ async function runSigningMainThread(completeKeyShares) {
     });
     
     log("Round 2: Generating P2P messages...", "round");
+    const start2 = performance.now();
     const round2Messages = signingProtocols.map(protocol => 
         protocol.round2_generate_messages()
     );
+    const end2 = performance.now();
+    log(`Round 2 completed in ${(end2 - start2).toFixed(2)}ms`, "round");
     
     const round2Map = createP2PMap(round2Messages, signingParties);
     signingProtocols.forEach((protocol, idx) => {
@@ -543,10 +674,24 @@ async function runSigningMainThread(completeKeyShares) {
     
     log(`Signing completed! Generated ${validSignatures.length} signatures`, "success");
     
+    // Performance summary
+    const totalSigningTime = (end2 - start1a);
+    log(`📊 Performance Summary:`, "success");
+    log(`- Round 1a time: ${(end1a - start1a).toFixed(2)}ms`, "success");
+    log(`- Round 2 time: ${(end2 - start2).toFixed(2)}ms`, "success");
+    log(`- Total signing time: ${totalSigningTime.toFixed(2)}ms`, "success");
+    log(`- Precompute tables: ${getPrecomputeTablesEnabled() ? 'ENABLED' : 'DISABLED'}`, "success");
+    
     return {
         presignatures,
         signatures: validSignatures,
-        verificationResults
+        verificationResults,
+        performanceMetrics: {
+            round1aTime: end1a - start1a,
+            round2Time: end2 - start2,
+            totalSigningTime,
+            precomputeTablesEnabled: getPrecomputeTablesEnabled()
+        }
     };
 }
 
@@ -660,6 +805,54 @@ function setupBrowserEventListeners() {
         });
     }
 
+    // Signing only button
+    const signingOnlyBtn = document.getElementById('signingOnlyBtn');
+    if (signingOnlyBtn) {
+        signingOnlyBtn.addEventListener('click', async () => {
+            signingOnlyBtn.disabled = true;
+            signingOnlyBtn.textContent = '🔄 Running...';
+            
+            try {
+                await initializeWasm();
+                log("Note: Running with mock complete key shares", "round");
+                const mockCompleteShares = Array(3).fill(null).map((_, i) => ({ 
+                    mock: true, 
+                    index: i,
+                    core: { mock: true },
+                    aux: { mock: true }
+                }));
+                await runSigning(mockCompleteShares);
+            } catch (error) {
+                log(`Signing test failed: ${error.message}`, "error");
+            } finally {
+                signingOnlyBtn.disabled = false;
+                signingOnlyBtn.textContent = '✍️ Run Signing Only';
+            }
+        });
+    }
+
+    // Precompute tables checkbox
+    const precomputeCheckbox = document.getElementById('usePrecomputeTablesCheckbox');
+    if (precomputeCheckbox) {
+        precomputeCheckbox.addEventListener('change', () => {
+            usePrecomputeTables = precomputeCheckbox.checked;
+            updatePrecomputeStatus();
+            
+            // Clear precompute tables cache when toggling
+            precomputeTablesCache.clear();
+            
+            log(`Precompute tables ${usePrecomputeTables ? 'ENABLED' : 'DISABLED'}`, "round");
+            if (!usePrecomputeTables) {
+                log("⚠️ Precompute tables disabled - signing will use standard encryption (slower)", "round");
+            } else {
+                log("✅ Precompute tables enabled - signing will use accelerated encryption", "round");
+            }
+        });
+        
+        // Initialize status
+        updatePrecomputeStatus();
+    }
+
     // Clear button
     const clearBtn = document.getElementById('clearBtn');
     if (clearBtn) {
@@ -674,30 +867,40 @@ function setupBrowserEventListeners() {
 }
 
 // Initialize browser environment
-function initializeBrowser() {
+async function initializeBrowser() {
     if (typeof window !== 'undefined') {
-        window.addEventListener('load', async () => {
-            log("🔐 CGGMP21 Full Pipeline Test Ready");
-            log("Initializing Web Worker for heavy computations...");
-            
-            // Initialize worker and set progress callback
+        log("🔐 CGGMP21 Full Pipeline Test Ready");
+        log("Initializing Web Worker for heavy computations...");
+        
+        // Initialize worker and set progress callback
+        try {
             await workerManager.initialize();
+            console.log('🔧 Setting progress callback...');
             workerManager.setProgressCallback((progressData) => {
+                console.log('🎯 Progress callback invoked with:', progressData);
                 const { phase, round, message, progress } = progressData;
                 log(`${phase} ${round}: ${message}`, round ? "round" : "phase");
                 updateProgressBar(phase, progress, message);
             });
+            console.log('✅ Progress callback set successfully');
             
+            log("Worker and progress callback initialized successfully");
             log("Click 'Run Full Pipeline Test' to start the complete protocol test");
             setupBrowserEventListeners();
-        });
+        } catch (error) {
+            log(`Failed to initialize worker: ${error.message}`, "error");
+            log("Setting up event listeners without worker support");
+            setupBrowserEventListeners();
+        }
     }
 }
 
 // Auto-initialize if in browser environment
 if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeBrowser);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeBrowser();
+        });
     } else {
         initializeBrowser();
     }
@@ -724,5 +927,8 @@ export {
     initializeWasm,
     log,
     setupBrowserEventListeners,
-    workerManager
+    workerManager,
+    generatePrecomputeTables,
+    getPrecomputeTablesEnabled,
+    updatePrecomputeStatus
 }; 
