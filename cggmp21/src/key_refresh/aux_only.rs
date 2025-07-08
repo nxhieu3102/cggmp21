@@ -1,9 +1,14 @@
+
+use crate::fast_paillier::integer_ext::mod_pow_int;
+use crate::fast_paillier::utils::random_in_range;
 use digest::Digest;
 use futures::SinkExt;
 use paillier_zk::{
     fast_paillier, fast_paillier::utils::serializable_bigint,
-    no_small_factor::non_interactive as π_fac, paillier_blum_modulus as π_mod, BigIntExt,
+    no_small_factor::non_interactive as π_fac, paillier_blum_modulus as π_mod,
 };
+use paillier_zk::integer_ext::IntegerExt;
+use malachite::Integer;
 use rand_core::{CryptoRng, RngCore};
 use round_based::{
     rounds_router::{simple_store::RoundInput, RoundsRouter},
@@ -22,7 +27,6 @@ use crate::{
     ExecutionId,
 };
 
-use num_bigint::{BigInt, RandBigInt};
 
 use super::{Bug, KeyRefreshError, PregeneratedPaillierKey, ProtocolAborted};
 use round_based::rounds_router::simple_store::RoundMsgs;
@@ -66,20 +70,20 @@ pub struct MsgRound1<D: Digest> {
 #[serde(bound = "")]
 pub struct MsgRound2<L: SecurityLevel> {
     /// $N_i$
-    #[udigest(as = utils::encoding::BigInt)]
+    #[udigest(as = utils::encoding::Integer)]
     #[serde(with = "serializable_bigint")]
-    pub N: BigInt,
+    pub N: Integer,
     /// $Paillier enc$
     #[udigest(as = utils::encoding::EncryptionKey)]
     pub enc: fast_paillier::EncryptionKey,
     /// $s_i$
-    #[udigest(as = utils::encoding::BigInt)]
+    #[udigest(as = utils::encoding::Integer)]
     #[serde(with = "serializable_bigint")]
-    pub s: BigInt,
+    pub s: Integer,
     /// $t_i$
-    #[udigest(as = utils::encoding::BigInt)]
+    #[udigest(as = utils::encoding::Integer)]
     #[serde(with = "serializable_bigint")]
-    pub t: BigInt,
+    pub t: Integer,
     /// $\hat \psi_i$
     // this should be L::M instead, but no rustc support yet
     pub params_proof: π_prm::Proof<{ crate::security_level::M }>,
@@ -222,19 +226,19 @@ where
 
     std::println!("run_aux_gen: 3");
     let N = (p * q);
-    let phi_N = (p - 1u8) * (q - 1u8);
+    let phi_N = (p - Integer::from(1)) * (q - Integer::from(1));
 
     std::println!("run_aux_gen: 4");
 
     tracer.stage("Generate auxiliary params r, λ, t, s");
     // r in Z_N*
-    let r = BigInt::gen_invertible(&N, rng);
+    let r = Integer::gen_invertible(&N, rng);
     // 0 <= lambda < phi_N
-    let lambda = rng.gen_bigint_range(&BigInt::from(0), &phi_N);
+    let lambda = random_in_range(rng, &Integer::from(0), &phi_N);
     // t = r^2 mod N
-    let t = r.modpow(&BigInt::from(2), &N);
+    let t = mod_pow_int(&r, &Integer::from(2), &N);
     // s = t^lambda mod N
-    let s = t.modpow(&lambda, &N);
+    let s = mod_pow_int(&t, &lambda, &N);
 
     std::println!("run_aux_gen: 5");
 
@@ -440,7 +444,7 @@ where
         epsilon: L::EPSILON,
         q: L::q(),
     };
-    let n_sqrt = utils::sqrt(&N);
+    let n_sqrt = Integer::sqrt(&N);
 
     std::println!("run_aux_gen: 15");
     // message to each party
@@ -560,7 +564,7 @@ where
                 &phi_common_aux,
                 π_fac::Data {
                     n: &decommitment.N,
-                    n_root: &utils::sqrt(&decommitment.N),
+                    n_root: &Integer::sqrt(&decommitment.N),
                 },
                 &π_fac_security,
                 &proof_msg.fac_proof,
@@ -623,8 +627,8 @@ pub fn create_message_round_1<R, D, L>(
     (
         MsgRound1<D>,
         MsgRound2<L>,
-        BigInt,
-        BigInt,
+        Integer,
+        Integer,
         π_prm::Proof<{ crate::security_level::M }>,
         L::Rid,
     ),
@@ -641,17 +645,17 @@ where
     let q = dec.q();
 
     let N = (p * q);
-    let phi_N = (p - 1u8) * (q - 1u8);
+    let phi_N = (p - Integer::from(1)) * (q - Integer::from(1));
 
     // Generate auxiliary params r, λ, t, s
     // r in Z_N*
-    let r = BigInt::gen_invertible(&N, rng);
+    let r = Integer::gen_invertible(&N, rng);
     // 0 <= lambda < phi_N
-    let lambda = rng.gen_bigint_range(&BigInt::from(0), &phi_N);
+    let lambda = random_in_range(rng, &Integer::from(0), &phi_N);
     // t = r^2 mod N
-    let t = r.modpow(&BigInt::from(2), &N);
+    let t = mod_pow_int(&r, &Integer::from(2), &N);
     // s = t^lambda mod N
-    let s = t.modpow(&lambda, &N);
+    let s = mod_pow_int(&t, &lambda, &N);
 
     // Prove Πprm (ψˆ_i)
     // (N, s, t) is Ring Pedersen Parameters
@@ -792,9 +796,9 @@ pub fn create_message_round_3<R, D, L>(
     rng: &mut R,
     sid: ExecutionId<'_>,
     i: u16,
-    p: &BigInt,
-    q: &BigInt,
-    N: &BigInt,
+    p: &Integer,
+    q: &Integer,
+    N: &Integer,
     rho_bytes: &L::Rid,
     decommitments: &RoundMsgs<MsgRound2<L>>,
 ) -> Result<Vec<(u16, MsgRound3)>, Bug>
@@ -826,7 +830,7 @@ where
         q: L::q(),
     };
 
-    let n_sqrt = utils::sqrt(N);
+    let n_sqrt = Integer::sqrt(N);
 
     let mut messages = Vec::new();
 
@@ -920,7 +924,7 @@ where
             phi_common_aux,
             π_fac::Data {
                 n: &decommitment.N,
-                n_root: &utils::sqrt(&decommitment.N),
+                n_root: &Integer::sqrt(&decommitment.N),
             },
             &π_fac_security,
             &proof_msg.fac_proof,

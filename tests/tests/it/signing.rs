@@ -68,31 +68,31 @@ where
     let participants_shares = participants.iter().map(|i| &shares[usize::from(*i)]);
 
     // Prepare cached precompute tables if available
-    let cached_tables = if cggmp21_tests::CACHED_PRECOMPUTE_TABLES.len() >= participants.len() {
-        let tables: Vec<_> = (0..participants.len())
-            .filter_map(|i| cggmp21_tests::CACHED_PRECOMPUTE_TABLES.get(i))
-            .collect();
-        if tables.len() == participants.len() {
-            Some(tables)
-        } else {
-            None
-        }
-    } else {
-        None
-    };
+    // let cached_tables = if cggmp21_tests::CACHED_PRECOMPUTE_TABLES.len() >= participants.len() {
+    //     let tables: Vec<_> = (0..participants.len())
+    //         .filter_map(|i| cggmp21_tests::CACHED_PRECOMPUTE_TABLES.get(i))
+    //         .collect();
+    //     if tables.len() == participants.len() {
+    //         Some(tables)
+    //     } else {
+    //         None
+    //     }
+    // } else {
+    //     None
+    // };
 
     let sig = round_based::sim::run_with_setup(participants_shares, |i, party, share| {
         let party = cggmp21_tests::buffer_outgoing(party);
         let mut party_rng = rng.fork();
-        let cached_tables_clone = cached_tables.clone();
+        // let cached_tables_clone = cached_tables.clone();
 
         let mut signing = cggmp21::signing(eid, i, participants, share)
             .enforce_reliable_broadcast(reliable_broadcast);
 
         // Set cached precompute tables if available
-        if let Some(ref cached_tables) = cached_tables_clone {
-            signing = signing.set_cached_precompute_tables(cached_tables.clone());
-        }
+        // if let Some(ref cached_tables) = cached_tables_clone {
+        //     signing = signing.set_cached_precompute_tables(cached_tables.clone());
+        // }
 
         #[cfg(feature = "hd-wallet")]
         let signing = if let Some(derivation_path) = derivation_path.clone() {
@@ -131,11 +131,11 @@ where
         .expect("external verification failed");
 
     // Print info about cached table usage
-    if let Some(ref cached_tables) = cached_tables {
-        println!("Test used {} cached precompute tables", cached_tables.len());
-    } else {
-        println!("Test created fresh precompute tables (no cache available)");
-    }
+    // if let Some(ref cached_tables) = cached_tables {
+    //     println!("Test used {} cached precompute tables", cached_tables.len());
+    // } else {
+    //     println!("Test created fresh precompute tables (no cache available)");
+    // }
 }
 
 cggmp21_tests::test_suite! {
@@ -191,15 +191,15 @@ where
     let presigs = round_based::sim::run_with_setup(participants_shares, |i, party, share| {
         let party = cggmp21_tests::buffer_outgoing(party);
         let mut party_rng = rng.fork();
-        let cached_tables_clone = cached_tables.clone();
+        // let cached_tables_clone = cached_tables.clone();
 
         async move {
             let mut signing = cggmp21::signing(eid, i, participants, share);
 
             // Set cached precompute tables if available
-            if let Some(ref cached_tables) = cached_tables_clone {
-                signing = signing.set_cached_precompute_tables(cached_tables.clone());
-            }
+            // if let Some(ref cached_tables) = cached_tables_clone {
+            //     signing = signing.set_cached_precompute_tables(cached_tables.clone());
+            // }
 
             signing.generate_presignature(&mut party_rng, party).await
         }
@@ -349,9 +349,9 @@ where
             let mut signing = cggmp21::signing(eid, i, participants, share);
 
             // Set cached precompute tables if available
-            if let Some(ref cached_tables) = cached_tables {
-                signing = signing.set_cached_precompute_tables(cached_tables.clone());
-            }
+            // if let Some(ref cached_tables) = cached_tables {
+            //     signing = signing.set_cached_precompute_tables(cached_tables.clone());
+            // }
 
             #[cfg(feature = "hd-wallet")]
             let signing = if let Some(derivation_path) = derivation_path.clone() {

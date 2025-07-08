@@ -13,7 +13,7 @@ use rand::prelude::SliceRandom;
 use rand::Rng;
 use rand_dev::DevRng;
 use sha2::Sha256;
-use num_bigint::BigInt;
+use malachite::Integer;
 
 type E = generic_ec::curves::Secp256k1;
 
@@ -326,7 +326,7 @@ fn do_benchmarks<L: SecurityLevel>(args: Args) {
 
             let perf_reports = round_based::sim::run_with_setup(&shares, |i, party, share| {
                 let mut party_rng = rng.fork();
-                let cached_tables_clone = cached_tables.clone();
+                // let cached_tables_clone = cached_tables.clone();
 
                 let mut profiler = PerfProfiler::new();
 
@@ -335,9 +335,9 @@ fn do_benchmarks<L: SecurityLevel>(args: Args) {
                         .set_progress_tracer(&mut profiler);
                     
                     // Set cached precompute tables if available
-                    if let Some(ref cached_tables) = cached_tables_clone {
-                        signing_builder = signing_builder.set_cached_precompute_tables(cached_tables.clone());
-                    }
+                    // if let Some(ref cached_tables) = cached_tables_clone {
+                    //     signing_builder = signing_builder.set_cached_precompute_tables(cached_tables.clone());
+                    // }
                     
                     let _signature = signing_builder
                         .sign(&mut party_rng, party, message_to_sign)
@@ -497,5 +497,5 @@ cggmp21::define_security_level!(CustomSecLevel {
     m = 128,
     n_size = 3072,
     a_size = 512,
-    q = BigInt::from(1) << 128,
+    q = Integer::from(1) << 128,
 });

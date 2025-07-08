@@ -1,18 +1,18 @@
 //! Signing protocol
 #![allow(unused_extern_crates)]
-
 pub mod signing_stateful;
+use paillier_zk::integer_ext::IntegerExt;
 use digest::Digest;
 use futures::SinkExt;
 use generic_ec::{coords::AlwaysHasAffineX, Curve, NonZero, Point, Scalar, SecretScalar};
 use generic_ec_zkp::polynomial::lagrange_coefficient_at_zero;
 
-use num_bigint::{BigInt, RandBigInt};
+use malachite::Integer;
 use paillier_zk::fast_paillier;
 use paillier_zk::{
     batch_paillier_affine_operation_in_range as pi_aff_batch,
     batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
-    dlog_with_el_gamal_commitment as pi_elog, BigIntExt,
+    dlog_with_el_gamal_commitment as pi_elog, integer_ext,
 };
 use rand_core::{CryptoRng, RngCore};
 use round_based::{
@@ -176,11 +176,11 @@ pub mod msg {
     pub struct MsgRound1a<E: Curve> {
         /// $K_i = enc(k_i, rho_i)$
         #[serde(with = "serializable_bigint")]
-        #[udigest(as = utils::encoding::BigInt)]
+        #[udigest(as = utils::encoding::Integer)]
         pub K_i: fast_paillier::Ciphertext,
         /// $G_i = enc(gamma_i, nu_i)$
         #[serde(with = "serializable_bigint")]
-        #[udigest(as = utils::encoding::BigInt)]
+        #[udigest(as = utils::encoding::Integer)]
         pub G_i: fast_paillier::Ciphertext,
         /// $Y_i$: EC point
         pub Y_i: Point<E>,
@@ -522,7 +522,6 @@ where
     {
         std::println!("Start signing...");
         let cached_tables = self.cached_precompute_tables.as_deref();
-        std::println!("cached_tables null: {:?}", cached_tables.is_none());
         match signing_t_out_of_n(
             self.tracer,
             rng,
@@ -832,32 +831,36 @@ where
 
     let (K_i, G_i, precompute_dec_i) = if enable_precompute_table {
         // Use cached precompute table if available, otherwise create a new one
-        let precomputable = if let Some(cached_tables) = cached_precompute_tables {
-            if let Some(cached_table) = cached_tables.get(usize::from(i)) {
-                std::println!("cached_tables not null: {:?}", i);
-                cached_table.clone()
-            } else {
-                std::println!("cached_tables null: {:?}", i);
-                // Fallback to creating a new table if not enough cached tables
-                let h_pow_n = ek_i.h_pow_n().clone();
-                let nn = ek_i.nn().clone();
-                let a_size = ek_i.a_size() as usize;
-                precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn)
-            }
-        } else {
-            // No cached tables available, create a new one
-            std::println!("cached_tables null: {:?}", i);
-            let h_pow_n = ek_i.h_pow_n().clone();
-            let nn = ek_i.nn().clone();
-            let a_size = ek_i.a_size() as usize;
-            precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn)
-        };
+        let h_pow_n = ek_i.h_pow_n().clone();
+        let nn = ek_i.nn().clone();
+        let a_size = ek_i.a_size() as usize;
+        let precomputable = precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn);
+        // cached_precompute_tables {
+        //     if let Some(cached_table) = cached_tables.get(usize::from(i)) {
+        //         std::println!("cached_tables not null: {:?}", i);
+        //         cached_table.clone()
+        //     } else {
+        //         std::println!("cached_tables null: {:?}", i);
+        //         // Fallback to creating a new table if not enough cached tables
+        //         let h_pow_n = ek_i.h_pow_n().clone();
+        //         let nn = ek_i.nn().clone();
+        //         let a_size = ek_i.a_size() as usize;
+        //         &precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn)
+        //     }
+        // } else {
+        //     // No cached tables available, create a new one
+        //     std::println!("cached_tables null: {:?}", i);
+        //     let h_pow_n = ek_i.h_pow_n().clone();
+        //     let nn = ek_i.nn().clone();
+        //     let a_size = ek_i.a_size() as usize;
+        //     &precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn)
+        // };
 
         let K_i = ek_i
             .encrypt_with_precompute_table(
                 rng,
                 &precomputable,
-                &utils::scalar_to_bignumber(&k_i),
+                &Integer::from_scalar(k_i),
                 Some(&rho_i),
             )
             .map_err(|e| Bug::PaillierEnc(BugSource::K_i, e))?;
@@ -866,7 +869,7 @@ where
             .encrypt_with_precompute_table(
                 rng,
                 &precomputable,
-                &utils::scalar_to_bignumber(&gamma_i),
+                &Integer::from_scalar(gamma_i),
                 Some(&nu_i),
             )
             .map_err(|e| Bug::PaillierEnc(BugSource::G_i, e))?;
@@ -874,10 +877,10 @@ where
     } else {
         std::println!("encrypt without precompute table");
         let K_i = ek_i
-            .encrypt_with(&utils::scalar_to_bignumber(&k_i), &rho_i)
+            .encrypt_with(&Integer::from_scalar(&k_i), &rho_i)
             .map_err(|e| Bug::PaillierEnc(BugSource::K_i, e))?;
         let G_i = ek_i
-            .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &nu_i)
+            .encrypt_with(&Integer::from_scalar(&gamma_i), &nu_i)
             .map_err(|e| Bug::PaillierEnc(BugSource::G_i, e))?;
         (K_i, G_i, None)
     };
@@ -950,12 +953,12 @@ where
             pi_enc_el_gamal_batch::PrivateData {
                 batch: &Vec::from([
                     pi_enc_el_gamal_batch::PrivateElement {
-                        plaintext: &utils::scalar_to_bignumber(&k_i),
+                        plaintext: &Integer::from_scalar(k_i),
                         nonce: &rho_i,
                         b: &a_i,
                     },
                     pi_enc_el_gamal_batch::PrivateElement {
-                        plaintext: &utils::scalar_to_bignumber(&gamma_i),
+                        plaintext: &Integer::from_scalar(gamma_i),
                         nonce: &nu_i,
                         b: &b_i,
                     },
@@ -1097,7 +1100,7 @@ where
     // Step 2
     // Gamma_i = G * gamma_i
     let Gamma_i = Point::generator() * &gamma_i;
-    let J = BigInt::from(1) << L::ELL_PRIME;
+    let J = Integer::from(1) << L::ELL_PRIME;
 
     // TODO: psi_i = pi_elog::prove(Data: (Gamma_i, g, B_{i,1}, B_{i,2}, Y_i), PrivateData: (gamma_i, b_i))) (DONE)
     let psi_i = pi_elog::non_interactive::prove::<E, D>(
@@ -1138,27 +1141,33 @@ where
             let enc_j = &R_j.enc;
     
             // Use cached precompute table if available, otherwise create a new one
-            let precompute_enc_j = if let Some(cached_tables) = cached_precompute_tables {
-                if let Some(cached_table) = cached_tables.get(usize::from(j)) {
-                    cached_table.clone()
-                } else {
-                    // Fallback to creating a new table if not enough cached tables
-                    precomputed_table::PrecomputeTable::new_dp(
-                        enc_j.h_pow_n().clone(),
-                        5,
-                        enc_j.a_size() as usize,
-                        enc_j.nn().clone(),
-                    )
-                }
-            } else {
-                // No cached tables available, create a new one
-                precomputed_table::PrecomputeTable::new_dp(
-                    enc_j.h_pow_n().clone(),
-                    5,
-                    enc_j.a_size() as usize,
-                    enc_j.nn().clone(),
-                )
-            };
+            let precompute_enc_j = precomputed_table::PrecomputeTable::new_dp(
+                enc_j.h_pow_n().clone(),
+                5,
+                enc_j.a_size() as usize,
+                enc_j.nn().clone(),
+            );
+            //  if let Some(cached_tables) = cached_precompute_tables {
+            //     if let Some(cached_table) = cached_tables.get(usize::from(j)) {
+            //         cached_table.clone()
+            //     } else {
+            //         // Fallback to creating a new table if not enough cached tables
+            //         &precomputed_table::PrecomputeTable::new_dp(
+            //             enc_j.h_pow_n().clone(),
+            //             5,
+            //             enc_j.a_size() as usize,
+            //             enc_j.nn().clone(),
+            //         )
+            //     }
+            // } else {
+            //     // No cached tables available, create a new one
+            //     &precomputed_table::PrecomputeTable::new_dp(
+            //         enc_j.h_pow_n().clone(),
+            //         5,
+            //         enc_j.a_size() as usize,
+            //         enc_j.nn().clone(),
+            //     )
+            // };
     
             precompute_tables_j.insert(j, precompute_enc_j);
         }
@@ -1186,8 +1195,8 @@ where
         let hat_s_ij = fast_paillier::utils::sample_with_size(rng, dec_i.nounce_size());
 
         // 0 <= beta_ij, hat_beta_ij < J
-        let beta_ij = BigInt::from_rng_pm(&J, rng);
-        let hat_beta_ij = BigInt::from_rng_pm(&J, rng);
+        let beta_ij = Integer::from_rng_pm(&J, rng);
+        let hat_beta_ij = Integer::from_rng_pm(&J, rng);
 
         beta_sum += beta_ij.to_scalar();
         hat_beta_sum += hat_beta_ij.to_scalar();
@@ -1195,7 +1204,7 @@ where
         tracer.stage("Encrypt D_ji");
         
         let gamma_i_times_K_j = enc_j
-            .omul(&utils::scalar_to_bignumber(&gamma_i), &round1a_msg.K_i)
+            .omul(&Integer::from_scalar(&gamma_i), &round1a_msg.K_i)
             .map_err(|e| Bug::PaillierOp(BugSource::gamma_i_times_K_j, e))?;
 
         let D_ji = if enable_precompute_table {
@@ -1245,7 +1254,7 @@ where
         let hat_D_ji = {
             // x_i * K_j ~ scalar * ciphertext
             let x_i_times_K_j = enc_j
-                .omul(&utils::scalar_to_bignumber(x_i), &round1a_msg.K_i)
+                .omul(&Integer::from_scalar(x_i), &round1a_msg.K_i)
                 .map_err(|e| Bug::PaillierOp(BugSource::x_i_times_K_j, e))?;
             // enc_j(-hat_beta_ij, hat_s_ij) using precompute table
             let neg_hat_beta_ij_enc = if let Some(precompute_enc_j) = precompute_tables_j.get(&j) {
@@ -1316,13 +1325,13 @@ where
             pi_aff_batch::PrivateData {
                 batch: vec![
                     pi_aff_batch::PrivateElement {
-                        x: &utils::scalar_to_bignumber(&gamma_i),
+                        x: &Integer::from_scalar(&gamma_i),
                         y: &(-&beta_ij),
                         nonce: &s_ij,
                         nonce_y: &r_ij,
                     },
                     pi_aff_batch::PrivateElement {
-                        x: &utils::scalar_to_bignumber(x_i),
+                        x: &Integer::from_scalar(x_i),
                         y: &(-&hat_beta_ij),
                         nonce: &hat_s_ij,
                         nonce_y: &hat_r_ij,

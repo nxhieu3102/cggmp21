@@ -1,3 +1,6 @@
+use paillier_zk::integer_ext::IntegerExt;
+use crate::fast_paillier::integer_ext::mod_pow_int;
+use crate::fast_paillier::utils::random_in_range;
 use digest::Digest;
 use futures::SinkExt;
 use generic_ec::{Curve, NonZero, Point, Scalar, SecretScalar};
@@ -6,10 +9,9 @@ use paillier_zk::{
     fast_paillier,
     no_small_factor::non_interactive as π_fac,
     paillier_blum_modulus as π_mod,
-    BigIntExt,
     fast_paillier::utils::{serializable_bigint}
 };
-use num_bigint::{BigInt, RandBigInt}; 
+use malachite::Integer;
 use rand_core::{CryptoRng, RngCore};
 use round_based::ProtocolMessage;
 use round_based::{
@@ -28,7 +30,7 @@ use crate::{
     security_level::{SecurityLevel, M},
     utils,
     utils::{
-        but_nth, collect_blame, collect_simple_blame, iter_peers, scalar_to_bignumber, xor_array,
+        but_nth, collect_blame, collect_simple_blame, iter_peers, xor_array,
         AbortBlame,
     },
     zk::ring_pedersen_parameters as π_prm,
@@ -78,20 +80,20 @@ pub struct MsgRound2<E: Curve, L: SecurityLevel> {
     /// $\vec A_i$
     pub sch_commits_a: Vec<schnorr_pok::Commit<E>>,
     /// $N_i$
-    #[udigest(as = utils::encoding::BigInt)]
+    #[udigest(as = utils::encoding::Integer)]
     #[serde(with = "serializable_bigint")]
-    pub N: BigInt,
+    pub N: Integer,
     /// $Paillier enc$
     #[udigest(as = utils::encoding::EncryptionKey)]
     pub enc: fast_paillier::EncryptionKey,
     /// $s_i$
-    #[udigest(as = utils::encoding::BigInt)]
+    #[udigest(as = utils::encoding::Integer)]
     #[serde(with = "serializable_bigint")]
-    pub s: BigInt,
+    pub s: Integer,
     /// $t_i$
-    #[udigest(as = utils::encoding::BigInt)]
+    #[udigest(as = utils::encoding::Integer)]
     #[serde(with = "serializable_bigint")]
-    pub t: BigInt,
+    pub t: Integer,
     /// $\hat \psi_i$
     // this should be L::M instead, but no rustc support yet
     pub params_proof: π_prm::Proof<{ crate::security_level::M }>,
@@ -119,7 +121,7 @@ pub struct MsgRound3<E: Curve> {
     pub fac_proof: π_fac::Proof,
     /// $C_i^j$
     #[serde(with = "serializable_bigint")]
-    pub C: BigInt,
+    pub C: Integer,
     /// $\psi_i^k$
     ///
     /// Here in the paper you only send one proof, but later they require you to
@@ -235,7 +237,7 @@ where
     let p = dec.p();
     let q = dec.q();
     let N = (p * q);
-    let phi_N = (p - 1u8) * (q - 1u8);
+    let phi_N = (p - Integer::from(1)) * (q - Integer::from(1));
 
     // *x_i* in paper
     tracer.stage("Generate secret x_i and public X_i");
@@ -254,10 +256,10 @@ where
         .collect::<Vec<_>>();
 
     tracer.stage("Generate auxiliary params r, λ, t, s");
-    let r = BigInt::gen_invertible(&N, rng);
-    let lambda = rng.gen_bigint_range(&BigInt::from(0), &phi_N);
-    let t = r.modpow(&BigInt::from(2), &N);
-    let s = t.modpow(&lambda, &N);
+    let r = Integer::gen_invertible(&N, rng);
+    let lambda = random_in_range(rng, &Integer::from(0), &phi_N);
+    let t = mod_pow_int(&r, &Integer::from(2), &N);
+    let s = mod_pow_int(&t, &lambda, &N);
 
     tracer.stage("Prove Πprm (ψˆ_i)");
     let hat_psi = π_prm::prove::<{ M }, D>(
@@ -471,7 +473,7 @@ where
         epsilon: L::EPSILON,
         q: L::q(),
     };
-    let n_sqrt = utils::sqrt(&N);
+    let n_sqrt = Integer::sqrt(&N);
     tracer.stage("Compute schnorr proof ψ_i^j");
     let challenge = Scalar::from_hash::<D>(&unambiguous::SchnorrChallenge {
         sid,
@@ -495,7 +497,7 @@ where
     for (((x, enc), d), j) in iterator {
         tracer.stage("Paillier encryption of x_i^j");
         let (C, _) = enc
-            .encrypt_with_random(&mut rng, &scalar_to_bignumber(x))
+            .encrypt_with_random(&mut rng, &Integer::from_scalar(x))
             .map_err(|_| Bug::PaillierEnc)?;
         tracer.stage("Compute П_fac (ф_i^j)");
         let phi = π_fac::prove::<D>(
@@ -679,7 +681,7 @@ where
                 &phi_common_aux,
                 π_fac::Data {
                     n: &decommitment.N,
-                    n_root: &utils::sqrt(&decommitment.N),
+                    n_root: &Integer::sqrt(&decommitment.N),
                 },
                 &π_fac_security,
                 &proof_msg.fac_proof,

@@ -3,14 +3,15 @@
 use digest::Digest;
 use paillier_zk::{
     fast_paillier::utils,
-    BigIntExt,
     fast_paillier::utils::{serializable_bigint, serializable_vec_bigint, serializable_array_bigint}
 };
-use num_bigint::{BigInt, RandBigInt};
+use crate::fast_paillier::integer_ext::mod_pow_int;
 use rand_core::RngCore;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use thiserror::Error;
+use malachite::Integer;
+use crate::zk::ring_pedersen_parameters::utils::random_in_range;
 
 struct Challenge<const M: usize> {
     es: [bool; M],
@@ -19,12 +20,12 @@ struct Challenge<const M: usize> {
 /// Data to construct proof about
 #[derive(Clone, Copy, udigest::Digestable)]
 pub struct Data<'a> {
-    #[udigest(as = &crate::utils::encoding::BigInt)]
-    pub N: &'a BigInt,
-    #[udigest(as = &crate::utils::encoding::BigInt)]
-    pub s: &'a BigInt,
-    #[udigest(as = &crate::utils::encoding::BigInt)]
-    pub t: &'a BigInt,
+    #[udigest(as = &crate::utils::encoding::Integer)]
+    pub N: &'a Integer,
+    #[udigest(as = &crate::utils::encoding::Integer)]
+    pub s: &'a Integer,
+    #[udigest(as = &crate::utils::encoding::Integer)]
+    pub t: &'a Integer,
 }
 
 /// The ZK proof. Computed by [`prove`].
@@ -37,26 +38,26 @@ pub struct Data<'a> {
 pub struct Proof<const M: usize> {
     // #[serde_as(as = "[_; M]")]
     #[serde(with = "serializable_array_bigint")]
-    #[udigest(as = [crate::utils::encoding::BigInt; M])]
-    pub commitment: [BigInt; M],
+    #[udigest(as = [crate::utils::encoding::Integer; M])]
+    pub commitment: [Integer; M],
     // #[serde_as(as = "[_; M]")]
     #[serde(with = "serializable_array_bigint")]
-    #[udigest(as = [crate::utils::encoding::BigInt; M])]
-    pub zs: [BigInt; M],
+    #[udigest(as = [crate::utils::encoding::Integer; M])]
+    pub zs: [Integer; M],
 }
 
 fn derive_challenge<const M: usize, D: Digest>(
     shared_state: &impl udigest::Digestable,
     data: Data,
-    commitment: &[BigInt; M],
+    commitment: &[Integer; M],
 ) -> Challenge<M> {
     #[derive(udigest::Digestable)]
     #[udigest(tag = "dfns.ring_pedersen_parameters.seed")]
     struct Seed<'a, S: udigest::Digestable, const M: usize> {
         shared_state: &'a S,
         data: Data<'a>,
-        #[udigest(as = &[crate::utils::encoding::BigInt; M])]
-        commitment: &'a [BigInt; M],
+        #[udigest(as = &[crate::utils::encoding::Integer; M])]
+        commitment: &'a [Integer; M],
     }
 
     let mut rng = rand_hash::HashRng::<D, _>::from_seed(Seed::<_, M> {
@@ -89,14 +90,14 @@ pub fn prove<const M: usize, D: Digest>(
     shared_state: &impl udigest::Digestable,
     rng: &mut impl rand_core::RngCore,
     data: Data,
-    phi: &BigInt,
-    lambda: &BigInt,
+    phi: &Integer,
+    lambda: &Integer,
 ) -> Result<Proof<M>, ZkError> {
     let private_commitment =
-        [(); M].map(|()| rng.gen_bigint_range(&BigInt::from(0), &phi));
+        [(); M].map(|()| random_in_range(rng, &Integer::from(0), &phi));
     let commitment = private_commitment
         .clone()
-        .map(|a| data.t.modpow(&a, data.N));
+        .map(|a| mod_pow_int(&data.t, &a, data.N));
     // TODO: since array::try_map is not stable yet, we have to be hacky here
     // let commitment = if commitment.iter().any(|a| a.is_none()) {
     //     return Err(Reason::PowMod.into());
@@ -127,7 +128,7 @@ pub fn verify<const M: usize, D: Digest>(
 ) -> Result<(), InvalidProof> {
     let challenge: Challenge<M> = derive_challenge::<M, D>(shared_state, data, &proof.commitment);
     for ((z, a), e) in proof.zs.iter().zip(&proof.commitment).zip(&challenge.es) {
-        let lhs: BigInt = data.t.modpow(z, data.N);
+        let lhs = mod_pow_int(data.t, z, data.N);
         if *e {
             let rhs = (data.s * a) % data.N;
             if lhs != rhs {

@@ -17,7 +17,10 @@ anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 hex = { workspace = true }
-
+malachite = { workspace=true}
+malachite-base = { workspace=true}
+malachite-bigint = { workspace=true}
+malachite-nz = { workspace=true}
 rand = { workspace = true }
 rand_dev = { workspace = true }
 

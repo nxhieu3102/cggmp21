@@ -1,0 +1,7515 @@
+RUST_TESTS_SEED=8bdeb7bb5caf2b22381c98e9fda9fbce58db678e00d0612cdcddadd34b969445
+n = 3
+
+Non-threshold DKG
+Protocol Performance:
+  - Protocol took 5.32ms to complete
+  - Peak RSS: 6784.00 MiB
+In particular:
+  - Stage: 401.50µs
+    - Setup networking: 338.17µs (84.2%)
+    - Unstaged: 63.33µs (15.8%)
+  - Round 1: 1.98ms
+    - Sample x_i, rid_i, chain_code: 856.17µs (43.3%)
+    - Sample schnorr commitment: 801.63µs (40.5%)
+    - Commit to public data: 260.63µs (13.2%)
+    - Unstaged: 58.58µs (3.0%)
+  - Round 2: 151.13µs
+    - Hash received msgs (reliability check): 69.17µs (45.8%)
+    - Unstaged: 81.96µs (54.2%)
+  - Round 3: 85.67µs
+    - Assert other parties hashed messages (reliability check): 20.63µs (24.1%)
+    - Unstaged: 65.04µs (75.9%)
+  - Round 4: 481.42µs
+    - Validate decommitments: 294.38µs (61.1%)
+    - Calculate challege rid: 100.04µs (20.8%)
+    - Prove knowledge of `x_i`: 24.75µs (5.1%)
+    - Unstaged: 62.25µs (12.9%)
+  - Round 5: 2.22ms
+    - Validate schnorr proofs: 2.18ms (98.0%)
+    - Unstaged: 44.63µs (2.0%)
+
+
+Threshold DKG
+Protocol Performance:
+  - Protocol took 14.39ms to complete
+  - Peak RSS: 7168.00 MiB
+In particular:
+  - Stage: 96.96µs
+    - Setup networking: 45.38µs (46.8%)
+    - Unstaged: 51.58µs (53.2%)
+  - Round 1: 2.04ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 1.77ms (86.5%)
+    - Commit to public data: 226.08µs (11.1%)
+    - Unstaged: 49.25µs (2.4%)
+  - Round 2: 188.96µs
+    - Hash received msgs (reliability check): 120.46µs (63.7%)
+    - Unstaged: 68.50µs (36.3%)
+  - Round 3: 96.54µs
+    - Assert other parties hashed messages (reliability check): 23.83µs (24.7%)
+    - Unstaged: 72.71µs (75.3%)
+  - Round 4: 8.90ms
+    - Validate decommitments: 391.88µs (4.4%)
+    - Validate data size: 26.08µs (0.3%)
+    - Validate Feldmann VSS: 3.69ms (41.5%)
+    - Compute rid: 86.83µs (1.0%)
+    - Compute Ys: 3.66ms (41.1%)
+    - Compute sigma: 635.13µs (7.1%)
+    - Calculate challenge: 309.21µs (3.5%)
+    - Prove knowledge of `sigma_i`: 28.63µs (0.3%)
+    - Unstaged: 68.17µs (0.8%)
+  - Round 5: 3.07ms
+    - Validate schnorr proofs: 2.96ms (96.6%)
+    - Derive resulting public key and other data: 44.25µs (1.4%)
+    - Unstaged: 61.42µs (2.0%)
+
+
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 20.79ms to complete
+  - Peak RSS: 7424.00 MiB
+In particular:
+  - Stage: 75.96µs
+    - Setup networking: 42.75µs (56.3%)
+    - Unstaged: 33.21µs (43.7%)
+  - Round 1: 2.24ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 1.95ms (87.1%)
+    - Commit to public data: 238.58µs (10.7%)
+    - Unstaged: 50.83µs (2.3%)
+  - Round 2: 142.13µs
+    - Hash received msgs (reliability check): 71.83µs (50.5%)
+    - Unstaged: 70.29µs (49.5%)
+  - Round 3: 86.13µs
+    - Assert other parties hashed messages (reliability check): 22.00µs (25.5%)
+    - Unstaged: 64.13µs (74.5%)
+  - Round 4: 15.27ms
+    - Validate decommitments: 388.88µs (2.5%)
+    - Validate data size: 40.83µs (0.3%)
+    - Validate Feldmann VSS: 9.50ms (62.2%)
+    - Compute rid: 86.00µs (0.6%)
+    - Compute Ys: 4.27ms (28.0%)
+    - Compute sigma: 602.42µs (3.9%)
+    - Calculate challenge: 281.04µs (1.8%)
+    - Prove knowledge of `sigma_i`: 25.96µs (0.2%)
+    - Unstaged: 66.63µs (0.4%)
+  - Round 5: 2.98ms
+    - Validate schnorr proofs: 2.82ms (94.5%)
+    - Derive resulting public key and other data: 86.71µs (2.9%)
+    - Unstaged: 78.63µs (2.6%)
+
+
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+Auxiliary data generation protocol
+Protocol Performance:
+  - Protocol took 379.77s to complete
+  - Peak RSS: 10400.00 MiB
+In particular:
+  - Stage: 133.17µs
+    - Retrieve auxiliary data: 27.42µs (20.6%)
+    - Setup networking: 43.38µs (32.6%)
+    - Unstaged: 62.38µs (46.8%)
+  - Round 1: 47.26s
+    - Retrieve data from paillier decryption key: 62.83µs (0.0%)
+    - Generate auxiliary params r, λ, t, s: 345.47ms (0.7%)
+    - Prove Πprm (ψˆ_i): 46.90s (99.2%)
+    - Sample random bytes: 109.21µs (0.0%)
+    - Compute hash commitment and sample decommitment: 10.56ms (0.0%)
+    - Unstaged: 57.96µs (0.0%)
+  - Round 2: 139.17µs
+    - Hash received msgs (reliability check): 65.79µs (47.3%)
+    - Unstaged: 73.38µs (52.7%)
+  - Round 3: 89.96µs
+    - Assert other parties hashed messages (reliability check): 24.25µs (27.0%)
+    - Unstaged: 65.71µs (73.0%)
+  - Round 4: 238.84s
+    - Validate round 1 decommitments: 22.08ms (0.0%)
+    - Validate П_prm (ψ_i): 96.02s (40.2%)
+    - Add together shared random bytes: 122.75µs (0.0%)
+    - Compute П_mod (ψ_i): 136.11s (57.0%)
+    - Assemble security params for П_fac (ф_i): 461.04µs (0.0%)
+    - Compute П_fac (ф_i^j): 6.67s (2.8%)
+    - Unstaged: 2.47ms (0.0%)
+  - Round 5: 93.68s
+    - Validate ψ_j (П_mod): 87.18s (93.1%)
+    - Validate ф_j (П_fac): 6.50s (6.9%)
+    - Assemble auxiliary info: 2.56ms (0.0%)
+    - Unstaged: 77.75µs (0.0%)
+
+
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Signing protocol
+No cached precompute tables available, creating fresh tables
+Protocol Performance:
+  - Protocol took 26.44s to complete
+  - Peak RSS: 59776.00 MiB
+In particular:
+  - Stage: 821.00µs
+    - Map t-out-of-n protocol to t-out-of-t: 630.29µs (76.8%)
+    - Retrieve auxiliary data: 25.00µs (3.0%)
+    - Precompute execution id and security params: 27.00µs (3.3%)
+    - Setup networking: 47.58µs (5.8%)
+    - Unstaged: 91.13µs (11.1%)
+  - Round 1: 5.41s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 223.50µs (0.0%)
+    - Encrypt k_i and gamma_i: 424.99ms (7.9%)
+    - Prove ψ_ji: 4.98s (92.1%)
+    - Unstaged: 295.50µs (0.0%)
+  - Round 2: 1.01ms
+    - Hash received msgs (reliability check): 935.33µs (92.5%)
+    - Unstaged: 75.38µs (7.5%)
+  - Round 3: 14.41s
+    - Assert other parties hashed messages (reliability check): 37.21µs (0.0%)
+    - Verify psi_ji proofs: 3.66s (25.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 1.27ms (0.0%)
+    - Encrypt D_ji: 637.98ms (4.4%)
+    - Encrypt F_ji: 420.36ms (2.9%)
+    - Encrypt hat_D_ji: 635.28ms (4.4%)
+    - Encrypt hat_F_ji: 421.15ms (2.9%)
+    - Prove psi_ji: 8.63s (59.9%)
+    - Unstaged: 136.46µs (0.0%)
+  - Round 4: 6.60s
+    - Retrieve auxiliary data: 58.79µs (0.0%)
+    - Validate psi_ji: 5.75s (87.1%)
+    - Validate psi_j: 8.84ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 837.78ms (12.7%)
+    - Prove hat_psi_i: 5.71ms (0.1%)
+    - Unstaged: 121.88µs (0.0%)
+  - Presig output: 12.57ms
+    - Validate hat_psi_j: 8.38ms (66.7%)
+    - Calculate presignature: 4.15ms (33.0%)
+    - Unstaged: 43.17µs (0.3%)
+  - Partial signing: 82.08µs
+  - Signature reconstruction: 4.70ms
+
+
+Signers: [2, 0, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Threshold signing protocol
+Protocol Performance:
+  - Protocol took 26.43s to complete
+  - Peak RSS: 59888.00 MiB
+In particular:
+  - Stage: 2.98ms
+    - Map t-out-of-n protocol to t-out-of-t: 2.88ms (96.5%)
+    - Retrieve auxiliary data: 20.50µs (0.7%)
+    - Precompute execution id and security params: 23.54µs (0.8%)
+    - Setup networking: 38.17µs (1.3%)
+    - Unstaged: 23.38µs (0.8%)
+  - Round 1: 5.36s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 217.67µs (0.0%)
+    - Encrypt k_i and gamma_i: 423.54ms (7.9%)
+    - Prove ψ_ji: 4.94s (92.1%)
+    - Unstaged: 201.58µs (0.0%)
+  - Round 2: 971.79µs
+    - Hash received msgs (reliability check): 899.79µs (92.6%)
+    - Unstaged: 72.00µs (7.4%)
+  - Round 3: 14.43s
+    - Assert other parties hashed messages (reliability check): 32.83µs (0.0%)
+    - Verify psi_ji proofs: 3.66s (25.3%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 1.32ms (0.0%)
+    - Encrypt D_ji: 640.65ms (4.4%)
+    - Encrypt F_ji: 422.25ms (2.9%)
+    - Encrypt hat_D_ji: 636.19ms (4.4%)
+    - Encrypt hat_F_ji: 421.12ms (2.9%)
+    - Prove psi_ji: 8.65s (60.0%)
+    - Unstaged: 134.67µs (0.0%)
+  - Round 4: 6.61s
+    - Retrieve auxiliary data: 61.75µs (0.0%)
+    - Validate psi_ji: 5.76s (87.1%)
+    - Validate psi_j: 8.78ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 839.19ms (12.7%)
+    - Prove hat_psi_i: 5.64ms (0.1%)
+    - Unstaged: 130.96µs (0.0%)
+  - Presig output: 12.39ms
+    - Validate hat_psi_j: 8.22ms (66.3%)
+    - Calculate presignature: 4.13ms (33.3%)
+    - Unstaged: 45.67µs (0.4%)
+  - Partial signing: 87.92µs
+  - Signature reconstruction: 4.69ms
+
+
+Signers: [0, 2, 1]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Hierarchical threshold signing protocol
+Protocol Performance:
+  - Protocol took 26.51s to complete
+  - Peak RSS: 59904.00 MiB
+In particular:
+  - Stage: 3.99ms
+    - Map t-out-of-n protocol to t-out-of-t: 3.87ms (97.1%)
+    - Retrieve auxiliary data: 22.17µs (0.6%)
+    - Precompute execution id and security params: 26.04µs (0.7%)
+    - Setup networking: 45.00µs (1.1%)
+    - Unstaged: 22.83µs (0.6%)
+  - Round 1: 5.37s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 220.13µs (0.0%)
+    - Encrypt k_i and gamma_i: 423.82ms (7.9%)
+    - Prove ψ_ji: 4.94s (92.1%)
+    - Unstaged: 170.13µs (0.0%)
+  - Round 2: 985.92µs
+    - Hash received msgs (reliability check): 915.71µs (92.9%)
+    - Unstaged: 70.21µs (7.1%)
+  - Round 3: 14.41s
+    - Assert other parties hashed messages (reliability check): 33.63µs (0.0%)
+    - Verify psi_ji proofs: 3.66s (25.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 1.31ms (0.0%)
+    - Encrypt D_ji: 640.13ms (4.4%)
+    - Encrypt F_ji: 420.49ms (2.9%)
+    - Encrypt hat_D_ji: 641.72ms (4.5%)
+    - Encrypt hat_F_ji: 422.04ms (2.9%)
+    - Prove psi_ji: 8.62s (59.9%)
+    - Unstaged: 139.58µs (0.0%)
+  - Round 4: 6.72s
+    - Retrieve auxiliary data: 60.21µs (0.0%)
+    - Validate psi_ji: 5.87s (87.3%)
+    - Validate psi_j: 9.20ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 836.02ms (12.4%)
+    - Prove hat_psi_i: 5.56ms (0.1%)
+    - Unstaged: 124.29µs (0.0%)
+  - Presig output: 12.58ms
+    - Validate hat_psi_j: 8.38ms (66.6%)
+    - Calculate presignature: 4.16ms (33.0%)
+    - Unstaged: 49.21µs (0.4%)
+  - Partial signing: 92.71µs
+  - Signature reconstruction: 4.73ms
+
+
+n = 5
+
+Non-threshold DKG
+Protocol Performance:
+  - Protocol took 6.28ms to complete
+  - Peak RSS: 60096.00 MiB
+In particular:
+  - Stage: 71.92µs
+    - Setup networking: 45.46µs (63.2%)
+    - Unstaged: 26.46µs (36.8%)
+  - Round 1: 1.24ms
+    - Sample x_i, rid_i, chain_code: 526.96µs (42.6%)
+    - Sample schnorr commitment: 515.25µs (41.7%)
+    - Commit to public data: 137.00µs (11.1%)
+    - Unstaged: 56.58µs (4.6%)
+  - Round 2: 152.75µs
+    - Hash received msgs (reliability check): 91.29µs (59.8%)
+    - Unstaged: 61.46µs (40.2%)
+  - Round 3: 82.42µs
+    - Assert other parties hashed messages (reliability check): 21.13µs (25.6%)
+    - Unstaged: 61.29µs (74.4%)
+  - Round 4: 610.21µs
+    - Validate decommitments: 465.46µs (76.3%)
+    - Calculate challege rid: 64.88µs (10.6%)
+    - Prove knowledge of `x_i`: 21.04µs (3.4%)
+    - Unstaged: 58.83µs (9.6%)
+  - Round 5: 4.13ms
+    - Validate schnorr proofs: 4.09ms (99.1%)
+    - Unstaged: 38.33µs (0.9%)
+
+
+Threshold DKG
+Protocol Performance:
+  - Protocol took 30.00ms to complete
+  - Peak RSS: 60144.00 MiB
+In particular:
+  - Stage: 48.79µs
+    - Setup networking: 29.33µs (60.1%)
+    - Unstaged: 19.46µs (39.9%)
+  - Round 1: 2.81ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 2.50ms (89.2%)
+    - Commit to public data: 265.00µs (9.4%)
+    - Unstaged: 37.42µs (1.3%)
+  - Round 2: 141.21µs
+    - Hash received msgs (reliability check): 86.92µs (61.6%)
+    - Unstaged: 54.29µs (38.4%)
+  - Round 3: 74.88µs
+    - Assert other parties hashed messages (reliability check): 20.17µs (26.9%)
+    - Unstaged: 54.71µs (73.1%)
+  - Round 4: 22.07ms
+    - Validate decommitments: 995.67µs (4.5%)
+    - Validate data size: 25.96µs (0.1%)
+    - Validate Feldmann VSS: 10.26ms (46.5%)
+    - Compute rid: 68.33µs (0.3%)
+    - Compute Ys: 9.86ms (44.7%)
+    - Compute sigma: 522.33µs (2.4%)
+    - Calculate challenge: 253.42µs (1.1%)
+    - Prove knowledge of `sigma_i`: 22.38µs (0.1%)
+    - Unstaged: 60.08µs (0.3%)
+  - Round 5: 4.86ms
+    - Validate schnorr proofs: 4.76ms (98.0%)
+    - Derive resulting public key and other data: 44.38µs (0.9%)
+    - Unstaged: 54.71µs (1.1%)
+
+
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 31.68ms to complete
+  - Peak RSS: 60208.00 MiB
+In particular:
+  - Stage: 59.04µs
+    - Setup networking: 33.79µs (57.2%)
+    - Unstaged: 25.25µs (42.8%)
+  - Round 1: 2.28ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 2.01ms (88.5%)
+    - Commit to public data: 222.38µs (9.8%)
+    - Unstaged: 40.21µs (1.8%)
+  - Round 2: 142.25µs
+    - Hash received msgs (reliability check): 86.21µs (60.6%)
+    - Unstaged: 56.04µs (39.4%)
+  - Round 3: 76.88µs
+    - Assert other parties hashed messages (reliability check): 20.21µs (26.3%)
+    - Unstaged: 56.67µs (73.7%)
+  - Round 4: 24.20ms
+    - Validate decommitments: 820.83µs (3.4%)
+    - Validate data size: 19.79µs (0.1%)
+    - Validate Feldmann VSS: 13.66ms (56.4%)
+    - Compute rid: 26.21µs (0.1%)
+    - Compute Ys: 8.85ms (36.6%)
+    - Compute sigma: 511.75µs (2.1%)
+    - Calculate challenge: 239.83µs (1.0%)
+    - Prove knowledge of `sigma_i`: 20.21µs (0.1%)
+    - Unstaged: 56.25µs (0.2%)
+  - Round 5: 4.92ms
+    - Validate schnorr proofs: 4.82ms (98.0%)
+    - Derive resulting public key and other data: 50.50µs (1.0%)
+    - Unstaged: 46.50µs (0.9%)
+
+
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+Auxiliary data generation protocol
+Protocol Performance:
+  - Protocol took 544.77s to complete
+  - Peak RSS: 61776.00 MiB
+In particular:
+  - Stage: 93.96µs
+    - Retrieve auxiliary data: 21.50µs (22.9%)
+    - Setup networking: 46.88µs (49.9%)
+    - Unstaged: 25.58µs (27.2%)
+  - Round 1: 43.59s
+    - Retrieve data from paillier decryption key: 72.88µs (0.0%)
+    - Generate auxiliary params r, λ, t, s: 338.67ms (0.8%)
+    - Prove Πprm (ψˆ_i): 43.24s (99.2%)
+    - Sample random bytes: 126.17µs (0.0%)
+    - Compute hash commitment and sample decommitment: 10.29ms (0.0%)
+    - Unstaged: 51.96µs (0.0%)
+  - Round 2: 148.04µs
+    - Hash received msgs (reliability check): 81.50µs (55.1%)
+    - Unstaged: 66.54µs (44.9%)
+  - Round 3: 84.46µs
+    - Assert other parties hashed messages (reliability check): 24.63µs (29.2%)
+    - Unstaged: 59.83µs (70.8%)
+  - Round 4: 314.54s
+    - Validate round 1 decommitments: 41.12ms (0.0%)
+    - Validate П_prm (ψ_i): 171.96s (54.7%)
+    - Add together shared random bytes: 109.00µs (0.0%)
+    - Compute П_mod (ψ_i): 129.62s (41.2%)
+    - Assemble security params for П_fac (ф_i): 168.13µs (0.0%)
+    - Compute П_fac (ф_i^j): 12.91s (4.1%)
+    - Unstaged: 357.67µs (0.0%)
+  - Round 5: 186.64s
+    - Validate ψ_j (П_mod): 173.68s (93.1%)
+    - Validate ф_j (П_fac): 12.96s (6.9%)
+    - Assemble auxiliary info: 4.14ms (0.0%)
+    - Unstaged: 71.71µs (0.0%)
+
+
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Signing protocol
+No cached precompute tables available, creating fresh tables
+Protocol Performance:
+  - Protocol took 52.28s to complete
+  - Peak RSS: 14912.00 MiB
+In particular:
+  - Stage: 747.75µs
+    - Map t-out-of-n protocol to t-out-of-t: 620.58µs (83.0%)
+    - Retrieve auxiliary data: 24.58µs (3.3%)
+    - Precompute execution id and security params: 25.88µs (3.5%)
+    - Setup networking: 48.63µs (6.5%)
+    - Unstaged: 28.08µs (3.8%)
+  - Round 1: 10.27s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 227.00µs (0.0%)
+    - Encrypt k_i and gamma_i: 422.29ms (4.1%)
+    - Prove ψ_ji: 9.85s (95.9%)
+    - Unstaged: 256.25µs (0.0%)
+  - Round 2: 1.60ms
+    - Hash received msgs (reliability check): 1.51ms (94.7%)
+    - Unstaged: 85.17µs (5.3%)
+  - Round 3: 28.75s
+    - Assert other parties hashed messages (reliability check): 38.75µs (0.0%)
+    - Verify psi_ji proofs: 7.31s (25.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 2.47ms (0.0%)
+    - Encrypt D_ji: 1.27s (4.4%)
+    - Encrypt F_ji: 837.63ms (2.9%)
+    - Encrypt hat_D_ji: 1.28s (4.5%)
+    - Encrypt hat_F_ji: 837.66ms (2.9%)
+    - Prove psi_ji: 17.21s (59.9%)
+    - Unstaged: 191.83µs (0.0%)
+  - Round 4: 13.23s
+    - Retrieve auxiliary data: 130.08µs (0.0%)
+    - Validate psi_ji: 11.54s (87.2%)
+    - Validate psi_j: 17.40ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 1.66s (12.6%)
+    - Prove hat_psi_i: 11.10ms (0.1%)
+    - Unstaged: 183.54µs (0.0%)
+  - Presig output: 22.86ms
+    - Validate hat_psi_j: 16.71ms (73.1%)
+    - Calculate presignature: 6.11ms (26.7%)
+    - Unstaged: 44.13µs (0.2%)
+  - Partial signing: 87.46µs
+  - Signature reconstruction: 7.63ms
+
+
+Signers: [3, 1, 2, 0]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Threshold signing protocol
+Protocol Performance:
+  - Protocol took 39.34s to complete
+  - Peak RSS: 14912.00 MiB
+In particular:
+  - Stage: 3.70ms
+    - Map t-out-of-n protocol to t-out-of-t: 3.59ms (97.0%)
+    - Retrieve auxiliary data: 23.46µs (0.6%)
+    - Precompute execution id and security params: 23.63µs (0.6%)
+    - Setup networking: 39.17µs (1.1%)
+    - Unstaged: 25.29µs (0.7%)
+  - Round 1: 7.83s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 217.96µs (0.0%)
+    - Encrypt k_i and gamma_i: 431.23ms (5.5%)
+    - Prove ψ_ji: 7.40s (94.5%)
+    - Unstaged: 207.92µs (0.0%)
+  - Round 2: 1.30ms
+    - Hash received msgs (reliability check): 1.22ms (94.2%)
+    - Unstaged: 75.92µs (5.8%)
+  - Round 3: 21.56s
+    - Assert other parties hashed messages (reliability check): 31.67µs (0.0%)
+    - Verify psi_ji proofs: 5.47s (25.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 1.91ms (0.0%)
+    - Encrypt D_ji: 953.47ms (4.4%)
+    - Encrypt F_ji: 633.02ms (2.9%)
+    - Encrypt hat_D_ji: 946.68ms (4.4%)
+    - Encrypt hat_F_ji: 634.64ms (2.9%)
+    - Prove psi_ji: 12.91s (59.9%)
+    - Unstaged: 169.75µs (0.0%)
+  - Round 4: 9.93s
+    - Retrieve auxiliary data: 93.62µs (0.0%)
+    - Validate psi_ji: 8.64s (87.0%)
+    - Validate psi_j: 13.29ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 1.26s (12.7%)
+    - Prove hat_psi_i: 8.34ms (0.1%)
+    - Unstaged: 154.63µs (0.0%)
+  - Presig output: 17.76ms
+    - Validate hat_psi_j: 12.56ms (70.7%)
+    - Calculate presignature: 5.16ms (29.0%)
+    - Unstaged: 48.79µs (0.3%)
+  - Partial signing: 95.67µs
+  - Signature reconstruction: 6.18ms
+
+
+Signers: [3, 1, 4, 0, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 640
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Hierarchical threshold signing protocol
+Protocol Performance:
+  - Protocol took 52.33s to complete
+  - Peak RSS: 15216.00 MiB
+In particular:
+  - Stage: 6.66ms
+    - Map t-out-of-n protocol to t-out-of-t: 6.52ms (97.8%)
+    - Retrieve auxiliary data: 35.04µs (0.5%)
+    - Precompute execution id and security params: 27.71µs (0.4%)
+    - Setup networking: 53.58µs (0.8%)
+    - Unstaged: 27.88µs (0.4%)
+  - Round 1: 10.27s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 220.92µs (0.0%)
+    - Encrypt k_i and gamma_i: 421.25ms (4.1%)
+    - Prove ψ_ji: 9.84s (95.9%)
+    - Unstaged: 244.75µs (0.0%)
+  - Round 2: 1.59ms
+    - Hash received msgs (reliability check): 1.51ms (95.1%)
+    - Unstaged: 77.08µs (4.9%)
+  - Round 3: 28.78s
+    - Assert other parties hashed messages (reliability check): 30.88µs (0.0%)
+    - Verify psi_ji proofs: 7.31s (25.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 2.47ms (0.0%)
+    - Encrypt D_ji: 1.29s (4.5%)
+    - Encrypt F_ji: 844.82ms (2.9%)
+    - Encrypt hat_D_ji: 1.28s (4.4%)
+    - Encrypt hat_F_ji: 844.24ms (2.9%)
+    - Prove psi_ji: 17.22s (59.8%)
+    - Unstaged: 207.88µs (0.0%)
+  - Round 4: 13.24s
+    - Retrieve auxiliary data: 123.00µs (0.0%)
+    - Validate psi_ji: 11.52s (87.0%)
+    - Validate psi_j: 17.63ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 1.69s (12.7%)
+    - Prove hat_psi_i: 11.16ms (0.1%)
+    - Unstaged: 174.75µs (0.0%)
+  - Presig output: 22.96ms
+    - Validate hat_psi_j: 16.75ms (73.0%)
+    - Calculate presignature: 6.16ms (26.8%)
+    - Unstaged: 44.71µs (0.2%)
+  - Partial signing: 95.00µs
+  - Signature reconstruction: 7.64ms
+
+
+n = 7
+
+Non-threshold DKG
+Protocol Performance:
+  - Protocol took 8.59ms to complete
+  - Peak RSS: 15328.00 MiB
+In particular:
+  - Stage: 71.46µs
+    - Setup networking: 43.63µs (61.0%)
+    - Unstaged: 27.83µs (39.0%)
+  - Round 1: 1.26ms
+    - Sample x_i, rid_i, chain_code: 526.50µs (41.7%)
+    - Sample schnorr commitment: 516.33µs (40.9%)
+    - Commit to public data: 176.92µs (14.0%)
+    - Unstaged: 41.62µs (3.3%)
+  - Round 2: 182.71µs
+    - Hash received msgs (reliability check): 116.46µs (63.7%)
+    - Unstaged: 66.25µs (36.3%)
+  - Round 3: 78.08µs
+    - Assert other parties hashed messages (reliability check): 19.79µs (25.3%)
+    - Unstaged: 58.29µs (74.7%)
+  - Round 4: 831.50µs
+    - Validate decommitments: 689.71µs (82.9%)
+    - Calculate challege rid: 65.08µs (7.8%)
+    - Prove knowledge of `x_i`: 19.88µs (2.4%)
+    - Unstaged: 56.83µs (6.8%)
+  - Round 5: 6.16ms
+    - Validate schnorr proofs: 6.12ms (99.4%)
+    - Unstaged: 37.46µs (0.6%)
+
+
+Threshold DKG
+Protocol Performance:
+  - Protocol took 55.58ms to complete
+  - Peak RSS: 15376.00 MiB
+In particular:
+  - Stage: 47.17µs
+    - Setup networking: 28.58µs (60.6%)
+    - Unstaged: 18.58µs (39.4%)
+  - Round 1: 3.90ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 3.51ms (90.0%)
+    - Commit to public data: 353.29µs (9.1%)
+    - Unstaged: 36.92µs (0.9%)
+  - Round 2: 164.62µs
+    - Hash received msgs (reliability check): 109.92µs (66.8%)
+    - Unstaged: 54.71µs (33.2%)
+  - Round 3: 75.25µs
+    - Assert other parties hashed messages (reliability check): 19.13µs (25.4%)
+    - Unstaged: 56.13µs (74.6%)
+  - Round 4: 44.07ms
+    - Validate decommitments: 2.00ms (4.5%)
+    - Validate data size: 20.54µs (0.0%)
+    - Validate Feldmann VSS: 20.51ms (46.5%)
+    - Compute rid: 24.67µs (0.1%)
+    - Compute Ys: 20.64ms (46.8%)
+    - Compute sigma: 532.96µs (1.2%)
+    - Calculate challenge: 254.29µs (0.6%)
+    - Prove knowledge of `sigma_i`: 27.58µs (0.1%)
+    - Unstaged: 60.00µs (0.1%)
+  - Round 5: 7.31ms
+    - Validate schnorr proofs: 7.20ms (98.5%)
+    - Derive resulting public key and other data: 59.00µs (0.8%)
+    - Unstaged: 51.33µs (0.7%)
+
+
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 55.50ms to complete
+  - Peak RSS: 15472.00 MiB
+In particular:
+  - Stage: 68.29µs
+    - Setup networking: 40.50µs (59.3%)
+    - Unstaged: 27.79µs (40.7%)
+  - Round 1: 2.91ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 2.59ms (89.1%)
+    - Commit to public data: 272.75µs (9.4%)
+    - Unstaged: 42.83µs (1.5%)
+  - Round 2: 176.96µs
+    - Hash received msgs (reliability check): 113.88µs (64.4%)
+    - Unstaged: 63.08µs (35.6%)
+  - Round 3: 88.25µs
+    - Assert other parties hashed messages (reliability check): 22.46µs (25.4%)
+    - Unstaged: 65.79µs (74.6%)
+  - Round 4: 44.96ms
+    - Validate decommitments: 1.49ms (3.3%)
+    - Validate data size: 20.08µs (0.0%)
+    - Validate Feldmann VSS: 26.69ms (59.4%)
+    - Compute rid: 73.96µs (0.2%)
+    - Compute Ys: 15.81ms (35.2%)
+    - Compute sigma: 525.88µs (1.2%)
+    - Calculate challenge: 260.75µs (0.6%)
+    - Prove knowledge of `sigma_i`: 26.79µs (0.1%)
+    - Unstaged: 60.71µs (0.1%)
+  - Round 5: 7.30ms
+    - Validate schnorr proofs: 7.20ms (98.7%)
+    - Derive resulting public key and other data: 50.13µs (0.7%)
+    - Unstaged: 46.21µs (0.6%)
+
+
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+Auxiliary data generation protocol
+Protocol Performance:
+  - Protocol took 730.49s to complete
+  - Peak RSS: 22144.00 MiB
+In particular:
+  - Stage: 106.96µs
+    - Retrieve auxiliary data: 20.92µs (19.6%)
+    - Setup networking: 55.79µs (52.2%)
+    - Unstaged: 30.25µs (28.3%)
+  - Round 1: 43.46s
+    - Retrieve data from paillier decryption key: 70.58µs (0.0%)
+    - Generate auxiliary params r, λ, t, s: 337.66ms (0.8%)
+    - Prove Πprm (ψˆ_i): 43.11s (99.2%)
+    - Sample random bytes: 131.71µs (0.0%)
+    - Compute hash commitment and sample decommitment: 10.41ms (0.0%)
+    - Unstaged: 51.08µs (0.0%)
+  - Round 2: 180.04µs
+    - Hash received msgs (reliability check): 105.04µs (58.3%)
+    - Unstaged: 75.00µs (41.7%)
+  - Round 3: 90.00µs
+    - Assert other parties hashed messages (reliability check): 25.00µs (27.8%)
+    - Unstaged: 65.00µs (72.2%)
+  - Round 4: 406.94s
+    - Validate round 1 decommitments: 61.52ms (0.0%)
+    - Validate П_prm (ψ_i): 257.86s (63.4%)
+    - Add together shared random bytes: 106.13µs (0.0%)
+    - Compute П_mod (ψ_i): 129.66s (31.9%)
+    - Assemble security params for П_fac (ф_i): 144.63µs (0.0%)
+    - Compute П_fac (ф_i^j): 19.36s (4.8%)
+    - Unstaged: 484.88µs (0.0%)
+  - Round 5: 280.09s
+    - Validate ψ_j (П_mod): 260.62s (93.1%)
+    - Validate ф_j (П_fac): 19.46s (6.9%)
+    - Assemble auxiliary info: 5.78ms (0.0%)
+    - Unstaged: 65.25µs (0.0%)
+
+
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Signing protocol
+No cached precompute tables available, creating fresh tables
+Protocol Performance:
+  - Protocol took 77.95s to complete
+  - Peak RSS: 17408.00 MiB
+In particular:
+  - Stage: 757.79µs
+    - Map t-out-of-n protocol to t-out-of-t: 612.79µs (80.9%)
+    - Retrieve auxiliary data: 27.83µs (3.7%)
+    - Precompute execution id and security params: 26.08µs (3.4%)
+    - Setup networking: 60.25µs (8.0%)
+    - Unstaged: 30.83µs (4.1%)
+  - Round 1: 15.15s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 221.17µs (0.0%)
+    - Encrypt k_i and gamma_i: 420.95ms (2.8%)
+    - Prove ψ_ji: 14.73s (97.2%)
+    - Unstaged: 307.87µs (0.0%)
+  - Round 2: 2.14ms
+    - Hash received msgs (reliability check): 2.07ms (96.4%)
+    - Unstaged: 77.33µs (3.6%)
+  - Round 3: 43.02s
+    - Assert other parties hashed messages (reliability check): 36.08µs (0.0%)
+    - Verify psi_ji proofs: 10.91s (25.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 3.64ms (0.0%)
+    - Encrypt D_ji: 1.90s (4.4%)
+    - Encrypt F_ji: 1.26s (2.9%)
+    - Encrypt hat_D_ji: 1.91s (4.4%)
+    - Encrypt hat_F_ji: 1.25s (2.9%)
+    - Prove psi_ji: 25.78s (59.9%)
+    - Unstaged: 276.17µs (0.0%)
+  - Round 4: 19.73s
+    - Retrieve auxiliary data: 207.46µs (0.0%)
+    - Validate psi_ji: 17.20s (87.2%)
+    - Validate psi_j: 26.40ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 2.49s (12.6%)
+    - Prove hat_psi_i: 16.52ms (0.1%)
+    - Unstaged: 214.00µs (0.0%)
+  - Presig output: 33.31ms
+    - Validate hat_psi_j: 25.19ms (75.6%)
+    - Calculate presignature: 8.08ms (24.3%)
+    - Unstaged: 43.21µs (0.1%)
+  - Partial signing: 89.75µs
+  - Signature reconstruction: 10.56ms
+
+
+Signers: [2, 4, 1, 0, 6, 3, 5]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 640
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Threshold signing protocol
+Protocol Performance:
+  - Protocol took 78.00s to complete
+  - Peak RSS: 17568.00 MiB
+In particular:
+  - Stage: 5.86ms
+    - Map t-out-of-n protocol to t-out-of-t: 5.76ms (98.2%)
+    - Retrieve auxiliary data: 21.08µs (0.4%)
+    - Precompute execution id and security params: 24.63µs (0.4%)
+    - Setup networking: 40.00µs (0.7%)
+    - Unstaged: 21.33µs (0.4%)
+  - Round 1: 15.19s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 219.00µs (0.0%)
+    - Encrypt k_i and gamma_i: 423.75ms (2.8%)
+    - Prove ψ_ji: 14.77s (97.2%)
+    - Unstaged: 307.21µs (0.0%)
+  - Round 2: 2.17ms
+    - Hash received msgs (reliability check): 2.10ms (96.7%)
+    - Unstaged: 70.67µs (3.3%)
+  - Round 3: 43.04s
+    - Assert other parties hashed messages (reliability check): 37.75µs (0.0%)
+    - Verify psi_ji proofs: 10.97s (25.5%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 3.72ms (0.0%)
+    - Encrypt D_ji: 1.91s (4.4%)
+    - Encrypt F_ji: 1.25s (2.9%)
+    - Encrypt hat_D_ji: 1.91s (4.4%)
+    - Encrypt hat_F_ji: 1.26s (2.9%)
+    - Prove psi_ji: 25.75s (59.8%)
+    - Unstaged: 278.17µs (0.0%)
+  - Round 4: 19.71s
+    - Retrieve auxiliary data: 182.62µs (0.0%)
+    - Validate psi_ji: 17.18s (87.2%)
+    - Validate psi_j: 26.05ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 2.49s (12.6%)
+    - Prove hat_psi_i: 16.16ms (0.1%)
+    - Unstaged: 197.63µs (0.0%)
+  - Presig output: 33.97ms
+    - Validate hat_psi_j: 25.59ms (75.3%)
+    - Calculate presignature: 8.34ms (24.5%)
+    - Unstaged: 42.04µs (0.1%)
+  - Partial signing: 104.21µs
+  - Signature reconstruction: 10.56ms
+
+
+Signers: [2, 3, 5, 0, 1, 4]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Hierarchical threshold signing protocol
+Protocol Performance:
+  - Protocol took 65.05s to complete
+  - Peak RSS: 17632.00 MiB
+In particular:
+  - Stage: 9.29ms
+    - Map t-out-of-n protocol to t-out-of-t: 9.17ms (98.7%)
+    - Retrieve auxiliary data: 24.08µs (0.3%)
+    - Precompute execution id and security params: 24.42µs (0.3%)
+    - Setup networking: 40.13µs (0.4%)
+    - Unstaged: 30.92µs (0.3%)
+  - Round 1: 12.75s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 217.88µs (0.0%)
+    - Encrypt k_i and gamma_i: 422.77ms (3.3%)
+    - Prove ψ_ji: 12.32s (96.7%)
+    - Unstaged: 1.03ms (0.0%)
+  - Round 2: 1.89ms
+    - Hash received msgs (reliability check): 1.81ms (95.9%)
+    - Unstaged: 77.79µs (4.1%)
+  - Round 3: 35.79s
+    - Assert other parties hashed messages (reliability check): 37.50µs (0.0%)
+    - Verify psi_ji proofs: 9.08s (25.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 3.08ms (0.0%)
+    - Encrypt D_ji: 1.59s (4.4%)
+    - Encrypt F_ji: 1.05s (2.9%)
+    - Encrypt hat_D_ji: 1.59s (4.5%)
+    - Encrypt hat_F_ji: 1.05s (2.9%)
+    - Prove psi_ji: 21.43s (59.9%)
+    - Unstaged: 245.13µs (0.0%)
+  - Round 4: 16.46s
+    - Retrieve auxiliary data: 159.00µs (0.0%)
+    - Validate psi_ji: 14.34s (87.1%)
+    - Validate psi_j: 21.99ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 2.09s (12.7%)
+    - Prove hat_psi_i: 13.90ms (0.1%)
+    - Unstaged: 211.13µs (0.0%)
+  - Presig output: 28.03ms
+    - Validate hat_psi_j: 20.89ms (74.5%)
+    - Calculate presignature: 7.09ms (25.3%)
+    - Unstaged: 47.29µs (0.2%)
+  - Partial signing: 87.71µs
+  - Signature reconstruction: 9.10ms
+
+
+n = 10
+
+Non-threshold DKG
+Protocol Performance:
+  - Protocol took 12.00ms to complete
+  - Peak RSS: 17024.00 MiB
+In particular:
+  - Stage: 68.46µs
+    - Setup networking: 44.50µs (65.0%)
+    - Unstaged: 23.96µs (35.0%)
+  - Round 1: 1.26ms
+    - Sample x_i, rid_i, chain_code: 526.71µs (41.9%)
+    - Sample schnorr commitment: 511.88µs (40.8%)
+    - Commit to public data: 174.83µs (13.9%)
+    - Unstaged: 42.46µs (3.4%)
+  - Round 2: 210.96µs
+    - Hash received msgs (reliability check): 152.21µs (72.2%)
+    - Unstaged: 58.75µs (27.8%)
+  - Round 3: 74.17µs
+    - Assert other parties hashed messages (reliability check): 19.54µs (26.3%)
+    - Unstaged: 54.63µs (73.7%)
+  - Round 4: 1.17ms
+    - Validate decommitments: 1.02ms (87.2%)
+    - Calculate challege rid: 68.83µs (5.9%)
+    - Prove knowledge of `x_i`: 21.25µs (1.8%)
+    - Unstaged: 59.79µs (5.1%)
+  - Round 5: 9.22ms
+    - Validate schnorr proofs: 9.18ms (99.6%)
+    - Unstaged: 38.21µs (0.4%)
+
+
+Threshold DKG
+Protocol Performance:
+  - Protocol took 109.95ms to complete
+  - Peak RSS: 17152.00 MiB
+In particular:
+  - Stage: 51.88µs
+    - Setup networking: 30.67µs (59.1%)
+    - Unstaged: 21.21µs (40.9%)
+  - Round 1: 5.58ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 5.05ms (90.5%)
+    - Commit to public data: 490.04µs (8.8%)
+    - Unstaged: 40.54µs (0.7%)
+  - Round 2: 212.50µs
+    - Hash received msgs (reliability check): 151.25µs (71.2%)
+    - Unstaged: 61.25µs (28.8%)
+  - Round 3: 80.42µs
+    - Assert other parties hashed messages (reliability check): 21.17µs (26.3%)
+    - Unstaged: 59.25µs (73.7%)
+  - Round 4: 93.14ms
+    - Validate decommitments: 4.17ms (4.5%)
+    - Validate data size: 29.96µs (0.0%)
+    - Validate Feldmann VSS: 43.93ms (47.2%)
+    - Compute rid: 36.71µs (0.0%)
+    - Compute Ys: 44.13ms (47.4%)
+    - Compute sigma: 517.96µs (0.6%)
+    - Calculate challenge: 241.33µs (0.3%)
+    - Prove knowledge of `sigma_i`: 26.29µs (0.0%)
+    - Unstaged: 62.37µs (0.1%)
+  - Round 5: 10.88ms
+    - Validate schnorr proofs: 10.77ms (99.0%)
+    - Derive resulting public key and other data: 66.04µs (0.6%)
+    - Unstaged: 42.33µs (0.4%)
+
+
+Hierarchical threshold DKG
+Protocol Performance:
+  - Protocol took 92.18ms to complete
+  - Peak RSS: 17312.00 MiB
+In particular:
+  - Stage: 72.58µs
+    - Setup networking: 46.13µs (63.5%)
+    - Unstaged: 26.46µs (36.5%)
+  - Round 1: 3.55ms
+    - Sample rid_i, schnorr commitment, polynomial, chain_code: 3.18ms (89.5%)
+    - Commit to public data: 330.08µs (9.3%)
+    - Unstaged: 44.21µs (1.2%)
+  - Round 2: 210.33µs
+    - Hash received msgs (reliability check): 150.08µs (71.4%)
+    - Unstaged: 60.25µs (28.6%)
+  - Round 3: 80.50µs
+    - Assert other parties hashed messages (reliability check): 20.58µs (25.6%)
+    - Unstaged: 59.92µs (74.4%)
+  - Round 4: 77.36ms
+    - Validate decommitments: 2.61ms (3.4%)
+    - Validate data size: 27.92µs (0.0%)
+    - Validate Feldmann VSS: 48.25ms (62.4%)
+    - Compute rid: 33.92µs (0.0%)
+    - Compute Ys: 25.59ms (33.1%)
+    - Compute sigma: 514.17µs (0.7%)
+    - Calculate challenge: 243.75µs (0.3%)
+    - Prove knowledge of `sigma_i`: 23.46µs (0.0%)
+    - Unstaged: 60.79µs (0.1%)
+  - Round 5: 10.90ms
+    - Validate schnorr proofs: 10.79ms (99.0%)
+    - Derive resulting public key and other data: 63.21µs (0.6%)
+    - Unstaged: 50.63µs (0.5%)
+
+
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 1
+run_aux_gen: 2
+run_aux_gen: 3
+run_aux_gen: 4
+run_aux_gen: 5
+run_aux_gen: 6
+run_aux_gen: 7
+run_aux_gen: 8
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 9
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 10
+run_aux_gen: 11
+run_aux_gen: 12
+run_aux_gen: 13
+run_aux_gen: 14
+run_aux_gen: 15
+run_aux_gen: 16
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1536 bits
+q: 1536 bits
+alpha: 512 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1536 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+run_aux_gen: 17
+run_aux_gen: 18
+run_aux_gen: 19
+run_aux_gen: 20
+run_aux_gen: 21
+N_SIZE: 3072
+A_SIZE: 512
+p: 1535 bits
+q: 1535 bits
+alpha: 511 bits
+run_aux_gen: 22
+run_aux_gen: 23
+Auxiliary data generation protocol
+Protocol Performance:
+  - Protocol took 1007.43s to complete
+  - Peak RSS: 31872.00 MiB
+In particular:
+  - Stage: 131.83µs
+    - Retrieve auxiliary data: 21.33µs (16.2%)
+    - Setup networking: 76.25µs (57.8%)
+    - Unstaged: 34.25µs (26.0%)
+  - Round 1: 43.38s
+    - Retrieve data from paillier decryption key: 82.00µs (0.0%)
+    - Generate auxiliary params r, λ, t, s: 337.65ms (0.8%)
+    - Prove Πprm (ψˆ_i): 43.03s (99.2%)
+    - Sample random bytes: 111.08µs (0.0%)
+    - Compute hash commitment and sample decommitment: 10.36ms (0.0%)
+    - Unstaged: 57.42µs (0.0%)
+  - Round 2: 209.13µs
+    - Hash received msgs (reliability check): 142.25µs (68.0%)
+    - Unstaged: 66.88µs (32.0%)
+  - Round 3: 85.04µs
+    - Assert other parties hashed messages (reliability check): 24.92µs (29.3%)
+    - Unstaged: 60.13µs (70.7%)
+  - Round 4: 545.19s
+    - Validate round 1 decommitments: 91.59ms (0.0%)
+    - Validate П_prm (ψ_i): 386.50s (70.9%)
+    - Add together shared random bytes: 89.46µs (0.0%)
+    - Compute П_mod (ψ_i): 129.56s (23.8%)
+    - Assemble security params for П_fac (ф_i): 157.21µs (0.0%)
+    - Compute П_fac (ф_i^j): 29.04s (5.3%)
+    - Unstaged: 1.60ms (0.0%)
+  - Round 5: 418.86s
+    - Validate ψ_j (П_mod): 389.81s (93.1%)
+    - Validate ф_j (П_fac): 29.04s (6.9%)
+    - Assemble auxiliary info: 8.01ms (0.0%)
+    - Unstaged: 68.42µs (0.0%)
+
+
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Signing protocol
+No cached precompute tables available, creating fresh tables
+Protocol Performance:
+  - Protocol took 116.71s to complete
+  - Peak RSS: 24912.00 MiB
+In particular:
+  - Stage: 805.17µs
+    - Map t-out-of-n protocol to t-out-of-t: 647.13µs (80.4%)
+    - Retrieve auxiliary data: 26.33µs (3.3%)
+    - Precompute execution id and security params: 26.58µs (3.3%)
+    - Setup networking: 67.79µs (8.4%)
+    - Unstaged: 37.33µs (4.6%)
+  - Round 1: 22.56s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 228.04µs (0.0%)
+    - Encrypt k_i and gamma_i: 422.29ms (1.9%)
+    - Prove ψ_ji: 22.14s (98.1%)
+    - Unstaged: 380.88µs (0.0%)
+  - Round 2: 3.46ms
+    - Hash received msgs (reliability check): 3.37ms (97.5%)
+    - Unstaged: 85.13µs (2.5%)
+  - Round 3: 64.54s
+    - Assert other parties hashed messages (reliability check): 39.79µs (0.0%)
+    - Verify psi_ji proofs: 16.37s (25.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 5.54ms (0.0%)
+    - Encrypt D_ji: 2.86s (4.4%)
+    - Encrypt F_ji: 1.88s (2.9%)
+    - Encrypt hat_D_ji: 2.86s (4.4%)
+    - Encrypt hat_F_ji: 1.88s (2.9%)
+    - Prove psi_ji: 38.68s (59.9%)
+    - Unstaged: 399.46µs (0.0%)
+  - Round 4: 29.54s
+    - Retrieve auxiliary data: 295.21µs (0.0%)
+    - Validate psi_ji: 25.73s (87.1%)
+    - Validate psi_j: 39.43ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 3.75s (12.7%)
+    - Prove hat_psi_i: 24.45ms (0.1%)
+    - Unstaged: 276.50µs (0.0%)
+  - Presig output: 48.63ms
+    - Validate hat_psi_j: 37.56ms (77.2%)
+    - Calculate presignature: 11.03ms (22.7%)
+    - Unstaged: 47.04µs (0.1%)
+  - Partial signing: 91.29µs
+  - Signature reconstruction: 14.74ms
+
+
+Signers: [9, 0, 3, 8, 7, 4, 5, 1, 6, 2]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 640
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 640
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 640
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 640
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Threshold signing protocol
+Protocol Performance:
+  - Protocol took 116.82s to complete
+  - Peak RSS: 24048.00 MiB
+In particular:
+  - Stage: 8.05ms
+    - Map t-out-of-n protocol to t-out-of-t: 7.95ms (98.6%)
+    - Retrieve auxiliary data: 22.13µs (0.3%)
+    - Precompute execution id and security params: 24.50µs (0.3%)
+    - Setup networking: 41.04µs (0.5%)
+    - Unstaged: 21.54µs (0.3%)
+  - Round 1: 22.56s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 219.04µs (0.0%)
+    - Encrypt k_i and gamma_i: 418.85ms (1.9%)
+    - Prove ψ_ji: 22.14s (98.1%)
+    - Unstaged: 394.58µs (0.0%)
+  - Round 2: 3.01ms
+    - Hash received msgs (reliability check): 2.93ms (97.5%)
+    - Unstaged: 75.25µs (2.5%)
+  - Round 3: 64.54s
+    - Assert other parties hashed messages (reliability check): 33.38µs (0.0%)
+    - Verify psi_ji proofs: 16.37s (25.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 5.66ms (0.0%)
+    - Encrypt D_ji: 2.88s (4.5%)
+    - Encrypt F_ji: 1.88s (2.9%)
+    - Encrypt hat_D_ji: 2.87s (4.5%)
+    - Encrypt hat_F_ji: 1.88s (2.9%)
+    - Prove psi_ji: 38.65s (59.9%)
+    - Unstaged: 398.33µs (0.0%)
+  - Round 4: 29.66s
+    - Retrieve auxiliary data: 309.04µs (0.0%)
+    - Validate psi_ji: 25.83s (87.1%)
+    - Validate psi_j: 39.29ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 3.77s (12.7%)
+    - Prove hat_psi_i: 24.82ms (0.1%)
+    - Unstaged: 293.67µs (0.0%)
+  - Presig output: 48.65ms
+    - Validate hat_psi_j: 37.59ms (77.3%)
+    - Calculate presignature: 11.01ms (22.6%)
+    - Unstaged: 44.58µs (0.1%)
+  - Partial signing: 85.46µs
+  - Signature reconstruction: 14.97ms
+
+
+Signers: [3, 1, 0, 7, 5, 4, 8, 2, 6]
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+Start signing...
+signing_t_out_of_n: 1
+signing_t_out_of_n: 2
+signing_t_out_of_n: 3
+signing_t_out_of_n: 4
+signing_t_out_of_n: 5
+enable_precompute_table: false
+signing_n_out_of_n: 3
+signing_n_out_of_n: 4
+signing_n_out_of_n: 5
+encrypt without precompute table
+signing_n_out_of_n: 6
+signing_n_out_of_n: 7
+signing_n_out_of_n: 8
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 9
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 10
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 640
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+encrypt without precompute table
+signing_n_out_of_n: 11
+encrypt without precompute table
+r: 511
+nonce size: 512
+challenge_i: 128
+challenge_i: 128
+w: 641
+nonce size: 512
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 12
+signing_n_out_of_n: 13
+signing_n_out_of_n: 14
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 15
+signing_n_out_of_n: 16
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+signing_n_out_of_n: 17
+signing_n_out_of_n: 18
+Hierarchical threshold signing protocol
+Protocol Performance:
+  - Protocol took 103.81s to complete
+  - Peak RSS: 23888.00 MiB
+In particular:
+  - Stage: 13.62ms
+    - Map t-out-of-n protocol to t-out-of-t: 13.48ms (99.0%)
+    - Retrieve auxiliary data: 25.13µs (0.2%)
+    - Precompute execution id and security params: 28.17µs (0.2%)
+    - Setup networking: 56.38µs (0.4%)
+    - Unstaged: 26.67µs (0.2%)
+  - Round 1: 20.10s
+    - Generate local ephemeral secrets (k_i, gamma_i, rho_i, nu_i): 223.17µs (0.0%)
+    - Encrypt k_i and gamma_i: 423.98ms (2.1%)
+    - Prove ψ_ji: 19.67s (97.9%)
+    - Unstaged: 379.96µs (0.0%)
+  - Round 2: 2.73ms
+    - Hash received msgs (reliability check): 2.65ms (97.0%)
+    - Unstaged: 81.42µs (3.0%)
+  - Round 3: 57.35s
+    - Assert other parties hashed messages (reliability check): 37.17µs (0.0%)
+    - Verify psi_ji proofs: 14.59s (25.4%)
+    - Sample random r, hat_r, s, hat_s, beta, hat_beta: 4.94ms (0.0%)
+    - Encrypt D_ji: 2.54s (4.4%)
+    - Encrypt F_ji: 1.68s (2.9%)
+    - Encrypt hat_D_ji: 2.55s (4.4%)
+    - Encrypt hat_F_ji: 1.67s (2.9%)
+    - Prove psi_ji: 34.31s (59.8%)
+    - Unstaged: 315.46µs (0.0%)
+  - Round 4: 26.28s
+    - Retrieve auxiliary data: 248.71µs (0.0%)
+    - Validate psi_ji: 22.87s (87.0%)
+    - Validate psi_j: 34.83ms (0.1%)
+    - Compute Gamma, Delta_i, delta_i, chi_i: 3.35s (12.7%)
+    - Prove hat_psi_i: 22.17ms (0.1%)
+    - Unstaged: 257.38µs (0.0%)
+  - Presig output: 43.52ms
+    - Validate hat_psi_j: 33.44ms (76.8%)
+    - Calculate presignature: 10.04ms (23.1%)
+    - Unstaged: 44.88µs (0.1%)
+  - Partial signing: 86.42µs
+  - Signature reconstruction: 13.49ms
+
+

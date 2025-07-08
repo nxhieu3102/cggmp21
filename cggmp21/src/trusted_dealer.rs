@@ -21,18 +21,15 @@
 //!     .generate_shares(&mut rng)?;
 //! # Ok::<_, cggmp21::trusted_dealer::TrustedDealerError>(())
 //! ```
-
+use paillier_zk::integer_ext::IntegerExt;
 use std::{iter, marker::PhantomData};
-
+use crate::fast_paillier::integer_ext::mod_pow_int;
 use generic_ec::{Curve, NonZero, SecretScalar};
-use paillier_zk::{
-    fast_paillier::{self},
-    BigIntExt,
-};
-use num_bigint::{BigInt, RandBigInt};
+use malachite::Integer;
+use paillier_zk::fast_paillier::{self};
 use rand_core::{CryptoRng, RngCore};
 use thiserror::Error;
-
+use crate::fast_paillier::utils::random_in_range;
 use crate::{
     key_share::{
         AuxInfo, DirtyAuxInfo, IncompleteKeyShare, InvalidKeyShare, KeyShare, PartyAux, Validate,
@@ -241,13 +238,13 @@ pub fn generate_aux_data_with_paillier_keys<L: SecurityLevel, R: RngCore + Crypt
             let q = dec.q();
             let N = dec.n();
 
-            let φ_N = (p - 1u8) * (q - 1u8);
+            let φ_N = (p - Integer::from(1)) * (q - Integer::from(1));
 
-            let r = BigInt::gen_invertible(&N, rng);
-            let λ = rng.gen_bigint_range(&BigInt::from(0), &φ_N);
+            let r = Integer::gen_invertible(&N, rng);
+            let λ = random_in_range(rng, &Integer::from(0), &φ_N);
 
-            let t = r.modpow(&BigInt::from(2), &N);
-            let s = t.modpow(&λ, &N);
+            let t = mod_pow_int(&r, &Integer::from(2), &N);
+            let s = mod_pow_int(&t, &λ, &N);
 
             let mut aux = PartyAux {
                 N: N.clone(),

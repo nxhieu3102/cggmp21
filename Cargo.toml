@@ -16,6 +16,10 @@ cggmp21 = { version = "0.6", path = "cggmp21" }
 cggmp21-keygen = { version = "0.5", path = "cggmp21-keygen" }
 key-share = { version = "0.6", path = "key-share", default-features = false }
 birkhoff = { version = "0.1.0", path = "birkhoff" }
+malachite = { path = "../fork-malachite/malachite" }
+malachite-base = { path = "../fork-malachite/malachite-base" }
+malachite-bigint = { path = "../fork-malachite/malachite-bigint" }
+malachite-nz = { path = "../fork-malachite/malachite-nz" }
 
 generic-ec = { git = "https://github.com/nxhieu3102/generic-ec", branch = "feat/integrate-cggmp21", default-features = false }
 generic-ec-zkp = { git = "https://github.com/nxhieu3102/generic-ec", branch = "feat/integrate-cggmp21", default-features = false }

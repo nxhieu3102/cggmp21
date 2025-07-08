@@ -7,17 +7,10 @@ use round_based::rounds_router::simple_store::RoundMsgs;
 use round_based::{MsgId, PartyIndex};
 
 use crate::security_level::SecurityLevel;
-use num_bigint::{BigInt, Sign, RandomBits, RandBigInt};
-use num_traits::identities::One;
-/// Converts `&Scalar<E>` into Integer
-pub fn scalar_to_bignumber<E: Curve>(scalar: impl AsRef<Scalar<E>>) -> BigInt {
-    let bytes = scalar.as_ref().to_be_bytes();
-    if scalar.as_ref().lt(&Scalar::zero()) {
-        BigInt::from_bytes_be(Sign::Minus, &bytes)
-    } else {
-        BigInt::from_bytes_be(Sign::Plus, &bytes)
-    }
-}
+use malachite::Integer;
+use malachite::base::num::basic::traits::One;
+use malachite::base::num::logic::traits::SignificantBits;
+
 
 pub struct SecurityParams {
     pub pi_aff_batch: pi_aff_batch::SecurityParams,
@@ -105,6 +98,16 @@ where
         .collect()
 }
 
+// /// 
+// pub fn scalar_to_integer<E: Curve>(scalar: impl AsRef<Scalar<E>>) -> Integer {
+//     let bytes = scalar.as_ref().to_be_bytes();
+//     if scalar.as_ref().lt(&Scalar::zero()) {
+//         BigInt::from_bytes_be(Sign::Minus, &bytes)
+//     } else {
+//         BigInt::from_bytes_be(Sign::Plus, &bytes)
+//     }
+// }
+
 /// Filter returns `true` for every __faulty__ message. Data and proof are set
 /// to the same message.
 pub fn collect_simple_blame<D, F>(messages: &RoundMsgs<D>, mut filter: F) -> Vec<AbortBlame>
@@ -161,13 +164,13 @@ pub fn but_nth<T, I: IntoIterator<Item = T>>(n: u16, iter: I) -> impl Iterator<I
 
 /// Binary search for rounded down square root. For non-positive numbers returns
 /// one
-pub fn sqrt(x: &BigInt) -> BigInt {
-    if x <= &BigInt::ZERO {
-        BigInt::one()
-    } else {
-        x.sqrt()
-    }
-}
+// pub fn sqrt(x: &BigInt) -> BigInt {
+//     if x <= &BigInt::ZERO {
+//         BigInt::one()
+//     } else {
+//         x.sqrt()
+//     }
+// }
 
 /// Partition into vector of errors and vector of values
 pub fn partition_results<I, A, B>(iter: I) -> (Vec<A>, Vec<B>)
@@ -195,6 +198,7 @@ pub fn subset<T: Clone, I: Into<usize> + Copy>(indexes: &[I], list: &[T]) -> Opt
         .collect()
 }
 
+
 /// Generates **unsafe** blum primes
 ///
 /// Blum primes are faster to generate than safe primes, and they don't break correctness of CGGMP protocol.
@@ -219,16 +223,16 @@ pub fn subset<T: Clone, I: Into<usize> + Copy>(indexes: &[I], list: &[T]) -> Opt
 
 /// Unambiguous encoding for different types for which it was not defined
 pub mod encoding {
+    use paillier_zk::integer_ext::IntegerExt;
     use paillier_zk::fast_paillier::AnyEncryptionKey;
-    use num_bigint;
-    pub struct BigInt;
-    impl udigest::DigestAs<num_bigint::BigInt> for BigInt {
+    pub struct Integer;
+    impl udigest::DigestAs<malachite::Integer> for Integer {
         fn digest_as<B: udigest::Buffer>(
-            value: &num_bigint::BigInt,
+            value: &malachite::Integer,
             encoder: udigest::encoding::EncodeValue<B>,
         ) {
-            let (_, digits) = value.to_bytes_be();
-            encoder.encode_leaf_value(digits)
+            let bytes = value.to_bytes();
+            encoder.encode_leaf_value(bytes)
         }
     }
 
@@ -255,55 +259,55 @@ pub mod encoding {
             // Encode rug::Integer fields using most-significant-first byte order
             encoder
                 .add_field("h")
-                .encode_leaf_value(x.h().to_signed_bytes_be());
+                .encode_leaf_value(x.h().to_scalar_bytes());
             encoder
                 .add_field("n")
-                .encode_leaf_value(x.n().to_signed_bytes_be());
+                .encode_leaf_value(x.n().to_scalar_bytes());
             encoder
                 .add_field("nn")
-                .encode_leaf_value(x.nn().to_signed_bytes_be());
+                .encode_leaf_value(x.nn().to_scalar_bytes());
             encoder
                 .add_field("h_pow_n")
-                .encode_leaf_value(x.h_pow_n().to_signed_bytes_be());
+                .encode_leaf_value(x.h_pow_n().to_scalar_bytes());
             encoder
                 .add_field("half_n")
-                .encode_leaf_value(x.half_n().to_signed_bytes_be());
+                .encode_leaf_value(x.half_n().to_scalar_bytes());
             encoder
                 .add_field("neg_half_n")
-                .encode_leaf_value(x.neg_half_n().to_signed_bytes_be());
+                .encode_leaf_value(x.neg_half_n().to_scalar_bytes());
 
             encoder.finish()
         }
     }
 }
 
-#[cfg(test)]
-mod test {
-    use num_bigint::{RandBigInt};
+// #[cfg(test)]
+// mod test {
+//     use num_bigint::{RandBigInt};
 
-    #[test]
-    fn test_sqrt() {
-        use super::{sqrt, BigInt};
-        assert_eq!(sqrt(&BigInt::from(-5)), BigInt::from(1));
-        assert_eq!(sqrt(&BigInt::from(1)), BigInt::from(1));
-        assert_eq!(sqrt(&BigInt::from(2)), BigInt::from(1));
-        assert_eq!(sqrt(&BigInt::from(3)), BigInt::from(1));
-        assert_eq!(sqrt(&BigInt::from(4)), BigInt::from(2));
-        assert_eq!(sqrt(&BigInt::from(5)), BigInt::from(2));
-        assert_eq!(sqrt(&BigInt::from(6)), BigInt::from(2));
-        assert_eq!(sqrt(&BigInt::from(7)), BigInt::from(2));
-        assert_eq!(sqrt(&BigInt::from(8)), BigInt::from(2));
-        assert_eq!(sqrt(&BigInt::from(9)), BigInt::from(3));
-        assert_eq!(sqrt(&(BigInt::from(1) << 1024)), BigInt::from(1) << 512);
+//     #[test]
+//     fn test_sqrt() {
+//         use super::{sqrt, BigInt};
+//         assert_eq!(sqrt(&BigInt::from(-5)), BigInt::from(1));
+//         assert_eq!(sqrt(&BigInt::from(1)), BigInt::from(1));
+//         assert_eq!(sqrt(&BigInt::from(2)), BigInt::from(1));
+//         assert_eq!(sqrt(&BigInt::from(3)), BigInt::from(1));
+//         assert_eq!(sqrt(&BigInt::from(4)), BigInt::from(2));
+//         assert_eq!(sqrt(&BigInt::from(5)), BigInt::from(2));
+//         assert_eq!(sqrt(&BigInt::from(6)), BigInt::from(2));
+//         assert_eq!(sqrt(&BigInt::from(7)), BigInt::from(2));
+//         assert_eq!(sqrt(&BigInt::from(8)), BigInt::from(2));
+//         assert_eq!(sqrt(&BigInt::from(9)), BigInt::from(3));
+//         assert_eq!(sqrt(&(BigInt::from(1) << 1024)), BigInt::from(1) << 512);
 
-        let modulo = (BigInt::from(1) << 1024_u32);
-        let mut rng = rand::thread_rng();
-        for _ in 0..100 {
-            let x = rng.gen_bigint_range(&BigInt::from(0), &modulo);
-            let root = sqrt(&x);
-            assert!(&root * &root <= x);
-            let root = root + 1u8;
-            assert!(&root * &root > x);
-        }
-    }
-}
+//         let modulo = (BigInt::from(1) << 1024_u32);
+//         let mut rng = rand::thread_rng();
+//         for _ in 0..100 {
+//             let x = rng.gen_bigint_range(&BigInt::from(0), &modulo);
+//             let root = sqrt(&x);
+//             assert!(&root * &root <= x);
+//             let root = root + 1u8;
+//             assert!(&root * &root > x);
+//         }
+//     }
+// }

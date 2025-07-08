@@ -3,11 +3,24 @@ use cggmp21_keygen::execution_id::ExecutionId;
 use cggmp21::security_level::SecurityLevel128;
 use cggmp21::key_refresh::aux_only::{MsgRound1, MsgRound2, MsgRound3, MsgReliabilityCheck};
 use cggmp21::key_refresh::PregeneratedPaillierKey;
+use cggmp21::fast_paillier;
 use sha2::Sha256;
 use rand_dev::DevRng;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::JsFuture;
 use serde::{Serialize, Deserialize};
 use generic_ec::curves::Secp256k1;
+use web_sys::console;
+use js_sys::Promise;
+
+/// Create a small delay to prevent CPU overheating
+/// This uses a simple yield to allow the event loop to process other tasks
+async fn small_delay() {
+    // Create a promise that resolves on the next tick
+    let delay_promise = Promise::resolve(&JsValue::UNDEFINED);
+    let _ = JsFuture::from(delay_promise).await;
+}
+
 /// WASM wrapper for AuxGenProtocol
 #[wasm_bindgen]
 pub struct StatefulAuxGenProtocol {
@@ -58,8 +71,36 @@ impl StatefulAuxGenProtocol {
         let sid_static = ExecutionId::new_static(params.sid.as_bytes());
         
         // Initialize DevRng for WASM
-        let rng = DevRng::new();
+        let mut rng = DevRng::new();
+        
+        // Try to generate Paillier key with retry loop to count attempts
+        let mut attempts = 0;
         let pregenerated_primes = PregeneratedPaillierKey::<SecurityLevel128>::generate::<DevRng>(&mut rng.clone()).unwrap();
+
+        // let pregenerated_primes = loop {
+        //     attempts += 1;
+            
+        //     // Log progress every 200 attempts
+        //     if attempts % 100 == 0 {
+        //         console::log_1(&format!("Paillier key generation attempt {}", attempts).into());
+        //     }
+            
+        //     // Try to generate using fast_paillier::DecryptionKey::try_generate
+        //     if let Some(dec_key) = fast_paillier::DecryptionKey::try_generate(&mut rng, 3072, 512) {
+        //         // Successfully generated, create PregeneratedPaillierKey
+        //         match PregeneratedPaillierKey::<SecurityLevel128>::new(dec_key) {
+        //             Some(pregenerated) => {
+        //                 // Log the number of attempts for debugging/statistics
+        //                 console::log_1(&format!("Successfully generated Paillier key after {} attempts", attempts).into());
+        //                 break pregenerated;
+        //             }
+        //             None => {
+        //                 // Generated key doesn't meet security requirements, try again
+        //                 continue;
+        //             }
+        //         }
+        //     }
+        // };
 
         // Create the Rust AuxGenProtocol instance
         let inner = RustAuxGenProtocol::new(

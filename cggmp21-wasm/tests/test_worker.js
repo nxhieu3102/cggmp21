@@ -336,6 +336,7 @@ async function runAuxGeneration(incompleteKeyShares) {
 
 // Phase 3: Signing
 async function runSigning(completeKeyShares) {
+    usePrecomputeTables = false;
     sendProgress('signing', 'start', 'Starting Signing Phase');
     sendProgress('signing', 'config', `Precompute tables: ${usePrecomputeTables ? 'ENABLED' : 'DISABLED'}`);
 

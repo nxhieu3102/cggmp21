@@ -26,8 +26,8 @@ pub struct SigningProtocolParams {
     pub sid: String,
     pub reliable_broadcast_enforced: bool,
     pub message_hex: Option<String>, // Hex-encoded message to sign (None for presignature generation)
-    #[serde(default)]
-    pub precompute_tables: Option<Vec<paillier_zk::fast_paillier::precomputed_table::PrecomputeTable>>, // Optional precompute tables
+    // #[serde(default)]
+    // pub precompute_tables: Option<Vec<paillier_zk::fast_paillier::precomputed_table::PrecomputeTable>>, // Optional precompute tables
 }
 
 /// Structure for round 1a messages
@@ -110,7 +110,7 @@ impl StatefulSigningProtocol {
             message_to_sign,
             params.reliable_broadcast_enforced,
             None, // additive_shift
-            params.precompute_tables, // cached_precompute_tables
+            None, // cached_precompute_tables
         )
         .map_err(|e| JsValue::from_str(&format!("Invalid parameters for SigningProtocol: {:?}", e)))?;
         
@@ -321,31 +321,31 @@ impl StatefulSigningProtocol {
         Err(JsValue::from_str("Failed to parse key share to extract public key"))
     }
     
-    /// Generate precompute tables for all parties participating in signing
-    /// This creates tables dynamically for benchmarking purposes
-    pub fn generate_precompute_tables(&self) -> Result<JsValue, JsValue> {
-        let tables = self.inner.generate_precompute_tables();
-        serde_wasm_bindgen::to_value(&tables)
-            .map_err(|e| JsValue::from_str(&format!("Failed to serialize precompute tables: {}", e)))
-    }
+    // /// Generate precompute tables for all parties participating in signing
+    // /// This creates tables dynamically for benchmarking purposes
+    // pub fn generate_precompute_tables(&self) -> Result<JsValue, JsValue> {
+    //     let tables = self.inner.generate_precompute_tables();
+    //     serde_wasm_bindgen::to_value(&tables)
+    //         .map_err(|e| JsValue::from_str(&format!("Failed to serialize precompute tables: {}", e)))
+    // }
     
-    /// Generate precompute table for a specific party
-    /// This is useful for on-demand table generation
-    pub fn generate_precompute_table_for_party(&self, party_index: u16) -> Result<JsValue, JsValue> {
-        let table = self.inner.generate_precompute_table_for_party(party_index)
-            .map_err(|e| JsValue::from_str(&format!("Failed to generate precompute table for party {}: {:?}", party_index, e)))?;
+    // /// Generate precompute table for a specific party
+    // /// This is useful for on-demand table generation
+    // pub fn generate_precompute_table_for_party(&self, party_index: u16) -> Result<JsValue, JsValue> {
+    //     let table = self.inner.generate_precompute_table_for_party(party_index)
+    //         .map_err(|e| JsValue::from_str(&format!("Failed to generate precompute table for party {}: {:?}", party_index, e)))?;
         
-        serde_wasm_bindgen::to_value(&table)
-            .map_err(|e| JsValue::from_str(&format!("Failed to serialize precompute table: {}", e)))
-    }
+    //     serde_wasm_bindgen::to_value(&table)
+    //         .map_err(|e| JsValue::from_str(&format!("Failed to serialize precompute table: {}", e)))
+    // }
     
-    /// Set cached precompute tables for the protocol
-    /// This allows for using pre-generated tables for better performance
-    pub fn set_cached_precompute_tables(&mut self, tables: JsValue) -> Result<(), JsValue> {
-        let tables: Vec<paillier_zk::fast_paillier::precomputed_table::PrecomputeTable> = serde_wasm_bindgen::from_value(tables)
-            .map_err(|e| JsValue::from_str(&format!("Failed to deserialize precompute tables: {}", e)))?;
+    // /// Set cached precompute tables for the protocol
+    // // / This allows for using pre-generated tables for better performance
+    // pub fn set_cached_precompute_tables(&mut self, tables: JsValue) -> Result<(), JsValue> {
+    //     let tables: Vec<paillier_zk::fast_paillier::precomputed_table::PrecomputeTable> = serde_wasm_bindgen::from_value(tables)
+    //         .map_err(|e| JsValue::from_str(&format!("Failed to deserialize precompute tables: {}", e)))?;
         
-        self.inner.set_cached_precompute_tables(tables);
-        Ok(())
-    }
+    //     self.inner.set_cached_precompute_tables(tables);
+    //     Ok(())
+    // }
 } 

@@ -1,22 +1,28 @@
 //! Key share
 
-use std::ops;
-use std::sync::Arc;
-
-use generic_ec::{Curve, NonZero, Point};
-use paillier_zk::{fast_paillier, paillier_encryption_in_range as π_enc, fast_paillier::utils::{serializable_bigint, serializable_vec_bigint, serializable_array_bigint}};
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
-use num_bigint::BigInt;
-use num_integer::Integer;
 use crate::security_level::SecurityLevel;
-
 #[doc(inline)]
 pub use cggmp21_keygen::key_share::{
     CoreKeyShare as IncompleteKeyShare, DirtyCoreKeyShare as DirtyIncompleteKeyShare, DirtyKeyInfo,
     HdError, InvalidCoreShare as InvalidIncompleteKeyShare, KeyInfo, Valid, Validate,
     ValidateError, ValidateFromParts, VssSetup,
 };
+use generic_ec::{Curve, NonZero, Point};
+use malachite::base::num::arithmetic::traits::ExtendedGcd;
+use malachite::base::num::basic::traits::One;
+use malachite::Integer;
+use paillier_zk::{
+    fast_paillier,
+    fast_paillier::utils::{
+        serializable_array_bigint, serializable_bigint, serializable_vec_bigint,
+    },
+    paillier_encryption_in_range as π_enc,
+};
+use malachite::base::num::logic::traits::SignificantBits;
+use serde::{Deserialize, Serialize};
+use std::ops;
+use std::sync::Arc;
+use thiserror::Error;
 
 /// Key share
 ///
@@ -50,10 +56,10 @@ pub fn gen_mock_aux_info<L: SecurityLevel>() -> DirtyAuxInfo<L> {
     DirtyAuxInfo {
         dec: fast_paillier::DecryptionKey::sample_112(),
         parties: vec![PartyAux {
-            N: BigInt::from(1),
+            N: Integer::from(1),
             enc: fast_paillier::EncryptionKey::sample_112(),
-            s: BigInt::from(1),
-            t: BigInt::from(1),
+            s: Integer::from(1),
+            t: Integer::from(1),
             multiexp: None,
             crt: None,
         }],
@@ -80,15 +86,15 @@ pub struct PartyAux {
     // TODO: any new info for optimized Paillier key
     /// $N_i = p_i \cdot q_i$
     #[serde(with = "serializable_bigint")]
-    pub N: BigInt,
+    pub N: Integer,
     /// Paillier public key
     pub enc: fast_paillier::EncryptionKey,
     /// Ring-Perdesten parameter $s_i$
     #[serde(with = "serializable_bigint")]
-    pub s: BigInt,
+    pub s: Integer,
     /// Ring-Perdesten parameter $t_i$
     #[serde(with = "serializable_bigint")]
-    pub t: BigInt,
+    pub t: Integer,
     /// Precomputed table for faster multiexponentiation
     #[serde(default)]
     pub multiexp: Option<Arc<paillier_zk::multiexp::MultiexpTable>>,
@@ -106,8 +112,8 @@ impl<L: SecurityLevel> Validate for DirtyAuxInfo<L> {
         // validate Pederson key
         // check gcd(s,N) = 1 and gcd(t,N) = 1
         if self.parties.iter().any(|p| {
-            p.s.gcd(&p.N) != BigInt::from(1)
-                || p.t.gcd(&p.N) != BigInt::from(1)
+            p.s.clone().extended_gcd(&p.N).0 != malachite_nz::natural::Natural::ONE
+                || p.t.clone().extended_gcd(&p.N).0 != malachite_nz::natural::Natural::ONE
         }) {
             return Err(InvalidKeyShareReason::StGcdN.into());
         }
@@ -132,7 +138,7 @@ impl<L: SecurityLevel> Validate for DirtyAuxInfo<L> {
         {
             return Err(InvalidKeyShareReason::PaillierPkTooSmall {
                 required: 8 * L::SECURITY_BITS - 1,
-                actual: invalid_aux.N.bits() as u32,
+                actual: invalid_aux.N.significant_bits() as u32,
             }
             .into());
         }
@@ -156,11 +162,11 @@ impl<L: SecurityLevel> DirtyAuxInfo<L> {
             .iter()
             .map(|aux_i| {
                 paillier_zk::multiexp::MultiexpTable::build(
-                    &BigInt::from(aux_i.s.clone()),
-                    &BigInt::from(aux_i.t.clone()),
-                    x_bits as u64,
-                    y_bits as u64,
-                    BigInt::from(aux_i.N.clone()),
+                    &Integer::from(aux_i.s.clone()),
+                    &Integer::from(aux_i.t.clone()),
+                    x_bits as u32,
+                    y_bits as u32,
+                    Integer::from(aux_i.N.clone()),
                 )
                 .map(Arc::new)
             })
@@ -215,8 +221,8 @@ impl PartyAux {
         let multiexp = paillier_zk::multiexp::MultiexpTable::build(
             &self.s,
             &self.t,
-            x_bits as u64,
-            y_bits as u64,
+            x_bits as u32,
+            y_bits as u32,
             self.N.clone(),
         )
         .map(Arc::new)
@@ -238,7 +244,7 @@ impl PartyAux {
     ///
     /// Note: CRT parameters contain secret information. Leaking them exposes secret Paillier key. Keep
     /// [`AuxInfo::parties`](DirtyAuxInfo::parties) secret (as well as rest of the key share).
-    pub fn precompute_crt(&mut self, p: &BigInt, q: &BigInt) -> Result<(), InvalidKeyShare> {
+    pub fn precompute_crt(&mut self, p: &Integer, q: &Integer) -> Result<(), InvalidKeyShare> {
         if (p * q) != self.N {
             return Err(InvalidKeyShareReason::CrtInvalidPq.into());
         }

@@ -3,8 +3,8 @@ use cggmp21::{
     fast_paillier, key_share::KeyShare, security_level::SecurityLevel,
     PregeneratedPaillierKey,
 };
+use malachite::Integer;
 use generic_ec::Curve;
-use num_bigint::BigInt;
 use rand::{CryptoRng, RngCore};
 use serde_json::{Map, Value};
 use cggmp21::security_level;
@@ -187,14 +187,14 @@ pub struct PregeneratedPaillierKeys {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct CachedPrecomputeTable {
     #[serde(with = "serializable_bigint")]
-    h_pow_n: num_bigint::BigInt,
+    h_pow_n: Integer,
     block_size: usize,
     a_size: usize,
     #[serde(with = "serializable_bigint")]
-    nn: num_bigint::BigInt,
+    nn: Integer,
     // We'll store the serialized table data
     #[serde(with = "serializable_vec_vec_bigint")]
-    table_data: Vec<Vec<num_bigint::BigInt>>,
+    table_data: Vec<Vec<Integer>>,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
