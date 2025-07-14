@@ -351,7 +351,8 @@ async function runSigning(completeKeyShares) {
             signing_parties: [0, 1],
             sid: parties[0].sid + "-signing-precompute",
             reliable_broadcast_enforced: false,
-            message_hex: MESSAGE_TO_SIGN
+            message_hex: MESSAGE_TO_SIGN,
+            enable_precomputable: usePrecomputeTables
         }, signingKeyShares[0]);
         
         precomputeTables = await generatePrecomputeTables(testProtocol, "signing-2of3");
@@ -364,7 +365,8 @@ async function runSigning(completeKeyShares) {
             sid: parties[globalIdx].sid + "-signing",
             reliable_broadcast_enforced: false,
             message_hex: MESSAGE_TO_SIGN,
-            precompute_tables: precomputeTables
+            precompute_tables: precomputeTables,
+            enable_precomputable: usePrecomputeTables
         }, signingKeyShares[localIdx]);
         
         // Set precompute tables if available
@@ -663,6 +665,7 @@ self.onmessage = async function (e) {
                 break;
 
             case 'toggle_precompute_tables':
+                console.log("toggle_precompute_tables", data.enabled);
                 usePrecomputeTables = data.enabled;
                 if (!usePrecomputeTables) {
                     precomputeTablesCache.clear();

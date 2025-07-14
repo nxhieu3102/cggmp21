@@ -28,6 +28,8 @@ pub struct SigningProtocolParams {
     pub message_hex: Option<String>, // Hex-encoded message to sign (None for presignature generation)
     #[serde(default)]
     pub precompute_tables: Option<Vec<paillier_zk::fast_paillier::precomputed_table::PrecomputeTable>>, // Optional precompute tables
+    #[serde(default)]
+    pub enable_precomputable: Option<bool>, // Whether to enable precompute table usage (defaults to true)
 }
 
 /// Structure for round 1a messages
@@ -111,6 +113,7 @@ impl StatefulSigningProtocol {
             params.reliable_broadcast_enforced,
             None, // additive_shift
             params.precompute_tables, // cached_precompute_tables
+            params.enable_precomputable.unwrap_or(true), // enable_precomputable (defaults to true)
         )
         .map_err(|e| JsValue::from_str(&format!("Invalid parameters for SigningProtocol: {:?}", e)))?;
         

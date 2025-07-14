@@ -175,6 +175,8 @@ pub struct SigningProtocol<
     pub R: Vec<PartyAux>,
     /// Cached precompute tables for benchmarking purposes
     pub cached_precompute_tables: Option<Vec<precomputed_table::PrecomputeTable>>,
+    /// Whether to enable precompute table usage
+    pub enable_precomputable: bool,
 }
 
 impl<
@@ -232,6 +234,7 @@ where
         reliable_broadcast_enforced: bool,
         additive_shift: Option<Scalar<E>>,
         cached_precompute_tables: Option<Vec<precomputed_table::PrecomputeTable>>,
+        enable_precomputable: bool,
     ) -> Result<Self, SigningParameterError> {
         Self::validate_parameters(i, &signing_parties, &key_share)?;
 
@@ -341,6 +344,7 @@ where
             shared_public_key,
             R,
             cached_precompute_tables,
+            enable_precomputable,
         })
     }
 
@@ -359,31 +363,43 @@ where
         let dec_i = &self.key_share.aux.dec;
         let ek_i = dec_i.encryption_key();
         
-        // Use cached precompute table if available, otherwise create a new one
-        let precomputable = if let Some(ref cached_tables) = self.cached_precompute_tables {
-            if let Some(cached_table) = cached_tables.get(usize::from(self.state.i)) {
-                cached_table.clone()
+        let (K_i, G_i) = if self.enable_precomputable {
+            // Use cached precompute table if available, otherwise create a new one
+            let precomputable = if let Some(ref cached_tables) = self.cached_precompute_tables {
+                if let Some(cached_table) = cached_tables.get(usize::from(self.state.i)) {
+                    cached_table.clone()
+                } else {
+                    // Fallback to creating a new table if not enough cached tables
+                    let h_pow_n = ek_i.h_pow_n().clone();
+                    let nn = ek_i.nn().clone();
+                    let a_size = ek_i.a_size() as usize;
+                    precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn)
+                }
             } else {
-                // Fallback to creating a new table if not enough cached tables
+                // No cached tables available, create a new one
                 let h_pow_n = ek_i.h_pow_n().clone();
                 let nn = ek_i.nn().clone();
                 let a_size = ek_i.a_size() as usize;
                 precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn)
-            }
+            };
+            
+            let K_i = ek_i
+                .encrypt_with_precompute_table(&mut self.rng, &precomputable, &utils::scalar_to_bignumber(&k_i), Some(&rho_i))
+                .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt K_i: {:?}", e))))?;
+            let G_i = ek_i
+                .encrypt_with_precompute_table(&mut self.rng, &precomputable, &utils::scalar_to_bignumber(&gamma_i), Some(&nu_i))
+                .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt G_i: {:?}", e))))?;
+            (K_i, G_i)
         } else {
-            // No cached tables available, create a new one
-            let h_pow_n = ek_i.h_pow_n().clone();
-            let nn = ek_i.nn().clone();
-            let a_size = ek_i.a_size() as usize;
-            precomputed_table::PrecomputeTable::new_dp(h_pow_n, 10, a_size, nn)
+            // Use standard encryption without precompute tables
+            let K_i = ek_i
+                .encrypt_with(&utils::scalar_to_bignumber(&k_i), &rho_i)
+                .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt K_i: {:?}", e))))?;
+            let G_i = ek_i
+                .encrypt_with(&utils::scalar_to_bignumber(&gamma_i), &nu_i)
+                .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt G_i: {:?}", e))))?;
+            (K_i, G_i)
         };
-        
-        let K_i = ek_i
-            .encrypt_with_precompute_table(&mut self.rng, &precomputable, &utils::scalar_to_bignumber(&k_i), Some(&rho_i))
-            .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt K_i: {:?}", e))))?;
-        let G_i = ek_i
-            .encrypt_with_precompute_table(&mut self.rng, &precomputable, &utils::scalar_to_bignumber(&gamma_i), Some(&nu_i))
-            .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt G_i: {:?}", e))))?;
 
         // Generate ElGamal commitment values
         let Y_i = Point::generator() * Scalar::<E>::random(&mut self.rng);
@@ -668,39 +684,52 @@ where
         let mut hat_beta_sum = Scalar::zero();
         let mut messages = Vec::new();
 
-        // Create precompute table for dec_i (used for encryption)
+        // Create precompute table for dec_i (used for encryption) or set to None if disabled
         let dec_i = &self.key_share.aux.dec;
         let dec_i_ek = dec_i.encryption_key();
-        let precompute_dec_i = if let Some(ref cached_tables) = self.cached_precompute_tables {
-            if let Some(cached_table) = cached_tables.get(usize::from(self.state.i)) {
-                cached_table.clone()
+        let precompute_dec_i = if self.enable_precomputable {
+            if let Some(ref cached_tables) = self.cached_precompute_tables {
+                if let Some(cached_table) = cached_tables.get(usize::from(self.state.i)) {
+                    Some(cached_table.clone())
+                } else {
+                    Some(precomputed_table::PrecomputeTable::new_dp(
+                        dec_i_ek.h_pow_n().clone(),
+                        10,
+                        dec_i_ek.a_size() as usize,
+                        dec_i_ek.nn().clone(),
+                    ))
+                }
             } else {
-                precomputed_table::PrecomputeTable::new_dp(
+                Some(precomputed_table::PrecomputeTable::new_dp(
                     dec_i_ek.h_pow_n().clone(),
                     10,
                     dec_i_ek.a_size() as usize,
                     dec_i_ek.nn().clone(),
-                )
+                ))
             }
         } else {
-            precomputed_table::PrecomputeTable::new_dp(
-                dec_i_ek.h_pow_n().clone(),
-                10,
-                dec_i_ek.a_size() as usize,
-                dec_i_ek.nn().clone(),
-            )
+            None
         };
         
-        // Create precompute tables for all enc_j upfront
-        let mut precompute_tables_j = std::collections::HashMap::new();
-        for (j, _, _) in round1a_msgs.iter_indexed() {
-            let R_j = &self.R[usize::from(j)];
-            let enc_j = &R_j.enc;
-            
-            // Use cached precompute table if available, otherwise create a new one
-            let precompute_enc_j = if let Some(ref cached_tables) = self.cached_precompute_tables {
-                if let Some(cached_table) = cached_tables.get(usize::from(j)) {
-                    cached_table.clone()
+        // Create precompute tables for all enc_j upfront or set to empty if disabled
+        let mut precompute_tables_j = if self.enable_precomputable {
+            let mut tables = std::collections::HashMap::new();
+            for (j, _, _) in round1a_msgs.iter_indexed() {
+                let R_j = &self.R[usize::from(j)];
+                let enc_j = &R_j.enc;
+                
+                // Use cached precompute table if available, otherwise create a new one
+                let precompute_enc_j = if let Some(ref cached_tables) = self.cached_precompute_tables {
+                    if let Some(cached_table) = cached_tables.get(usize::from(j)) {
+                        cached_table.clone()
+                    } else {
+                        precomputed_table::PrecomputeTable::new_dp(
+                            enc_j.h_pow_n().clone(),
+                            5,
+                            enc_j.a_size() as usize,
+                            enc_j.nn().clone(),
+                        )
+                    }
                 } else {
                     precomputed_table::PrecomputeTable::new_dp(
                         enc_j.h_pow_n().clone(),
@@ -708,18 +737,14 @@ where
                         enc_j.a_size() as usize,
                         enc_j.nn().clone(),
                     )
-                }
-            } else {
-                precomputed_table::PrecomputeTable::new_dp(
-                    enc_j.h_pow_n().clone(),
-                    5,
-                    enc_j.a_size() as usize,
-                    enc_j.nn().clone(),
-                )
-            };
-            
-            precompute_tables_j.insert(j, precompute_enc_j);
-        }
+                };
+                
+                tables.insert(j, precompute_enc_j);
+            }
+            tables
+        } else {
+            std::collections::HashMap::new()
+        };
 
         for (j, _, round1a_msg) in round1a_msgs.iter_indexed() {
             let R_j = &self.R[usize::from(j)];
@@ -739,41 +764,68 @@ where
             beta_sum += beta_ij.to_scalar();
             hat_beta_sum += hat_beta_ij.to_scalar();
 
-            // Get precompute tables for this specific party j
-            let precompute_enc_j = precompute_tables_j.get(&j).unwrap();
-            
-            // Compute D_ji, F_ji, hat_D_ji, hat_F_ji using precompute tables
+            // Compute D_ji, F_ji, hat_D_ji, hat_F_ji using conditional encryption
             let D_ji = {
                 let gamma_i_times_K_j = enc_j
                     .omul(&utils::scalar_to_bignumber(gamma_i), &round1a_msg.K_i)
                     .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to compute gamma_i * K_j: {:?}", e))))?;
-                let neg_beta_ij_enc = enc_j
-                    .encrypt_with_precompute_table(&mut self.rng, precompute_enc_j, &(-&beta_ij), Some(&s_ij))
-                    .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt -beta_ij: {:?}", e))))?;
+                
+                let neg_beta_ij_enc = if self.enable_precomputable {
+                    let precompute_enc_j = precompute_tables_j.get(&j).unwrap();
+                    enc_j
+                        .encrypt_with_precompute_table(&mut self.rng, precompute_enc_j, &(-&beta_ij), Some(&s_ij))
+                        .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt -beta_ij: {:?}", e))))?
+                } else {
+                    enc_j
+                        .encrypt_with(&(-&beta_ij), &s_ij)
+                        .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt -beta_ij: {:?}", e))))?
+                };
+                
                 enc_j
                     .oadd(&gamma_i_times_K_j, &neg_beta_ij_enc)
                     .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to compute D_ji: {:?}", e))))?
             };
 
-            let F_ji = dec_i.encryption_key()
-                .encrypt_with_precompute_table(&mut self.rng, &precompute_dec_i, &(-&beta_ij), Some(&r_ij))
-                .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt F_ji: {:?}", e))))?;
+            let F_ji = if self.enable_precomputable {
+                dec_i.encryption_key()
+                    .encrypt_with_precompute_table(&mut self.rng, precompute_dec_i.as_ref().unwrap(), &(-&beta_ij), Some(&r_ij))
+                    .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt F_ji: {:?}", e))))?
+            } else {
+                dec_i.encryption_key()
+                    .encrypt_with(&(-&beta_ij), &r_ij)
+                    .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt F_ji: {:?}", e))))?
+            };
 
             let hat_D_ji = {
                 let x_i_times_K_j = enc_j
                     .omul(&utils::scalar_to_bignumber(&self.x_i), &round1a_msg.K_i)
                     .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to compute x_i * K_j: {:?}", e))))?;
-                let neg_hat_beta_ij_enc = enc_j
-                    .encrypt_with_precompute_table(&mut self.rng, precompute_enc_j, &(-&hat_beta_ij), Some(&hat_s_ij))
-                    .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt -hat_beta_ij: {:?}", e))))?;
+                
+                let neg_hat_beta_ij_enc = if self.enable_precomputable {
+                    let precompute_enc_j = precompute_tables_j.get(&j).unwrap();
+                    enc_j
+                        .encrypt_with_precompute_table(&mut self.rng, precompute_enc_j, &(-&hat_beta_ij), Some(&hat_s_ij))
+                        .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt -hat_beta_ij: {:?}", e))))?
+                } else {
+                    enc_j
+                        .encrypt_with(&(-&hat_beta_ij), &hat_s_ij)
+                        .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt -hat_beta_ij: {:?}", e))))?
+                };
+                
                 enc_j
                     .oadd(&x_i_times_K_j, &neg_hat_beta_ij_enc)
                     .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to compute hat_D_ji: {:?}", e))))?
             };
 
-            let hat_F_ji = dec_i.encryption_key()
-                .encrypt_with_precompute_table(&mut self.rng, &precompute_dec_i, &(-&hat_beta_ij), Some(&hat_r_ij))
-                .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt hat_F_ji: {:?}", e))))?;
+            let hat_F_ji = if self.enable_precomputable {
+                dec_i.encryption_key()
+                    .encrypt_with_precompute_table(&mut self.rng, precompute_dec_i.as_ref().unwrap(), &(-&hat_beta_ij), Some(&hat_r_ij))
+                    .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt hat_F_ji: {:?}", e))))?
+            } else {
+                dec_i.encryption_key()
+                    .encrypt_with(&(-&hat_beta_ij), &hat_r_ij)
+                    .map_err(|e| SigningError(SigningErrorReason::Bug(format!("Failed to encrypt hat_F_ji: {:?}", e))))?
+            };
 
             // Generate π_aff_batch proof
             #[derive(udigest::Digestable)]

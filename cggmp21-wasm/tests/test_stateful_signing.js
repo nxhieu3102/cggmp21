@@ -511,7 +511,8 @@ async function runSigningMainThread(completeKeyShares) {
             signing_parties: [0, 1],
             sid: parties[0].sid + "-signing-precompute",
             reliable_broadcast_enforced: false,
-            message_hex: MESSAGE_TO_SIGN
+            message_hex: MESSAGE_TO_SIGN,
+            enable_precomputable: getPrecomputeTablesEnabled()
         }, signingKeyShares[0]);
         
         precomputeTables = await generatePrecomputeTables(testProtocol, "signing-2of3");
@@ -524,7 +525,8 @@ async function runSigningMainThread(completeKeyShares) {
             sid: parties[globalIdx].sid + "-signing",
             reliable_broadcast_enforced: false,
             message_hex: MESSAGE_TO_SIGN,
-            precompute_tables: precomputeTables
+            precompute_tables: precomputeTables,
+            enable_precomputable: getPrecomputeTablesEnabled()
         }, signingKeyShares[localIdx]);
         
         // Set precompute tables if available
@@ -834,12 +836,24 @@ function setupBrowserEventListeners() {
     // Precompute tables checkbox
     const precomputeCheckbox = document.getElementById('usePrecomputeTablesCheckbox');
     if (precomputeCheckbox) {
-        precomputeCheckbox.addEventListener('change', () => {
+        precomputeCheckbox.addEventListener('change', async () => {
             usePrecomputeTables = precomputeCheckbox.checked;
             updatePrecomputeStatus();
             
             // Clear precompute tables cache when toggling
             precomputeTablesCache.clear();
+            
+            // Send toggle message to worker to synchronize state
+            if (workerManager.worker) {
+                try {
+                    await workerManager.sendMessage('toggle_precompute_tables', { 
+                        enabled: usePrecomputeTables 
+                    });
+                    log(`Worker notified: Precompute tables ${usePrecomputeTables ? 'ENABLED' : 'DISABLED'}`, "round");
+                } catch (error) {
+                    log(`Failed to notify worker: ${error.message}`, "error");
+                }
+            }
             
             log(`Precompute tables ${usePrecomputeTables ? 'ENABLED' : 'DISABLED'}`, "round");
             if (!usePrecomputeTables) {

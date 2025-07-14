@@ -401,7 +401,8 @@ async function runSigning(config) {
             signing_parties: signingParties,
             sid: config.sessionId,
             reliable_broadcast_enforced: false,
-            message_hex: config.messageHex
+            message_hex: config.messageHex,
+            enable_precomputable: true // Default to enabling precompute tables
         }, keyShare);
         
         currentProtocol = signingProtocol;
