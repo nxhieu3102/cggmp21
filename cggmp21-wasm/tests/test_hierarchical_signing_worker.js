@@ -1,6 +1,6 @@
-// test_worker.js - Web Worker for heavy CGGMP21 computations
+// test_hierarchical_signing_worker.js - Web Worker for hierarchical CGGMP21 computations
 import init, {
-    StatefulKeygenProtocol,
+    StatefulHierarchicalThresholdKeygenProtocol,
     StatefulAuxGenProtocol,
     StatefulSigningProtocol
 } from '../pkg/cggmp21_wasm.js';
@@ -8,29 +8,35 @@ import init, {
 // Worker state
 let wasmInitialized = false;
 
-// Global state for precompute tables
-let usePrecomputeTables = true;
-let precomputeTablesCache = new Map();
-
-// Test configuration for 2-of-3 threshold signing
+// Test configuration for hierarchical threshold signing: n=4, t=3, ranks=[0,0,1,1]
 const parties = [
     {
-        i: 0, t: 2, n: 3,
-        sid: "test-signing-session-123",
+        i: 0, t: 3, n: 4,
+        ranks: [0, 0, 1, 1], // ranks for all parties
+        sid: "test-hierarchical-session-456",
         reliable_broadcast_enforced: false,
-        ids: [1, 2]
+        ids: [1, 2, 3] // Other parties this party communicates with
     },
     {
-        i: 1, t: 2, n: 3,
-        sid: "test-signing-session-123",
+        i: 1, t: 3, n: 4,
+        ranks: [0, 0, 1, 1],
+        sid: "test-hierarchical-session-456",
         reliable_broadcast_enforced: false,
-        ids: [0, 2]
+        ids: [0, 2, 3]
     },
     {
-        i: 2, t: 2, n: 3,
-        sid: "test-signing-session-123",
+        i: 2, t: 3, n: 4,
+        ranks: [0, 0, 1, 1],
+        sid: "test-hierarchical-session-456",
         reliable_broadcast_enforced: false,
-        ids: [0, 1]
+        ids: [0, 1, 3]
+    },
+    {
+        i: 3, t: 3, n: 4,
+        ranks: [0, 0, 1, 1],
+        sid: "test-hierarchical-session-456",
+        reliable_broadcast_enforced: false,
+        ids: [0, 1, 2]
     }
 ];
 
@@ -45,6 +51,31 @@ const createRecipientMap = (items, partyConfig) => {
     return map;
 };
 
+const createUnicastMap = (unicastMessages, partyConfig) => {
+    const map = {};
+    
+    // Initialize map with empty arrays for each party
+    partyConfig.forEach((_, idx) => {
+        map[idx] = [];
+    });
+    
+    // Route unicast messages to recipients  
+    unicastMessages.forEach((partyMessages, senderIdx) => {
+        if (Array.isArray(partyMessages)) {
+            partyMessages.forEach(msgPair => {
+                if (Array.isArray(msgPair) && msgPair.length === 2) {
+                    const [recipientId, message] = msgPair;
+                    if (map[recipientId]) {
+                        map[recipientId].push(message);
+                    }
+                }
+            });
+        }
+    });
+    
+    return map;
+};
+
 const createP2PMap = (p2pMessages, parties) => {
     const map = {};
     parties.forEach((_, idx) => {
@@ -52,7 +83,6 @@ const createP2PMap = (p2pMessages, parties) => {
     });
     p2pMessages.forEach((partyMessages, senderIdx) => {
         partyMessages.forEach(p2pMsg => {
-            console.log(p2pMsg.recipient, p2pMsg.message);
             map[p2pMsg.recipient].push(p2pMsg.message);
         });
     });
@@ -68,36 +98,63 @@ const sendProgress = (phase, round, message, progress = null) => {
     });
 };
 
-// Helper functions for precompute table management
-async function generatePrecomputeTables(signingProtocol, cacheKey) {
-    if (!usePrecomputeTables) {
-        return null;
+// Validate hierarchical configuration
+const validateConfiguration = (partyConfig) => {
+    const n = partyConfig.length;
+    const t = partyConfig[0].t;
+    const ranks = partyConfig[0].ranks;
+    
+    console.log(`Validating n=${n}, t=${t}, ranks=${JSON.stringify(ranks)}`);
+    
+    // Validate basic constraints
+    if (ranks.length !== n) {
+        throw new Error(`Ranks array length (${ranks.length}) must equal n (${n})`);
     }
     
-    // Check cache first
-    if (precomputeTablesCache.has(cacheKey)) {
-        sendProgress('precompute', 'cache', `Using cached precompute tables for ${cacheKey}`);
-        return precomputeTablesCache.get(cacheKey);
+    if (ranks.some(r => r >= t)) {
+        throw new Error(`All ranks must be < t (${t}). Found: ${ranks}`);
     }
     
-    sendProgress('precompute', 'generate', `Generating precompute tables for ${cacheKey}...`);
-    const start = performance.now();
+    // Calculate valid signing combinations
+    const validSets = [];
+    const combinations = [];
     
-    try {
-        const tables = signingProtocol.generate_precompute_tables();
-        const end = performance.now();
-        
-        sendProgress('precompute', 'complete', `Generated precompute tables in ${(end - start).toFixed(2)}ms`);
-        
-        // Cache the tables
-        precomputeTablesCache.set(cacheKey, tables);
-        
-        return tables;
-    } catch (error) {
-        sendProgress('precompute', 'error', `Failed to generate precompute tables: ${error.message}`);
-        throw error;
+    // Generate all combinations of t parties
+    function getCombinations(arr, size) {
+        if (size === 1) return arr.map(x => [x]);
+        return arr.flatMap((x, i) => 
+            getCombinations(arr.slice(i + 1), size - 1).map(combo => [x, ...combo])
+        );
     }
-}
+    
+    const allCombinations = getCombinations([...Array(n).keys()], t);
+    
+    for (const combo of allCombinations) {
+        const comboRanks = combo.map(i => ranks[i]).sort((a, b) => a - b);
+        const isValid = comboRanks.every((rank, idx) => rank <= idx);
+        
+        combinations.push({
+            parties: combo,
+            ranks: comboRanks,
+            valid: isValid
+        });
+        
+        if (isValid) {
+            validSets.push(combo);
+        }
+    }
+    
+    console.log('All combinations:', combinations);
+    console.log('Valid authorized sets:', validSets);
+    
+    return {
+        n, t, ranks,
+        combinations,
+        validSets,
+        validCount: validSets.length,
+        totalCombinations: allCombinations.length
+    };
+};
 
 // Initialize WASM module
 async function initializeWasm() {
@@ -108,104 +165,202 @@ async function initializeWasm() {
     }
 }
 
-// Phase 1: Key Generation
-async function runKeyGeneration() {
-    sendProgress('keygen', 'start', 'Starting Key Generation Phase');
+// Phase 1: Hierarchical Key Generation
+async function runHierarchicalKeyGeneration() {
+    sendProgress('keygen', 'start', 'Starting Hierarchical Threshold Key Generation Phase');
+    
+    // Validate configuration first
+    const validationResult = validateConfiguration(parties);
+    sendProgress('keygen', 'validation', `Configuration validated: ${validationResult.validSets.length} valid authorized sets`);
 
-    const keygenProtocols = parties.map(party =>
-        new StatefulKeygenProtocol({
-            ...party,
-            sid: party.sid + "-keygen"
-        })
-    );
+    // Initialize hierarchical threshold keygen protocols
+    const keygenProtocols = [];
+
+    for (let i = 0; i < parties.length; i++) {
+        const party = { ...parties[i] };
+        try {
+            sendProgress('keygen', 'init', `Initializing protocol for party ${i} (rank: ${party.ranks[i]})...`);
+            const protocol = new StatefulHierarchicalThresholdKeygenProtocol(party);
+            keygenProtocols.push(protocol);
+            console.log(`Party ${i} hierarchical threshold protocol initialized successfully`);
+        } catch (error) {
+            console.error(`Failed to create hierarchical threshold protocol for party ${i}: ${error.message}`);
+            throw error;
+        }
+    }
 
     // Round 1: Generate commitments (parallelized)
-    sendProgress('keygen', 'round1', 'Generating commitments...', 25);
+    sendProgress('keygen', 'round1', 'Generating commitments...', 15);
     const commitments = await Promise.all(
-        keygenProtocols.map(protocol =>
-            Promise.resolve(protocol.round1_generate_commitment())
-        )
-    );
-
-    // Round 2: Broadcast decommitments and send sigmas (parallelized)
-    sendProgress('keygen', 'round2', 'Broadcasting decommitments and sending sigmas...', 50);
-    const [decommitments, sigmasMsgs] = await Promise.all([
-        Promise.all(keygenProtocols.map(protocol =>
-            Promise.resolve(protocol.round2_broad())
-        )),
-        Promise.all(keygenProtocols.map(protocol =>
-            Promise.resolve(protocol.round2_uni())
-        ))
-    ]);
-
-    // Create sigma routing map
-    const sigmasMap = {};
-    sigmasMsgs.forEach(msgs => {
-        msgs.forEach(msg => {
-            const recipient = msg.recipient.OneParty;
-            if (!sigmasMap[recipient]) {
-                sigmasMap[recipient] = [];
-            }
-            sigmasMap[recipient].push(msg.msg.Round2Uni);
-        });
-    });
-
-    // Round 3: Generate Schnorr proofs (parallelized)
-    sendProgress('keygen', 'round3', 'Generating Schnorr proofs...', 75);
-    const commitmentsMap = createRecipientMap(commitments, parties);
-    const decommitmentsMap = createRecipientMap(decommitments, parties);
-
-    const round3Msgs = await Promise.all(
         keygenProtocols.map((protocol, idx) =>
-            Promise.resolve(protocol.round3({
-                commitments: commitmentsMap[idx],
-                ids: parties[idx].ids
-            }, {
-                decommitments: decommitmentsMap[idx],
-                ids: parties[idx].ids
-            }, {
-                sigmas: sigmasMap[idx],
-                ids: parties[idx].ids
-            }))
+            Promise.resolve().then(() => {
+                try {
+                    const commitment = protocol.round1_generate_commitment();
+                    console.log(`Party ${idx} (rank ${parties[idx].ranks[idx]}) generated commitment successfully`);
+                    return commitment;
+                } catch (error) {
+                    console.error(`Party ${idx} failed in round 1: ${error.message}`);
+                    throw error;
+                }
+            })
         )
     );
 
-    // Final round: Generate incomplete key shares (parallelized)
-    sendProgress('keygen', 'final', 'Generating incomplete key shares...', 90);
-    const schProofMap = createRecipientMap(round3Msgs, parties);
-    console.log("schProofMap", schProofMap);
+    // Set Round 1 commitments for all parties
+    sendProgress('keygen', 'round1', 'Setting commitments for all parties...', 25);
+    const commitmentsMap = createRecipientMap(commitments, parties);
+    
+    await Promise.all(
+        keygenProtocols.map((protocol, idx) =>
+            Promise.resolve().then(() => {
+                try {
+                    protocol.set_round1_commitments({
+                        commitments: commitmentsMap[idx],
+                        ids: parties[idx].ids
+                    });
+                    console.log(`Party ${idx} set ${commitmentsMap[idx].length} round 1 commitments`);
+                } catch (error) {
+                    console.error(`Party ${idx} failed setting round 1 commitments: ${error.message}`);
+                    throw error;
+                }
+            })
+        )
+    );
 
-    console.log('log data create key share');
-    keygenProtocols.forEach((protocol, idx) => {
-        console.log("log data create key share protocol" + idx, JSON.stringify(commitmentsMap[idx]), JSON.stringify(decommitmentsMap[idx]), JSON.stringify(sigmasMap[idx]), JSON.stringify(schProofMap[idx]));
-    });
+    // Create reliability checks if enforced
+    sendProgress('keygen', 'round1', 'Creating reliability checks...', 30);
+    const reliabilityChecks = await Promise.all(
+        keygenProtocols.map((protocol, idx) =>
+            Promise.resolve().then(() => {
+                try {
+                    if (parties[idx].reliable_broadcast_enforced) {
+                        const reliabilityCheck = protocol.create_reliability_check();
+                        console.log(`Party ${idx} created reliability check`);
+                        return reliabilityCheck;
+                    } else {
+                        console.log(`Party ${idx} skipping reliability check (not enforced)`);
+                        return null;
+                    }
+                } catch (error) {
+                    console.error(`Party ${idx} failed creating reliability check: ${error.message}`);
+                    throw error;
+                }
+            })
+        )
+    );
 
+    // Round 2: Get decommitments and unicast messages
+    sendProgress('keygen', 'round2', 'Getting decommitments...', 40);
+    const decommitments = await Promise.all(
+        keygenProtocols.map((protocol, idx) =>
+            Promise.resolve().then(() => {
+                try {
+                    const decommitment = protocol.round2_get_decommitment();
+                    console.log(`Party ${idx} generated decommitment successfully`);
+                    return decommitment;
+                } catch (error) {
+                    console.error(`Party ${idx} failed in round 2 decommitment: ${error.message}`);
+                    throw error;
+                }
+            })
+        )
+    );
+
+    sendProgress('keygen', 'round2', 'Creating unicast messages...', 50);
+    const unicastMessages = await Promise.all(
+        keygenProtocols.map((protocol, idx) =>
+            Promise.resolve().then(() => {
+                try {
+                    const messages = protocol.round2_create_unicast_messages();
+                    console.log(`Party ${idx} created ${messages.length} unicast messages`);
+                    return messages;
+                } catch (error) {
+                    console.error(`Party ${idx} failed creating unicast messages: ${error.message}`);
+                    throw error;
+                }
+            })
+        )
+    );
+
+    // Set Round 2 data for all parties
+    sendProgress('keygen', 'round2', 'Setting round 2 data...', 60);
+    const decommitmentsMap = createRecipientMap(decommitments, parties);
+    const unicastMap = createUnicastMap(unicastMessages, parties);
+
+    await Promise.all(
+        keygenProtocols.map((protocol, idx) =>
+            Promise.resolve().then(() => {
+                try {
+                    protocol.set_round2_decommitments({
+                        decommitments: decommitmentsMap[idx],
+                        ids: parties[idx].ids
+                    });
+                    console.log(`Party ${idx} set ${decommitmentsMap[idx].length} round 2 decommitments`);
+                    
+                    protocol.set_round2_unicast_messages({
+                        messages: unicastMap[idx],
+                        ids: parties[idx].ids
+                    });
+                    console.log(`Party ${idx} set ${unicastMap[idx].length} round 2 unicast messages`);
+                    
+                    // Validate round 2 data
+                    const validation = protocol.validate_round2_data();
+                    console.log(`Party ${idx} round 2 validation: ${validation}`);
+                } catch (error) {
+                    console.error(`Party ${idx} failed setting round 2 data: ${error.message}`);
+                    throw error;
+                }
+            })
+        )
+    );
+
+    // Round 3: Create Schnorr proofs
+    sendProgress('keygen', 'round3', 'Creating Schnorr proofs...', 70);
+    const schnorrProofs = await Promise.all(
+        keygenProtocols.map((protocol, idx) =>
+            Promise.resolve().then(() => {
+                try {
+                    const proof = protocol.round3_create_schnorr_proof();
+                    console.log(`Party ${idx} created Schnorr proof successfully`);
+                    return proof;
+                } catch (error) {
+                    console.error(`Party ${idx} failed creating Schnorr proof: ${error.message}`);
+                    throw error;
+                }
+            })
+        )
+    );
+
+    // Set Round 3 data and generate key shares
+    sendProgress('keygen', 'final', 'Generating hierarchical key shares...', 85);
+    const schnorrProofsMap = createRecipientMap(schnorrProofs, parties);
 
     const incompleteKeyShares = await Promise.all(
         keygenProtocols.map((protocol, idx) =>
-            Promise.resolve(protocol.round_key_share({
-                commitments: commitmentsMap[idx],
-                ids: parties[idx].ids
-            }, {
-                decommitments: decommitmentsMap[idx],
-                ids: parties[idx].ids
-            }, {
-                sigmas: sigmasMap[idx],
-                ids: parties[idx].ids
-            }, {
-                sch_proof: schProofMap[idx],
-                ids: parties[idx].ids
-            }))
+            Promise.resolve().then(() => {
+                try {
+                    protocol.set_round3_schnorr_proofs({
+                        proofs: schnorrProofsMap[idx],
+                        ids: parties[idx].ids
+                    });
+                    console.log(`Party ${idx} set ${schnorrProofsMap[idx].length} Schnorr proofs`);
+                    
+                    const keyShare = protocol.generate_key_share();
+                    console.log(`Party ${idx} generated hierarchical key share successfully`);
+                    return keyShare;
+                } catch (error) {
+                    console.error(`Party ${idx} failed generating key share: ${error.message}`);
+                    throw error;
+                }
+            })
         )
     );
 
-    console.log("incompleteKeyShares", incompleteKeyShares);
-
-    sendProgress('keygen', 'complete', `Key generation completed! Generated ${incompleteKeyShares.length} incomplete key shares`, 100);
+    sendProgress('keygen', 'complete', `Hierarchical key generation completed! Generated ${incompleteKeyShares.length} key shares`, 100);
     return incompleteKeyShares;
 }
 
-// Phase 2: Auxiliary Information Generation
+// Phase 2: Auxiliary Information Generation  
 async function runAuxGeneration(incompleteKeyShares) {
     sendProgress('auxgen', 'start', 'Starting Auxiliary Generation Phase');
 
@@ -221,15 +376,12 @@ async function runAuxGeneration(incompleteKeyShares) {
     );
 
     // Round 1: Generate commitments (parallelized)
-    console.log("auxGenProtocols", auxGenProtocols);
     sendProgress('auxgen', 'round1', 'Generating commitments...', 25);
     const commitments = await Promise.all(
         auxGenProtocols.map(protocol =>
             Promise.resolve(protocol.round1_generate_commitment())
         )
     );
-
-    console.log("commitments", commitments);
 
     const commitmentsMap = createRecipientMap(commitments, parties);
     await Promise.all(
@@ -241,8 +393,6 @@ async function runAuxGeneration(incompleteKeyShares) {
         })
     );
 
-    console.log("auxGenProtocols", auxGenProtocols);
-
     // Round 2: Get decommitments (parallelized)
     sendProgress('auxgen', 'round2', 'Getting decommitments...', 50);
     const decommitments = await Promise.all(
@@ -252,8 +402,6 @@ async function runAuxGeneration(incompleteKeyShares) {
     );
 
     const decommitmentsMap = createRecipientMap(decommitments, parties);
-
-    console.log("decommitmentsMap: ", JSON.stringify(decommitmentsMap, null, 2));
     await Promise.all(
         auxGenProtocols.map(async (protocol, idx) => {
             protocol.set_round2_decommitments({
@@ -273,22 +421,14 @@ async function runAuxGeneration(incompleteKeyShares) {
         )
     );
 
-    console.log("round3Messages", round3Messages);
-
     const setRound3Messages = async (protocols, round3Messages) => {
-        console.log("Setting Round 3 messages for all parties");
-
-        // Convert the message format - the round3Messages from round3_create_messages() 
-        // appears to be in a different format than what set_round3_messages expects
         await Promise.all(
             protocols.map(async (protocol, idx) => {
                 try {
-                    // Collect messages intended for this party from all other parties
                     const messagesForParty = [];
 
                     round3Messages.forEach((msgs, senderIdx) => {
                         if (senderIdx !== idx && parties[idx].ids.includes(senderIdx)) {
-                            // msgs should be an array of (recipient_id, message) pairs
                             if (Array.isArray(msgs)) {
                                 msgs.forEach(msgPair => {
                                     if (Array.isArray(msgPair) && msgPair.length === 2) {
@@ -315,7 +455,6 @@ async function runAuxGeneration(incompleteKeyShares) {
         );
     };
 
-    // const round3Map = createP2PMap(round3Messages, parties);
     await setRound3Messages(auxGenProtocols, round3Messages);
 
     // Set round 3 messages and finalize (parallelized)
@@ -326,8 +465,6 @@ async function runAuxGeneration(incompleteKeyShares) {
             Promise.resolve(protocol.finalize())
         )
     );
-
-    console.log(auxInfos);
 
     const completeKeyShares = incompleteKeyShares.map((incompleteShare, idx) => {
         return {
@@ -341,50 +478,35 @@ async function runAuxGeneration(incompleteKeyShares) {
     return completeKeyShares;
 }
 
-// Phase 3: Signing
-async function runSigning(completeKeyShares) {
-    sendProgress('signing', 'start', 'Starting Signing Phase');
-    sendProgress('signing', 'config', `Precompute tables: ${usePrecomputeTables ? 'ENABLED' : 'DISABLED'}`);
-
-    const signingParties = [0, 1];
+// Phase 3: Hierarchical Threshold Signing
+async function runHierarchicalSigning(completeKeyShares) {
+    sendProgress('signing', 'start', 'Starting Hierarchical Threshold Signing Phase');
+    
+    // Use configuration: n=4, t=3, ranks=[0,0,1,1], signers=[0,1,2] (parties with ranks [0,0,1])
+    const signingParties = [0, 1, 2]; // Party indices
     const signingKeyShares = signingParties.map(idx => completeKeyShares[idx]);
-
-    // Create a test protocol instance to generate precompute tables if needed
-    let precomputeTables = null;
-    if (usePrecomputeTables) {
-        sendProgress('signing', 'precompute', 'Generating precompute tables for signing parties...');
-        const testProtocol = new StatefulSigningProtocol({
-            i: 0,
-            signing_parties: [0, 1],
-            sid: parties[0].sid + "-signing-precompute",
-            reliable_broadcast_enforced: false,
-            message_hex: MESSAGE_TO_SIGN,
-            enable_precomputable: usePrecomputeTables
-        }, signingKeyShares[0]);
-        
-        precomputeTables = await generatePrecomputeTables(testProtocol, "signing-2of3");
+    
+    // Validate signing configuration
+    const signerRanks = signingParties.map(idx => parties[idx].ranks[idx]).sort((a, b) => a - b);
+    const isValidSigningSet = signerRanks.every((rank, idx) => rank <= idx);
+    
+    sendProgress('signing', 'validation', `Signing parties: [${signingParties.join(', ')}] with ranks [${signerRanks.join(', ')}]`);
+    sendProgress('signing', 'validation', `Valid signing set: ${isValidSigningSet ? 'YES' : 'NO'}`);
+    
+    if (!isValidSigningSet) {
+        throw new Error(`Invalid signing set: ranks [${signerRanks.join(', ')}] violate hierarchical constraints`);
     }
 
+    // Create hierarchical signing protocols (no precompute tables as requested)
     const signingProtocols = signingParties.map((globalIdx, localIdx) => {
         const protocol = new StatefulSigningProtocol({
             i: localIdx,
-            signing_parties: [0, 1],
+            signing_parties: [0, 1, 2], // Local indices in signing group
             sid: parties[globalIdx].sid + "-signing",
             reliable_broadcast_enforced: false,
             message_hex: MESSAGE_TO_SIGN,
-            precompute_tables: precomputeTables,
-            enable_precomputable: usePrecomputeTables
+            enable_precomputable: false // Disable precompute tables as requested
         }, signingKeyShares[localIdx]);
-        
-        // Set precompute tables if available
-        if (precomputeTables && usePrecomputeTables) {
-            try {
-                protocol.set_cached_precompute_tables(precomputeTables);
-                sendProgress('signing', 'setup', `Precompute tables set for party ${localIdx}`);
-            } catch (error) {
-                sendProgress('signing', 'error', `Failed to set precompute tables for party ${localIdx}: ${error.message}`);
-            }
-        }
         
         return protocol;
     });
@@ -540,13 +662,13 @@ async function runSigning(completeKeyShares) {
             
             results.forEach(result => {
                 if (result.isValid) {
-                    console.log(`✅ Signature ${result.signatureIndex} verification: VALID`);
+                    console.log(`✅ Hierarchical signature ${result.signatureIndex} verification: VALID`);
                 } else {
-                    console.log(`❌ Signature ${result.signatureIndex} verification: INVALID`);
+                    console.log(`❌ Hierarchical signature ${result.signatureIndex} verification: INVALID`);
                 }
             });
         } catch (error) {
-            console.error("Error during signature verification:", error);
+            console.error("Error during hierarchical signature verification:", error);
             verificationResults.push({
                 error: error.message || error
             });
@@ -555,13 +677,14 @@ async function runSigning(completeKeyShares) {
 
     // Performance summary
     const totalSigningTime = (end2 - start1a);
-    sendProgress('signing', 'performance', `📊 Performance Summary:`);
+    sendProgress('signing', 'performance', `📊 Hierarchical Signing Performance Summary:`);
     sendProgress('signing', 'performance', `- Round 1a time: ${(end1a - start1a).toFixed(2)}ms`);
     sendProgress('signing', 'performance', `- Round 2 time: ${(end2 - start2).toFixed(2)}ms`);
     sendProgress('signing', 'performance', `- Total signing time: ${totalSigningTime.toFixed(2)}ms`);
-    sendProgress('signing', 'performance', `- Precompute tables: ${usePrecomputeTables ? 'ENABLED' : 'DISABLED'}`);
+    sendProgress('signing', 'performance', `- Precompute tables: DISABLED (as requested)`);
+    sendProgress('signing', 'performance', `- Signing parties: [${signingParties.join(', ')}] with ranks [${signerRanks.join(', ')}]`);
     
-    sendProgress('signing', 'complete', `Signing completed! Generated ${validSignatures.length} signatures, verification results: ${verificationResults.filter(r => r.isValid).length}/${verificationResults.length} valid`, 100);
+    sendProgress('signing', 'complete', `Hierarchical signing completed! Generated ${validSignatures.length} signatures, verification results: ${verificationResults.filter(r => r.isValid).length}/${verificationResults.length} valid`, 100);
 
     return {
         presignatures,
@@ -571,36 +694,39 @@ async function runSigning(completeKeyShares) {
             round1aTime: end1a - start1a,
             round2Time: end2 - start2,
             totalSigningTime,
-            precomputeTablesEnabled: usePrecomputeTables
+            precomputeTablesEnabled: false,
+            signingParties,
+            signerRanks,
+            isHierarchical: true
         }
     };
 }
 
 // Main test function
-async function runFullPipelineTest() {
+async function runFullHierarchicalPipelineTest() {
     try {
         await initializeWasm();
 
-        sendProgress('pipeline', 'start', '🚀 Starting Full CGGMP21 Pipeline Test');
+        sendProgress('pipeline', 'start', '🚀 Starting Full Hierarchical CGGMP21 Pipeline Test');
+        sendProgress('pipeline', 'config', `Configuration: n=${parties.length}, t=${parties[0].t}, ranks=[${parties[0].ranks.join(', ')}]`);
+        
         const startKeygen = Date.now();
-        const incompleteKeyShares = await runKeyGeneration();
-        console.log('start', Date.now());
-        console.log("incompleteKeyShares", incompleteKeyShares);
+        const incompleteKeyShares = await runHierarchicalKeyGeneration();
         const endKeygen = Date.now();
-        console.log("Keygen time:", endKeygen - startKeygen, "ms");
+        console.log("Hierarchical Keygen time:", endKeygen - startKeygen, "ms");
+        
         const startAuxgen = Date.now();
         const completeKeyShares = await runAuxGeneration(incompleteKeyShares);
-        console.log("completeKeyShares", completeKeyShares);
         const endAuxgen = Date.now();
         console.log("Auxgen time:", endAuxgen - startAuxgen, "ms");
+        
         const startSigning = Date.now();
-        const signingResults = await runSigning(completeKeyShares);
+        const signingResults = await runHierarchicalSigning(completeKeyShares);
         const endSigning = Date.now();
-        console.log("Signing time:", endSigning - startSigning, "ms");
-        console.log("Total time:", endSigning - startKeygen, "ms");
-        console.log('end', Date.now());
-        console.log("signingResults", signingResults);
-        sendProgress('pipeline', 'complete', '🎉 Full Pipeline Test Completed Successfully!');
+        console.log("Hierarchical Signing time:", endSigning - startSigning, "ms");
+        console.log("Total hierarchical pipeline time:", endSigning - startKeygen, "ms");
+        
+        sendProgress('pipeline', 'complete', '🎉 Full Hierarchical Pipeline Test Completed Successfully!');
 
         return {
             incompleteKeyShares,
@@ -623,19 +749,28 @@ async function runFullPipelineTest() {
 // Handle messages from main thread
 self.onmessage = async function (e) {
     const { type, data, messageId } = e.data;
-    console.log('🔧 Worker received message:', { type, messageId, hasData: !!data });
+    console.log('🔧 Hierarchical Worker received message:', { type, messageId, hasData: !!data });
 
     try {
         switch (type) {
             case 'init':
-                console.log('🚀 Worker initializing WASM...');
+                console.log('🚀 Hierarchical Worker initializing WASM...');
                 await initializeWasm();
-                console.log('✅ Worker WASM initialized, sending response...');
+                console.log('✅ Hierarchical Worker WASM initialized, sending response...');
                 postMessage({ type: 'init_complete', messageId });
                 break;
 
-            case 'run_keygen':
-                const keyShares = await runKeyGeneration();
+            case 'validate_hierarchical_config':
+                const validation = validateConfiguration(parties);
+                postMessage({
+                    type: 'config_validated',
+                    data: validation,
+                    messageId
+                });
+                break;
+
+            case 'run_hierarchical_keygen':
+                const keyShares = await runHierarchicalKeyGeneration();
                 postMessage({
                     type: 'keygen_complete',
                     data: keyShares,
@@ -643,7 +778,7 @@ self.onmessage = async function (e) {
                 });
                 break;
 
-            case 'run_auxgen':
+            case 'run_hierarchical_auxgen':
                 const completeShares = await runAuxGeneration(data.incompleteKeyShares);
                 postMessage({
                     type: 'auxgen_complete',
@@ -652,8 +787,8 @@ self.onmessage = async function (e) {
                 });
                 break;
 
-            case 'run_signing':
-                const signingResults = await runSigning(data.completeKeyShares);
+            case 'run_hierarchical_signing':
+                const signingResults = await runHierarchicalSigning(data.completeKeyShares);
                 postMessage({
                     type: 'signing_complete',
                     data: signingResults,
@@ -661,46 +796,12 @@ self.onmessage = async function (e) {
                 });
                 break;
 
-            case 'run_full_pipeline':
-                console.log("run_full_pipeline");
-                const results = await runFullPipelineTest();
+            case 'run_hierarchical_pipeline':
+                console.log("run_hierarchical_pipeline");
+                const results = await runFullHierarchicalPipelineTest();
                 postMessage({
                     type: 'pipeline_complete',
                     data: results,
-                    messageId
-                });
-                break;
-
-            case 'toggle_precompute_tables':
-                console.log("toggle_precompute_tables", data.enabled);
-                usePrecomputeTables = data.enabled;
-                if (!usePrecomputeTables) {
-                    precomputeTablesCache.clear();
-                }
-                sendProgress('config', 'precompute', `Precompute tables ${usePrecomputeTables ? 'ENABLED' : 'DISABLED'}`);
-                postMessage({
-                    type: 'precompute_toggled',
-                    data: { enabled: usePrecomputeTables },
-                    messageId
-                });
-                break;
-
-            case 'clear_precompute_cache':
-                precomputeTablesCache.clear();
-                sendProgress('config', 'cache', 'Precompute tables cache cleared');
-                postMessage({
-                    type: 'cache_cleared',
-                    messageId
-                });
-                break;
-                
-            case 'get_precompute_status':
-                postMessage({
-                    type: 'precompute_status',
-                    data: {
-                        enabled: usePrecomputeTables,
-                        cacheSize: precomputeTablesCache.size
-                    },
                     messageId
                 });
                 break;
@@ -719,4 +820,4 @@ self.onmessage = async function (e) {
             messageId
         });
     }
-}; 
+};

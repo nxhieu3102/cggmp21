@@ -1,0 +1,15 @@
+{
+  "name": "cggmp21-wasm",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "cggmp21_wasm_bg.wasm",
+    "cggmp21_wasm.js",
+    "cggmp21_wasm.d.ts"
+  ],
+  "main": "cggmp21_wasm.js",
+  "types": "cggmp21_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
