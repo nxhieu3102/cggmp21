@@ -317,19 +317,27 @@ async function runHierarchicalKeyGeneration() {
         keygenProtocols.map((protocol, idx) =>
             Promise.resolve().then(() => {
                 try {
+
+                    console.log(`[runHierarchicalKeyGeneration] decommitmentsMap ${idx} with size = ${decommitmentsMap[idx].length}`, JSON.stringify(decommitmentsMap[idx]));
+                    console.log(`[runHierarchicalKeyGeneration] sigmasMap ${idx} with size = ${sigmasMap[idx].length}`, JSON.stringify(sigmasMap[idx]));
+
+                    console.log(`[runHierarchicalKeyGeneration] parties[idx].ids ${idx}`, parties[idx].ids);
+
+
+
                     // Set decommitments
                     protocol.set_round2_decommitments({
                         decommitments: decommitmentsMap[idx],
                         ids: parties[idx].ids
                     });
-                    console.log(`Party ${idx} set ${decommitmentsMap[idx].length} round 2 decommitments`);
+                    console.log(`Party ${idx} set ${decommitmentsMap[idx].length} round 2 decommitments`, JSON.stringify(decommitmentsMap[idx]));
                     
                     // Set sigma shares
                     protocol.set_round2_sigmas({
                         sigmas: sigmasMap[idx],
                         ids: parties[idx].ids
                     });
-                    console.log(`Party ${idx} set ${sigmasMap[idx].length} round 2 sigma shares`);
+                    console.log(`Party ${idx} set ${sigmasMap[idx].length} round 2 sigma shares`, JSON.stringify(sigmasMap[idx]));
                 } catch (error) {
                     console.error(`Party ${idx} failed setting round 2 data: ${error.message}`);
                     throw error;

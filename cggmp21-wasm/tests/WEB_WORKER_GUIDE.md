@@ -304,8 +304,126 @@ workerManager.worker.onmessage = (e) => {
 };
 ```
 
+## 🏗️ Hierarchical Threshold Signature Scheme (HTSS) Implementation
+
+### Added: HTSS Demo with Web Workers
+
+As of the latest implementation, we've extended the Web Worker architecture to support Hierarchical Threshold Signature Schemes (HTSS). This demonstrates the flexibility of the worker-based approach for complex cryptographic protocols.
+
+#### HTSS-Specific Features
+
+```
+demo/client-htss/
+├── worker.js           # 🔧 HTSS Web Worker (hierarchical protocols)
+├── index.js            # 🎯 Main thread (HTSS UI + worker management)  
+├── index.html          # 🎨 HTSS UI with hierarchical validation
+└── README.md           # 📚 HTSS-specific documentation
+```
+
+#### Key Differences from Standard CGGMP21
+
+1. **Hierarchical Protocol Support**:
+   ```javascript
+   // HTSS uses hierarchical keygen protocol
+   import { StatefulHierarchicalThresholdKeygenProtocol } from './pkg/cggmp21_wasm.js';
+   
+   // Standard protocol state + hierarchical extensions
+   let protocolState = {
+       // ... standard fields ...
+       ranks: [0, 0, 1, 1],     // Hierarchical ranks
+       rank: 0,                 // This party's rank
+       hdEnabled: false         // HD derivation flag
+   };
+   ```
+
+2. **Hierarchical Message Types**:
+   ```javascript
+   const HTSSMessageTypes = {
+       // Hierarchical KeyGen messages
+       HT_KEYGEN_R1_COMMIT: "HT.KeyGen.R1Commit",
+       HT_KEYGEN_R2_DECOMMIT: "HT.KeyGen.R2Decommit", 
+       HT_KEYGEN_R2_SIGMA: "HT.KeyGen.R2Sigma",
+       HT_KEYGEN_R3_PROOF: "HT.KeyGen.R3Proof",
+       
+       // Same AuxGen as standard CGGMP21
+       HT_AUX_R1_COMMIT: "HT.Aux.R1Commit",
+       // ... etc
+       
+       // Hierarchical Signing messages  
+       HT_SIGN_R1A: "HT.Sign.R1a",
+       // ... etc
+   };
+   ```
+
+3. **Hierarchical Validation**:
+   ```javascript
+   // Real-time validation of signing sets against hierarchical rule
+   function validateSigningSet(signingParties, ranks) {
+       const signingRanks = signingParties.map(idx => ranks[idx]);
+       const sortedRanks = [...signingRanks].sort((a, b) => a - b);
+       
+       // Check: rᵢ ≤ i-1 for all i
+       for (let i = 0; i < sortedRanks.length; i++) {
+           if (sortedRanks[i] > i) {
+               return false;
+           }
+       }
+       return true;
+   }
+   ```
+
+4. **Enhanced Progress Reporting**:
+   ```javascript
+   // Rank-aware progress logging
+   function sendProgress(phase, round, message, progress = null) {
+       console.log(`[P${protocolState.partyIndex} r${protocolState.rank}] ${phase} ${round}: ${message}`);
+       postMessage({
+           type: 'progress', 
+           data: { phase, round, message, progress }
+       });
+   }
+   ```
+
+#### HTSS Protocol Flow in Web Worker
+
+1. **Hierarchical KeyGen Phase**:
+   - Worker receives `start_keygen` with ranks configuration
+   - Creates `StatefulHierarchicalThresholdKeygenProtocol` instance
+   - Runs hierarchical keygen rounds with rank-aware message routing
+   - Reports progress with hierarchical context
+
+2. **Standard AuxGen Phase**:
+   - Same as standard CGGMP21 (no hierarchical changes needed)
+   - Uses existing `StatefulAuxGenProtocol`
+
+3. **Hierarchical Signing Phase**:
+   - Validates signing set against hierarchical rule before starting
+   - Uses standard `StatefulSigningProtocol` with hierarchical key shares
+   - Provides enhanced validation and error reporting
+
+#### Benefits of HTSS + Web Workers
+
+- **✅ Non-blocking hierarchical validation**: UI remains responsive during complex rank validation
+- **✅ Real-time hierarchical progress**: Live updates on hierarchical protocol phases
+- **✅ Rank-aware error handling**: Better error messages with rank context
+- **✅ Scalable architecture**: Same worker pattern scales to hierarchical protocols
+
+#### Testing HTSS Implementation
+
+```bash
+# Start HTSS demo server
+cd demo/client-htss
+npm start
+
+# Open multiple browser tabs at http://localhost:8003
+# Configure different party indices (0-3) with ranks [0,0,1,1]
+# Test hierarchical protocols with Web Worker support
+```
+
+The HTSS implementation demonstrates how the Web Worker architecture can be extended to support advanced cryptographic protocols while maintaining the same benefits of responsive UI and real-time progress reporting.
+
 ## 🎉 Conclusion
 
-The Web Worker implementation transforms the CGGMP21 test suite from a UI-blocking application to a smooth, responsive experience. Users can now run complex threshold signature operations while maintaining full control over the interface, making it suitable for production web applications.
+The Web Worker implementation transforms both standard CGGMP21 and Hierarchical Threshold Signature protocols from UI-blocking applications to smooth, responsive experiences. Users can now run complex threshold signature operations while maintaining full control over the interface, making it suitable for production web applications.
 
-This architecture demonstrates best practices for integrating heavy cryptographic computations with modern web UIs, providing a foundation for building user-friendly cryptographic applications. 
+This architecture demonstrates best practices for integrating heavy cryptographic computations with modern web UIs, providing a foundation for building user-friendly cryptographic applications that scale from simple threshold signatures to complex hierarchical protocols. 
