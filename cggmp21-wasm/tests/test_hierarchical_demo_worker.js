@@ -344,9 +344,6 @@ async function runSigning(signers, keyShares) {
     try {
         console.log("[runSigning] START - Input signers:", signers);
         console.log("[runSigning] keyShares available:", keyShares ? keyShares.length : 'null');
-        
-        // Override for testing - remove this line after debugging
-        console.log("[runSigning] Override signers to:", signers);
 
         const startTime = performance.now();
 
@@ -393,7 +390,7 @@ async function runSigning(signers, keyShares) {
         
         // IMPORTANT: For signing, we need LOCAL indices [0, 1, 2, ...] for the signing group
         // regardless of which global parties are selected
-        const localSigningIndices = Array.from({length: signers.length}, (_, i) => i);
+        const localSigningIndices = Array.from({ length: signers.length }, (_, i) => i);
         console.log("[runSigning] Local signing indices:", localSigningIndices);
         
         const signingProtocols = signers.map((globalIdx, localIdx) => {
@@ -401,8 +398,9 @@ async function runSigning(signers, keyShares) {
             sendProgress(globalIdx, 'signing', 'init', 'Initializing signing protocol...');
 
             const protocolConfig = {
+                // Use LOCAL indices consistently (0..t-1)
                 i: localIdx,
-                signing_parties: localSigningIndices, // Use LOCAL indices [0, 1, 2, ...]
+                signing_parties: signers,
                 sid: parties[globalIdx].sid + "-signing",
                 reliable_broadcast_enforced: false,
                 message_hex: MESSAGE_TO_SIGN,
@@ -447,13 +445,15 @@ async function runSigning(signers, keyShares) {
         await Promise.all(
             signingProtocols.map(async (protocol, localIdx) => {
                 const otherMessages = round1aMessages.filter((_, msgIdx) => msgIdx !== localIdx);
-                // Use local indices for the IDs (exclude self)
+                // Use LOCAL ids (exclude self)
                 const otherLocalIds = localSigningIndices.filter(idx => idx !== localIdx);
-                console.log(`[runSigning/Round1a] Party ${signers[localIdx]} (local ${localIdx}) setting ${otherMessages.length} messages from local indices:`, otherLocalIds);
+                const globalIdx = signers[localIdx];
+                const otherGlobalIds = signers.filter(idx => idx !== globalIdx)
+                console.log(`[runSigning/Round1a] Party ${signers[localIdx]} (local ${localIdx}) setting ${otherMessages.length} messages from local ids:`, otherGlobalIds);
                 try {
                     protocol.set_round1a_messages({
                         messages: otherMessages,
-                        ids: otherLocalIds
+                        ids: otherGlobalIds
                     });
                     console.log(`[runSigning/Round1a] Party ${signers[localIdx]} messages set successfully`);
                 } catch (error) {
@@ -493,12 +493,13 @@ async function runSigning(signers, keyShares) {
                 const globalIdx = signers[localIdx];
                 const messages = round1bMap[localIdx];
                 const otherLocalIds = localSigningIndices.filter(idx => idx !== localIdx);
-                console.log(`[runSigning/Round1b] Party ${globalIdx} (local ${localIdx}) setting ${messages.length} messages from local indices:`, otherLocalIds);
+                const otherGlobalIds = signers.filter(idx => idx !== globalIdx)
+                console.log(`[runSigning/Round1b] Party ${globalIdx} (local ${localIdx}) setting ${messages.length} messages from local ids:`, otherGlobalIds);
                 
                 try {
                     protocol.set_round1b_messages({
                         messages: messages,
-                        ids: otherLocalIds
+                        ids: otherGlobalIds
                     });
                     console.log(`[runSigning/Round1b] Party ${globalIdx} messages set, validating proofs...`);
                     protocol.validate_round1b_proofs();
@@ -541,12 +542,13 @@ async function runSigning(signers, keyShares) {
                 const globalIdx = signers[localIdx];
                 const messages = round2Map[localIdx];
                 const otherLocalIds = localSigningIndices.filter(idx => idx !== localIdx);
-                console.log(`[runSigning/Round2] Party ${globalIdx} (local ${localIdx}) setting ${messages.length} messages`);
+                const otherGlobalIds = signers.filter(idx => idx !== globalIdx)
+                console.log(`[runSigning/Round2] Party ${globalIdx} (local ${localIdx}) setting ${messages.length} messages (global ids)`);
                 
                 try {
                     protocol.set_round2_messages({
                         messages: messages,
-                        ids: otherLocalIds
+                        ids: otherGlobalIds
                     });
                     console.log(`[runSigning/Round2] Party ${globalIdx} messages set successfully`);
                 } catch (error) {
@@ -586,12 +588,13 @@ async function runSigning(signers, keyShares) {
                 const globalIdx = signers[localIdx];
                 const messages = round3Map[localIdx];
                 const otherLocalIds = localSigningIndices.filter(idx => idx !== localIdx);
-                console.log(`[runSigning/Round3] Party ${globalIdx} (local ${localIdx}) setting ${messages.length} messages`);
+                const otherGlobalIds = signers.filter(idx => idx !== globalIdx)
+                console.log(`[runSigning/Round3] Party ${globalIdx} (local ${localIdx}) setting ${messages.length} messages (global ids)`);
                 
                 try {
                     protocol.set_round3_messages({
                         messages: messages,
-                        ids: otherLocalIds
+                        ids: otherGlobalIds
                     });
                     console.log(`[runSigning/Round3] Party ${globalIdx} messages set successfully`);
                 } catch (error) {
@@ -650,9 +653,9 @@ async function runSigning(signers, keyShares) {
                 console.log(`[runSigning/Round4] Message from party ${signers[idx]}:`, msg ? "has content" : "empty");
                 return result;
             }),
-            // Create config for local indices
-            localSigningIndices.map((localIdx) => ({ 
-                ids: localSigningIndices.filter(idx => idx !== localIdx) 
+            // Create config using LOCAL ids (0..k-1) for recipients list
+            localSigningIndices.map((_, i) => ({ 
+                ids: localSigningIndices.filter(id => id !== i) 
             }))
         );
         console.log("[runSigning/Round4] Recipient map created");
@@ -663,12 +666,12 @@ async function runSigning(signers, keyShares) {
                 const messages = round4Map[localIdx];
                 
                 if (messages && messages.length > 0) {
-                    const otherLocalIds = localSigningIndices.filter(idx => idx !== localIdx);
+                    const otherGlobalIds = signers.filter(idx => idx !== globalIdx)
                     console.log(`[runSigning/Round4] Party ${globalIdx} (local ${localIdx}) setting ${messages.length} round 4 messages`);
                     try {
                         protocol.set_round4_messages({
                             messages: messages,
-                            ids: otherLocalIds
+                            ids: otherGlobalIds
                         });
                         console.log(`[runSigning/Round4] Party ${globalIdx} messages set successfully`);
                     } catch (error) {

@@ -558,7 +558,7 @@ impl<E: Curve, R: RngCore + CryptoRng, L: SecurityLevel, D: Digest + Clone + 'st
             .collect::<Vec<_>>();
         if !blame.is_empty() {
             return Err(HierarchicalThresholdKeygenError::Aborted(
-                format!("Feldman verification failed for parties: {:?}", blame)
+                format!("Feldman verification failed for parties with current rank is {} and sigma is {:?}, blame is {:?}", self.state.ranks[usize::from(self.state.i)], sigmas_msg.iter().map(|msg| msg.sigma).collect::<Vec<_>>(), blame)
             ));
         }
 

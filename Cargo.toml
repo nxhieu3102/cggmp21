@@ -5,7 +5,6 @@ members = [
     "cggmp21",
     "cggmp21-keygen",
     "cggmp21-wasm",
-    "examples/p2p_example",
     "key-share",
     "tests",
 ]
