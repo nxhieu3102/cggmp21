@@ -1,0 +1,230 @@
+commit: 29ccacd
+benchmark before replace optimized Paillier
+---------------------------
+
+running 1 test
+test utils::test::safe_prime_size ... ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+RUST_TESTS_SEED=f9d4311fbf183c629e948a5b2cd82c1ced56029dbb940284d3cde493ca41a2a7
+Encrypt/Regular Encrypt time:   [140.62 ms 142.68 ms 144.72 ms]
+Encrypt/Encrypt with known factorization
+                        time:   [39.128 ms 41.071 ms 43.242 ms]
+Found 20 outliers among 100 measurements (20.00%)
+  1 (1.00%) high mild
+  19 (19.00%) high severe
+Encrypt/Encrypt libpaillier
+                        time:   [393.34 ms 393.96 ms 394.63 ms]
+Found 4 outliers among 100 measurements (4.00%)
+  3 (3.00%) high mild
+  1 (1.00%) high severe
+
+RUST_TESTS_SEED=fb661751baa38335a8d0b52fd2746ea50da4f6c9bb3bdc1fe727db94834230d8
+Decrypt/Decrypt with CRT
+                        time:   [71.533 ms 72.089 ms 72.704 ms]
+Found 21 outliers among 100 measurements (21.00%)
+  3 (3.00%) high mild
+  18 (18.00%) high severe
+Decrypt/Decrypt libpaillier
+                        time:   [202.29 ms 203.71 ms 205.16 ms]
+
+RUST_TESTS_SEED=ffe6444d78eba3a416e92663c53a1709724b3fca9f3076d59b7308850cdfffdd
+OMul/with CRT           time:   [50.703 ms 53.518 ms 56.398 ms]
+OMul/without CRT        time:   [259.04 ms 260.11 ms 261.38 ms]
+Found 16 outliers among 100 measurements (16.00%)
+  1 (1.00%) high mild
+  15 (15.00%) high severe
+
+RUST_TESTS_SEED=4b92930db73acc306d52ca2a7558a14d074db0a6e430883c41880fdfc47ad25b
+Safe primes/512/Original
+                        time:   [1.2451 s 1.2734 s 1.3048 s]
+Found 19 outliers among 200 measurements (9.50%)
+  17 (8.50%) high mild
+  2 (1.00%) high severe
+Safe primes/512/Current time:   [961.85 ms 994.40 ms 1.0278 s]
+Safe primes/512/Trial with sieve of 120 primes
+                        time:   [899.50 ms 926.65 ms 954.46 ms]
+Safe primes/512/Trial with sieve of 135 primes
+                        time:   [949.54 ms 983.30 ms 1.0175 s]
+Safe primes/512/Trial with sieve of 150 primes
+                        time:   [1.0477 s 1.0833 s 1.1192 s]
+Safe primes/1024/Original
+                        time:   [45.045 s 51.936 s 58.933 s]
+Safe primes/1024/Current
+                        time:   [2.6604 s 3.0579 s 3.5372 s]
+Safe primes/1024/Trial with sieve of 120 primes
+                        time:   [2.5532 s 2.6739 s 2.8591 s]
+Found 2 outliers among 10 measurements (20.00%)
+  2 (20.00%) high severe
+Safe primes/1024/Trial with sieve of 135 primes
+                        time:   [2.6548 s 2.9232 s 3.2517 s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Safe primes/1024/Trial with sieve of 150 primes
+                        time:   [2.6857 s 3.0179 s 3.4132 s]
+Found 2 outliers among 10 measurements (20.00%)
+  2 (20.00%) high mild
+Safe primes/1536/Original
+                        time:   [26.837 s 31.126 s 34.026 s]
+Found 3 outliers among 10 measurements (30.00%)
+  2 (20.00%) low severe
+  1 (10.00%) high severe
+Safe primes/1536/Current
+                        time:   [11.243 s 11.438 s 11.651 s]
+Safe primes/1536/Trial with sieve of 120 primes
+                        time:   [12.556 s 13.112 s 13.713 s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Safe primes/1536/Trial with sieve of 135 primes
+                        time:   [11.405 s 12.189 s 13.425 s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Safe primes/1536/Trial with sieve of 150 primes
+                        time:   [11.232 s 11.513 s 11.831 s]
+
+RUST_TESTS_SEED=dd46be2059124205ba291e784983ef7fb69f89c9352d0868305f838e9bba5b70
+PRNG convertion/into GMP
+                        time:   [26.539 ns 26.584 ns 26.636 ns]
+Found 3 outliers among 100 measurements (3.00%)
+  1 (1.00%) high mild
+  2 (2.00%) high severe
+
+------------------
+terminal log
+
+Gnuplot not found, using plotters backend
+Benchmarking Encrypt/Regular Encrypt
+Benchmarking Encrypt/Regular Encrypt: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 14.5s, or reduce sample count to 30.
+Benchmarking Encrypt/Regular Encrypt: Collecting 100 samples in estimated 14.538 s (100 iterations)
+Benchmarking Encrypt/Regular Encrypt: Analyzing
+Benchmarking Encrypt/Encrypt with known factorization
+Benchmarking Encrypt/Encrypt with known factorization: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 5.6s, or reduce sample count to 80.
+Benchmarking Encrypt/Encrypt with known factorization: Collecting 100 samples in estimated 5.5670 s (100 iterations)
+Benchmarking Encrypt/Encrypt with known factorization: Analyzing
+Benchmarking Encrypt/Encrypt libpaillier
+Benchmarking Encrypt/Encrypt libpaillier: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 40.0s, or reduce sample count to 10.
+Benchmarking Encrypt/Encrypt libpaillier: Collecting 100 samples in estimated 40.015 s (100 iterations)
+Benchmarking Encrypt/Encrypt libpaillier: Analyzing
+Benchmarking Decrypt/Decrypt with CRT
+Benchmarking Decrypt/Decrypt with CRT: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 7.2s, or reduce sample count to 60.
+Benchmarking Decrypt/Decrypt with CRT: Collecting 100 samples in estimated 7.1796 s (100 iterations)
+Benchmarking Decrypt/Decrypt with CRT: Analyzing
+Benchmarking Decrypt/Decrypt libpaillier
+Benchmarking Decrypt/Decrypt libpaillier: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 20.7s, or reduce sample count to 20.
+Benchmarking Decrypt/Decrypt libpaillier: Collecting 100 samples in estimated 20.741 s (100 iterations)
+Benchmarking Decrypt/Decrypt libpaillier: Analyzing
+Benchmarking OMul/with CRT
+Benchmarking OMul/with CRT: Warming up for 3.0000 s
+Benchmarking OMul/with CRT: Collecting 100 samples in estimated 9.8494 s (200 iterations)
+Benchmarking OMul/with CRT: Analyzing
+Benchmarking OMul/without CRT
+Benchmarking OMul/without CRT: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 26.0s, or reduce sample count to 10.
+Benchmarking OMul/without CRT: Collecting 100 samples in estimated 26.007 s (100 iterations)
+Benchmarking OMul/without CRT: Analyzing
+Benchmarking Safe primes/512/Original
+Benchmarking Safe primes/512/Original: Warming up for 3.0000 s
+
+Warning: Unable to complete 200 samples in 5.0s. You may wish to increase target time to 301.4s, or reduce sample count to 10.
+Benchmarking Safe primes/512/Original: Collecting 200 samples in estimated 301.43 s (200 iterations)
+Benchmarking Safe primes/512/Original: Analyzing
+Benchmarking Safe primes/512/Current
+Benchmarking Safe primes/512/Current: Warming up for 3.0000 s
+
+Warning: Unable to complete 200 samples in 5.0s. You may wish to increase target time to 169.5s, or reduce sample count to 10.
+Benchmarking Safe primes/512/Current: Collecting 200 samples in estimated 169.49 s (200 iterations)
+Benchmarking Safe primes/512/Current: Analyzing
+Benchmarking Safe primes/512/Trial with sieve of 120 primes
+Benchmarking Safe primes/512/Trial with sieve of 120 primes: Warming up for 3.0000 s
+
+Warning: Unable to complete 200 samples in 5.0s. You may wish to increase target time to 257.6s, or reduce sample count to 10.
+Benchmarking Safe primes/512/Trial with sieve of 120 primes: Collecting 200 samples in estimated 257.64 s (200 iterations)
+Benchmarking Safe primes/512/Trial with sieve of 120 primes: Analyzing
+Benchmarking Safe primes/512/Trial with sieve of 135 primes
+Benchmarking Safe primes/512/Trial with sieve of 135 primes: Warming up for 3.0000 s
+
+Warning: Unable to complete 200 samples in 5.0s. You may wish to increase target time to 265.5s, or reduce sample count to 10.
+Benchmarking Safe primes/512/Trial with sieve of 135 primes: Collecting 200 samples in estimated 265.53 s (200 iterations)
+Benchmarking Safe primes/512/Trial with sieve of 135 primes: Analyzing
+Benchmarking Safe primes/512/Trial with sieve of 150 primes
+Benchmarking Safe primes/512/Trial with sieve of 150 primes: Warming up for 3.0000 s
+
+Warning: Unable to complete 200 samples in 5.0s. You may wish to increase target time to 184.3s, or reduce sample count to 10.
+Benchmarking Safe primes/512/Trial with sieve of 150 primes: Collecting 200 samples in estimated 184.29 s (200 iterations)
+Benchmarking Safe primes/512/Trial with sieve of 150 primes: Analyzing
+Benchmarking Safe primes/1024/Original
+Benchmarking Safe primes/1024/Original: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 625.1s.
+Benchmarking Safe primes/1024/Original: Collecting 10 samples in estimated 625.10 s (10 iterations)
+Benchmarking Safe primes/1024/Original: Analyzing
+Benchmarking Safe primes/1024/Current
+Benchmarking Safe primes/1024/Current: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 43.4s.
+Benchmarking Safe primes/1024/Current: Collecting 10 samples in estimated 43.391 s (10 iterations)
+Benchmarking Safe primes/1024/Current: Analyzing
+Benchmarking Safe primes/1024/Trial with sieve of 120 primes
+Benchmarking Safe primes/1024/Trial with sieve of 120 primes: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 25.5s.
+Benchmarking Safe primes/1024/Trial with sieve of 120 primes: Collecting 10 samples in estimated 25.459 s (10 iterations)
+Benchmarking Safe primes/1024/Trial with sieve of 120 primes: Analyzing
+Benchmarking Safe primes/1024/Trial with sieve of 135 primes
+Benchmarking Safe primes/1024/Trial with sieve of 135 primes: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 32.3s.
+Benchmarking Safe primes/1024/Trial with sieve of 135 primes: Collecting 10 samples in estimated 32.347 s (10 iterations)
+Benchmarking Safe primes/1024/Trial with sieve of 135 primes: Analyzing
+Benchmarking Safe primes/1024/Trial with sieve of 150 primes
+Benchmarking Safe primes/1024/Trial with sieve of 150 primes: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 28.3s.
+Benchmarking Safe primes/1024/Trial with sieve of 150 primes: Collecting 10 samples in estimated 28.277 s (10 iterations)
+Benchmarking Safe primes/1024/Trial with sieve of 150 primes: Analyzing
+Benchmarking Safe primes/1536/Original
+Benchmarking Safe primes/1536/Original: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 328.0s.
+Benchmarking Safe primes/1536/Original: Collecting 10 samples in estimated 327.99 s (10 iterations)
+Benchmarking Safe primes/1536/Original: Analyzing
+Benchmarking Safe primes/1536/Current
+Benchmarking Safe primes/1536/Current: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 132.1s.
+Benchmarking Safe primes/1536/Current: Collecting 10 samples in estimated 132.08 s (10 iterations)
+Benchmarking Safe primes/1536/Current: Analyzing
+Benchmarking Safe primes/1536/Trial with sieve of 120 primes
+Benchmarking Safe primes/1536/Trial with sieve of 120 primes: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 141.5s.
+Benchmarking Safe primes/1536/Trial with sieve of 120 primes: Collecting 10 samples in estimated 141.54 s (10 iterations)
+Benchmarking Safe primes/1536/Trial with sieve of 120 primes: Analyzing
+Benchmarking Safe primes/1536/Trial with sieve of 135 primes
+Benchmarking Safe primes/1536/Trial with sieve of 135 primes: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 112.1s.
+Benchmarking Safe primes/1536/Trial with sieve of 135 primes: Collecting 10 samples in estimated 112.12 s (10 iterations)
+Benchmarking Safe primes/1536/Trial with sieve of 135 primes: Analyzing
+Benchmarking Safe primes/1536/Trial with sieve of 150 primes
+Benchmarking Safe primes/1536/Trial with sieve of 150 primes: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 116.5s.
+Benchmarking Safe primes/1536/Trial with sieve of 150 primes: Collecting 10 samples in estimated 116.53 s (10 iterations)
+Benchmarking Safe primes/1536/Trial with sieve of 150 primes: Analyzing
+Benchmarking PRNG convertion/into GMP
+Benchmarking PRNG convertion/into GMP: Warming up for 3.0000 s
+Benchmarking PRNG convertion/into GMP: Collecting 100 samples in estimated 5.0001 s (186M iterations)
+Benchmarking PRNG convertion/into GMP: Analyzing

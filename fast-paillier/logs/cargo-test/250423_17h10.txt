@@ -1,0 +1,25 @@
+branch: vy/optimized-paillier
+last commit: update pregen key
+no modify
+------------------
+
+running 6 tests
+test utils::test::test_coprime ... ok
+test utils::test::sample_with_size ... ok
+test utils::test::sample_odd_with_size ... ok
+test decryption_key::tests::test_sample_decryption_key ... ok
+test tests::test_enc_dec ... ok
+test utils::test::safe_prime_size has been running for over 60 seconds
+test utils::test::safe_prime_size ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 199.26s
+test homorphic_ops ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 551.49s
+
+
+running 1 test
+test src/lib.rs - AnyEncryptionKey (line 69) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+

@@ -1,0 +1,30 @@
+
+running 6 tests
+test utils::test::sample_odd_with_size ... ok
+test utils::test::test_coprime ... ok
+test utils::test::sample_with_size ... ok
+test tests::test_enc_dec ... ok
+test decryption_key::tests::test_sample_decryption_key ... ok
+test utils::test::safe_prime_size ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.24s
+
+
+running 6 tests
+test factorized_exp_mod_nn ... ok
+test factorized_exp_mod_n ... ok
+test homorphic_ops ... ok
+test doesnt_encrypt_plaintext_out_of_bounds ... ok
+test encrypt_decrypt has been running for over 60 seconds
+test encryption_with_known_factorization has been running for over 60 seconds
+test encryption_with_known_factorization ... ok
+test encrypt_decrypt ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 873.57s
+
+
+running 1 test
+test src/lib.rs - AnyEncryptionKey (line 69) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
