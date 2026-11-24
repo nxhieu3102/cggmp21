@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CGGMP21 threshold ECDSA in the browser</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>CGGMP21 <span>threshold ECDSA</span></h1>
+      <p class="tagline">Distributed key generation, aux info (Paillier) and signing, compiled from Rust to WebAssembly.</p>
+    </div>
+    <div class="status" id="wasm-status" data-state="loading">Loading WebAssembly…</div>
+  </header>
+
+  <aside class="notice" role="note">
+    <strong>Demo setup.</strong> All parties run in this browser tab, one Web Worker each; the page only
+    routes their messages. Every party keeps its secrets (key share, Paillier key) inside its own worker and
+    nothing is persisted. A real deployment runs parties on separate devices and needs
+    <em>authenticated and encrypted</em> channels plus a reliable broadcast between them.
+  </aside>
+
+  <main class="layout">
+    <section class="card controls" aria-labelledby="setup-title">
+      <h2 id="setup-title">Setup</h2>
+      <form id="setup" autocomplete="off">
+        <div class="row">
+          <label><span>Parties <i>n</i></span>
+            <input type="number" id="n" min="2" max="8" value="3" required>
+          </label>
+          <label><span>Threshold <i>t</i></span>
+            <input type="number" id="t" min="2" max="8" value="2" required>
+          </label>
+        </div>
+        <label class="check">
+          <input type="checkbox" id="htss"> Hierarchical threshold (HTSS ranks)
+        </label>
+        <label id="ranks-field" hidden>Ranks (one per party, each &lt; t)
+          <input type="text" id="ranks" value="0,0,1" pattern="\s*\d+(\s*,\s*\d+)*\s*">
+        </label>
+        <fieldset class="signers">
+          <legend>Signers</legend>
+          <div id="signers"></div>
+        </fieldset>
+        <label>Signing mode
+          <select id="mode">
+            <option value="sign">Interactive signing</option>
+            <option value="presign">Presign, then non-interactive partial signatures</option>
+          </select>
+        </label>
+        <label>Message to sign
+          <textarea id="message" rows="3">Hello from a threshold of browser workers!</textarea>
+        </label>
+        <div class="buttons">
+          <button type="button" id="btn-all" class="primary">Run everything</button>
+          <button type="button" id="btn-keygen">1 · Keygen</button>
+          <button type="button" id="btn-aux">2 · Aux info</button>
+          <button type="button" id="btn-sign">3 · Sign</button>
+          <button type="button" id="btn-verify">4 · Verify</button>
+          <button type="button" id="btn-reset" class="ghost">Reset parties</button>
+        </div>
+      </form>
+      <div id="error" class="error" role="alert" hidden></div>
+    </section>
+
+    <section class="card result" aria-labelledby="result-title">
+      <h2 id="result-title">Result</h2>
+      <dl class="kv" id="result">
+        <dt>Public key</dt><dd id="r-pk" class="mono muted">— run keygen —</dd>
+        <dt>Message</dt><dd id="r-msg" class="mono muted">—</dd>
+        <dt>r</dt><dd id="r-r" class="mono muted">—</dd>
+        <dt>s</dt><dd id="r-s" class="mono muted">—</dd>
+        <dt>Verification</dt><dd id="r-verify"><span class="badge" data-state="idle">not verified</span></dd>
+      </dl>
+      <p class="hint">Verification runs on the main thread, outside of every party, using only the public key, the message and the signature. Edit the message and press <b>Verify</b> to see it fail.</p>
+    </section>
+
+    <section class="card wide" aria-labelledby="timeline-title">
+      <div class="card-head">
+        <h2 id="timeline-title">Parties</h2>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div id="parties" class="parties"></div>
+      <div class="axis" id="axis"></div>
+    </section>
+
+    <section class="card" aria-labelledby="stats-title">
+      <h2 id="stats-title">Network</h2>
+      <table class="stats">
+        <thead><tr><th>Stage</th><th>Rounds</th><th>Envelopes</th><th>Delivered</th><th>Bytes delivered</th><th>Wall time</th></tr></thead>
+        <tbody id="stats"></tbody>
+      </table>
+      <details class="rounds">
+        <summary>Per-round breakdown</summary>
+        <table class="stats">
+          <thead><tr><th>Stage</th><th>Round</th><th>Envelopes</th><th>Delivered</th><th>Bytes delivered</th></tr></thead>
+          <tbody id="round-stats"></tbody>
+        </table>
+      </details>
+    </section>
+
+    <section class="card" aria-labelledby="log-title">
+      <div class="card-head">
+        <h2 id="log-title">Message log</h2>
+        <button type="button" id="btn-clear-log" class="ghost small">Clear</button>
+      </div>
+      <ol id="log" class="log" aria-live="off"></ol>
+    </section>
+  </main>
+
+  <footer class="foot">
+    Runs <a href="https://ia.cr/2021/060">CGGMP21</a> via the original Rust protocol implementations driven as
+    state machines. Serve this directory over HTTP, e.g. <code>python3 -m http.server</code>.
+  </footer>
+</body>
+</html>
