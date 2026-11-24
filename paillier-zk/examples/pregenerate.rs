@@ -7,13 +7,14 @@
 //! You can run this example with the following command:
 //!
 //! ```bash
-//! cargo run --example pregenerate --features=__internal_doctest
+//! cargo run --release -p paillier-zk --example pregenerate --features=__internal_doctest
 //! ```
 //!
 //! The generated keys will be saved in the `test-data` directory.
 
 use anyhow::{Context, Result};
 use num_bigint::{BigInt, RandBigInt};
+use num_integer::Integer;
 
 use paillier_zk::BigIntExt;
 
@@ -22,17 +23,17 @@ fn main() -> Result<()> {
 
     // Generate Verifier's aux data
     {
-        let p = generate_blum_prime(&mut rng, 1024);
-        let q = generate_blum_prime(&mut rng, 1024);
+        let p = fast_paillier::utils::generate_safe_prime(&mut rng, 1024);
+        let q = fast_paillier::utils::generate_safe_prime(&mut rng, 1024);
         let n = &p * &q;
 
         let (s, t) = {
-            let phi_n = (&p - BigInt::from(1)) * (&q - BigInt::from(1));
+            let phi_n = (&p - 1u8) * (&q - 1u8);
             let r = BigInt::gen_invertible(&n, &mut rng);
             let lambda = rng.gen_bigint_range(&BigInt::from(0), &phi_n);
 
             let t = (&r * &r).mod_floor(&n);
-            let s = t.modpow_ext(&lambda, &n).unwrap().into();
+            let s = t.modpow_ext(&lambda, &n).context("modpow")?;
 
             (s, t)
         };
@@ -45,7 +46,7 @@ fn main() -> Result<()> {
             crt: None,
         };
 
-        let aux_json = serde_json::to_vec_pretty(&aux).context("serialzie aux")?;
+        let aux_json = serde_json::to_vec_pretty(&aux).context("serialize aux")?;
         std::fs::write("./test-data/verifier_aux.json", aux_json).context("save aux")?;
     }
 
@@ -73,13 +74,12 @@ fn generate_paillier_key(
     rng: &mut (impl rand_core::RngCore + rand_core::CryptoRng),
     output_dk: Option<&std::path::Path>,
     output_ek: Option<&std::path::Path>,
-) -> anyhow::Result<()> {
+) -> Result<()> {
     // paillier key achieve 128 bits security
     let n_size = 3072;
     let a_size = 512;
 
-    let dk: fast_paillier::DecryptionKey =
-        fast_paillier::DecryptionKey::generate(rng, n_size, a_size)?;
+    let dk = fast_paillier::DecryptionKey::generate(rng, n_size, a_size)?;
     let ek = dk.encryption_key();
 
     if let Some(path) = output_dk {
@@ -93,27 +93,4 @@ fn generate_paillier_key(
     }
 
     Ok(())
-}
-
-/// Note: Blum primes MUST NOT be used in real system
-///
-/// Blum primes are faster to generate so we use them for the tests, however they do not meet
-/// security requirements of the proofs. Safe primes MUST BE used intead of blum primes.
-///
-/// Safe primes can be generated using [`fast_paillier::utils::generate_safe_prime`]
-fn generate_blum_prime(rng: &mut impl rand_core::RngCore, bits_size: u32) -> BigInt {
-    let prime = fast_paillier::utils::generate_safe_prime(rng, bits_size);
-
-    assert_eq!(
-        &prime % 4,
-        BigInt::from(3),
-        "Blum prime must be congruent to 3 mod 4"
-    );
-    assert_eq!(
-        prime.bits(),
-        bits_size,
-        "Blum prime must have the specified bit size"
-    );
-
-    prime
 }

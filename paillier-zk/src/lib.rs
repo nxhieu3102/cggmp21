@@ -17,11 +17,6 @@ pub mod no_small_factor;
 pub mod paillier_blum_modulus;
 pub mod paillier_encryption_in_range;
 
-// DO NOT USE IN CGGMP21 VERSION 2024
-// pub mod group_element_vs_paillier_encryption_in_range;
-// pub mod paillier_affine_operation_in_range;
-// pub mod paillier_encryption_in_range_with_el_gamal;
-
 #[cfg(test)]
 mod curve;
 
@@ -32,7 +27,7 @@ compile_error!("doctest require that `__internal_doctest` feature is turned on")
 pub mod _doctest;
 
 use common::InvalidProofReason;
-pub use common::{BadExponent, BigIntExt, InvalidProof, PaillierError};
+pub use common::{encoding, BadExponent, BigIntExt, InvalidProof, PaillierError};
 pub use fast_paillier;
 
 /// Library general error type
@@ -56,19 +51,21 @@ enum ErrorReason {
     Invert,
     #[error("paillier error")]
     Paillier(#[source] fast_paillier::Error),
-    #[error("bug: vec has unexpected length")]
+    #[error("vec has unexpected length")]
     Length,
-}
-
-impl From<BadExponent> for Error {
-    fn from(err: BadExponent) -> Self {
-        Error(ErrorReason::ModPow(err))
-    }
+    #[error("private data doesn't match public data")]
+    InvalidPrivateData,
 }
 
 impl From<PaillierError> for Error {
     fn from(_err: PaillierError) -> Self {
         Error(ErrorReason::Encryption)
+    }
+}
+
+impl From<BadExponent> for Error {
+    fn from(err: BadExponent) -> Self {
+        Error(ErrorReason::ModPow(err))
     }
 }
 

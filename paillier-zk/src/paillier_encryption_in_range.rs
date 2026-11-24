@@ -14,7 +14,7 @@
 //!
 //! ```
 //! use paillier_zk::{paillier_encryption_in_range as p, BigIntExt};
-//! use rug::{BigInt, Complete};
+//! use num_bigint::BigInt;
 //! # mod pregenerated {
 //! #     use super::*;
 //! #     paillier_zk::load_pregenerated_data!(
@@ -35,7 +35,7 @@
 //! let security = p::SecurityParams {
 //!     l: 1024,
 //!     epsilon: 128,
-//!     q: (BigInt::from(1) << 128_u32).into(),
+//!     q: BigInt::from(1) << 128_u32,
 //! };
 //!
 //! // 1. Setup: prover prepares the paillier keys
@@ -80,15 +80,15 @@
 //!     &commitment,
 //!     &security,
 //!     &proof,
-//! );
+//! )?;
 //! # Ok(()) }
 //! ```
 //!
 //! If the verification succeeded, verifier can continue communication with prover
 
-use fast_paillier::{
-    AnyEncryptionKey, Ciphertext, Nonce, utils::serde_wrapper::{serializable_bigint},
-};
+#[cfg(feature = "serde")]
+use fast_paillier::utils::serde_wrapper::serializable_bigint;
+use fast_paillier::{AnyEncryptionKey, Ciphertext, Nonce};
 use num_bigint::BigInt;
 
 #[cfg(feature = "serde")]
@@ -99,7 +99,7 @@ pub use crate::common::InvalidProof;
 
 /// Security parameters for proof. Choosing the values is a tradeoff between
 /// speed and chance of rejecting a valid proof or accepting an invalid proof
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, udigest::Digestable)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct SecurityParams {
     /// l in paper, security parameter for bit size of plaintext: it needs to
@@ -108,6 +108,7 @@ pub struct SecurityParams {
     /// Epsilon in paper, slackness parameter
     pub epsilon: usize,
     /// q in paper. Security parameter for challenge
+    #[udigest(as = crate::common::encoding::BigInt)]
     #[cfg_attr(feature = "serde", serde(with = "serializable_bigint"))]
     pub q: BigInt,
 }
@@ -162,7 +163,6 @@ pub struct PrivateCommitment {
 /// [`non_interactive::challenge`] or randomly by [`interactive::challenge`]
 pub type Challenge = BigInt;
 
-
 // As described in cggmp21 at page 33
 /// The ZK proof. Computed by [`interactive::prove`] or
 /// [`non_interactive::prove`]
@@ -205,14 +205,17 @@ pub mod interactive {
     ) -> Result<(Commitment, PrivateCommitment), Error> {
         let two_to_l_plus_e = BigInt::from(1) << (security.l + security.epsilon);
         let hat_n_at_two_to_l = (BigInt::from(1) << security.l) * &aux.rsa_modulo;
-        let hat_n_at_two_to_l_plus_e =
-            (BigInt::from(1) << (security.l + security.epsilon)) * &aux.rsa_modulo;
+        let hat_n_at_two_to_l_plus_e = &two_to_l_plus_e * &aux.rsa_modulo;
 
         let alpha = BigInt::from_rng_pm(&two_to_l_plus_e, rng);
         let mu = BigInt::from_rng_pm(&hat_n_at_two_to_l, rng);
-        // TODO: r can be a random from natural set (Z_N)
-        let r = BigInt::gen_invertible(data.key.n(), rng);
         let gamma = BigInt::from_rng_pm(&hat_n_at_two_to_l_plus_e, rng);
+        // The nonce enters the ciphertext as `h^(N * nonce)`, so the response `z2 = r + e nonce`
+        // is computed over the integers. `|e nonce| < 2^(nonce_bits + |q|)`, a mask of
+        // `nonce_bits + |q| + ε` bits hides it with statistical distance `2^-ε`.
+        let nonce_bits = u64::from(data.key.nounce_size()).max(pdata.nonce.bits());
+        let r_bits = nonce_bits + security.q.bits() + security.epsilon as u64;
+        let r = BigInt::from_rng_pm(&(BigInt::one() << r_bits), rng);
 
         let s = aux.combine(pdata.plaintext, &mu)?;
         let a = data.key.encrypt_with(&alpha, &r)?;
@@ -237,7 +240,6 @@ pub mod interactive {
         challenge: &Challenge,
     ) -> Result<Proof, Error> {
         let z1 = &private_commitment.alpha + (challenge * pdata.plaintext);
-        // TODO: recheck
         let z2 = &private_commitment.r + (challenge * pdata.nonce);
         let z3 = &private_commitment.gamma + (challenge * &private_commitment.mu);
         Ok(Proof { z1, z2, z3 })
@@ -252,13 +254,17 @@ pub mod interactive {
         challenge: &Challenge,
         proof: &Proof,
     ) -> Result<(), InvalidProof> {
-        {
-            fail_if_ne(
-                InvalidProofReason::EqualityCheck(1),
-                data.ciphertext.gcd(data.key.n()),
-                BigInt::one(),
-            )?;
-        }
+        fail_if(
+            InvalidProofReason::RangeCheck(4),
+            proof
+                .z1
+                .is_in_pm(&(BigInt::from(1) << (security.l + security.epsilon))),
+        )?;
+        fail_if_ne(
+            InvalidProofReason::EqualityCheck(1),
+            data.ciphertext.gcd(data.key.n()),
+            BigInt::one(),
+        )?;
         {
             let lhs = data
                 .key
@@ -275,20 +281,16 @@ pub mod interactive {
             };
             fail_if_ne(InvalidProofReason::EqualityCheck(2), lhs, rhs)?;
         }
-
         {
-            let lhs = aux.combine(&proof.z1, &proof.z3)?;
-            let s_to_e = aux.pow_mod(&commitment.s, challenge)?;
-            let rhs = (&commitment.c * s_to_e).mod_floor(&aux.rsa_modulo);
-            fail_if_ne(InvalidProofReason::EqualityCheck(3), lhs, rhs)?;
+            // s^z1 t^z3 = C S^e, evaluated as s^z1 t^z3 S^-e = C
+            let neg_e = -challenge;
+            let lhs = aux.multi_pow(&[
+                (&aux.s, &proof.z1),
+                (&aux.t, &proof.z3),
+                (&commitment.s, &neg_e),
+            ])?;
+            fail_if_ne(InvalidProofReason::EqualityCheck(3), &lhs, &commitment.c)?;
         }
-
-        fail_if(
-            InvalidProofReason::RangeCheck(4),
-            proof
-                .z1
-                .is_in_pm(&(BigInt::from(1) << (security.l + security.epsilon))),
-        )?;
 
         Ok(())
     }
@@ -340,6 +342,7 @@ pub mod non_interactive {
         let seed = udigest::inline_struct!(tag {
             shared_state,
             aux: aux.digest_public_data(),
+            security,
             data,
             commitment,
         });
@@ -364,72 +367,174 @@ pub mod non_interactive {
 #[cfg(test)]
 mod test {
     use num_bigint::BigInt;
-    use sha2::Digest;
 
     use crate::common::{BigIntExt, InvalidProofReason};
 
-    fn run_with<D: Digest>(
-        mut rng: &mut impl rand_core::CryptoRngCore,
-        security: super::SecurityParams,
-        plaintext: BigInt,
-    ) -> Result<(), crate::common::InvalidProof> {
-        let aux = crate::common::test::aux(&mut rng);
-        let private_key = crate::common::test::sample_key();
-        let key = private_key.encryption_key();
-        let (ciphertext, nonce) = key.encrypt_with_random(&mut rng, &plaintext).unwrap();
-        let data = super::Data {
-            key,
-            ciphertext: &ciphertext,
-        };
-        let pdata = super::PrivateData {
-            plaintext: &plaintext,
-            nonce: &nonce,
-        };
+    type D = sha2::Sha256;
 
-        let shared_state = "shared state";
-        let (commitment, proof) =
-            super::non_interactive::prove::<D>(&shared_state, &aux, data, pdata, &security, rng)
+    fn security() -> super::SecurityParams {
+        super::SecurityParams {
+            l: 1024,
+            epsilon: 256,
+            q: (BigInt::from(1) << 128_u32) - 1,
+        }
+    }
+
+    struct Setup {
+        aux: super::Aux,
+        key: fast_paillier::DecryptionKey,
+        plaintext: BigInt,
+        ciphertext: BigInt,
+        nonce: BigInt,
+    }
+
+    impl Setup {
+        fn new(plaintext: BigInt) -> Self {
+            let mut rng = rand_dev::DevRng::new();
+            let aux = crate::common::test::aux(&mut rng);
+            let key = crate::common::test::sample_key();
+            let (ciphertext, nonce) = key
+                .encryption_key()
+                .encrypt_with_random(&mut rng, &plaintext)
                 .unwrap();
-        super::non_interactive::verify::<D>(
-            &shared_state,
-            &aux,
-            data,
-            &commitment,
-            &security,
-            &proof,
-        )
+            Self {
+                aux,
+                key,
+                plaintext,
+                ciphertext,
+                nonce,
+            }
+        }
+        fn data(&self) -> super::Data<'_> {
+            super::Data {
+                key: self.key.encryption_key(),
+                ciphertext: &self.ciphertext,
+            }
+        }
+        fn prove(&self) -> (super::Commitment, super::Proof) {
+            let mut rng = rand_dev::DevRng::new();
+            let pdata = super::PrivateData {
+                plaintext: &self.plaintext,
+                nonce: &self.nonce,
+            };
+            super::non_interactive::prove::<D>(
+                &"shared state",
+                &self.aux,
+                self.data(),
+                pdata,
+                &security(),
+                &mut rng,
+            )
+            .unwrap()
+        }
+        fn verify(
+            &self,
+            data: super::Data,
+            commitment: &super::Commitment,
+            proof: &super::Proof,
+        ) -> Result<(), InvalidProofReason> {
+            super::non_interactive::verify::<D>(
+                &"shared state",
+                &self.aux,
+                data,
+                commitment,
+                &security(),
+                proof,
+            )
+            .map_err(|e| e.reason())
+        }
     }
 
     #[test]
     fn passing() {
         let mut rng = rand_dev::DevRng::new();
-        let security = super::SecurityParams {
-            l: 1024,
-            epsilon: 256,
-            q: (BigInt::from(1) << 128_u32) - 1,
-        };
-        let plaintext = BigInt::from_rng_pm(&(BigInt::from(1) << security.l), &mut rng);
-        let r = run_with::<sha2::Sha256>(&mut rng, security, plaintext);
-        match r {
-            Ok(()) => (),
-            Err(e) => panic!("{e:?}"),
-        }
+        let plaintext = BigInt::from_rng_pm(&(BigInt::from(1) << security().l), &mut rng);
+        let setup = Setup::new(plaintext);
+        let (commitment, proof) = setup.prove();
+        setup.verify(setup.data(), &commitment, &proof).unwrap();
+
+        let fast_aux = crate::common::test::with_optimizations(&setup.aux);
+        super::non_interactive::verify::<D>(
+            &"shared state",
+            &fast_aux,
+            setup.data(),
+            &commitment,
+            &security(),
+            &proof,
+        )
+        .unwrap();
     }
 
     #[test]
     fn failing() {
+        let s = security();
+        let plaintext = (BigInt::from(1) << (s.l + s.epsilon)) + 1;
+        let setup = Setup::new(plaintext);
+        let (commitment, proof) = setup.prove();
+        assert!(matches!(
+            setup.verify(setup.data(), &commitment, &proof),
+            Err(InvalidProofReason::RangeCheck(_))
+        ));
+    }
+
+    #[test]
+    fn tampering_is_rejected() {
         let mut rng = rand_dev::DevRng::new();
-        let security = super::SecurityParams {
-            l: 1024,
-            epsilon: 256,
-            q: (BigInt::from(1) << 128_u32) - 1,
+        let plaintext = BigInt::from_rng_pm(&(BigInt::from(1) << security().l), &mut rng);
+        let setup = Setup::new(plaintext);
+        let (commitment, proof) = setup.prove();
+
+        // Statement: other ciphertext and other key
+        let other_ct = setup
+            .key
+            .encryption_key()
+            .omul(&BigInt::from(2), &setup.ciphertext)
+            .unwrap();
+        let data = super::Data {
+            key: setup.key.encryption_key(),
+            ciphertext: &other_ct,
         };
-        let plaintext = (BigInt::from(1) << (security.l + security.epsilon)) + 1;
-        let r = run_with::<sha2::Sha256>(&mut rng, security, plaintext);
-        match r.map_err(|e| e.reason()) {
-            Ok(()) => panic!("proof should not pass"),
-            Err(InvalidProofReason::RangeCheck(_)) => (),
-            Err(e) => panic!("proof should not fail with {e:?}"),
+        assert!(setup.verify(data, &commitment, &proof).is_err());
+        let other_key = crate::common::test::sample_other_key();
+        let data = super::Data {
+            key: &other_key,
+            ciphertext: &setup.ciphertext,
+        };
+        assert!(setup.verify(data, &commitment, &proof).is_err());
+
+        // Commitment
+        for i in 0..3 {
+            let mut bad = commitment.clone();
+            match i {
+                0 => bad.s += 1,
+                1 => bad.a += 1,
+                _ => bad.c = BigInt::from(0),
+            }
+            assert!(setup.verify(setup.data(), &bad, &proof).is_err());
+        }
+        let mut bad = commitment.clone();
+        bad.s = BigInt::from(0);
+        assert!(setup.verify(setup.data(), &bad, &proof).is_err());
+
+        // Proof
+        for i in 0..3 {
+            let mut bad = proof.clone();
+            match i {
+                0 => bad.z1 += 1,
+                1 => bad.z2 += 1,
+                _ => bad.z3 += 1,
+            }
+            assert!(setup.verify(setup.data(), &commitment, &bad).is_err());
+        }
+
+        // Malformed ciphertext
+        let n = setup.key.n().clone();
+        for ct in [BigInt::from(0), n.clone(), -BigInt::from(1), &n * &n * 3] {
+            let data = super::Data {
+                key: setup.key.encryption_key(),
+                ciphertext: &ct,
+            };
+            assert!(setup.verify(data, &commitment, &proof).is_err());
         }
     }
 }

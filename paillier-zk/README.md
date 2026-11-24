@@ -10,11 +10,22 @@
 This crate provides ZK-proofs for some properties about paillier encryption.
 See the module docs for the properties and examples of usage.
 
-This library is built on top of [fast-paillier](https://lib.rs/fast-paillier) crate.
-This crate and the underlying big integer implementation are reexported for the
-consumer to be able to use them, instead of trying to match a version.
+This library is built on top of the [fast-paillier](https://lib.rs/fast-paillier) crate, which
+is reexported for the consumer to be able to use it instead of trying to match a version.
+Big integers are [`num-bigint`](https://docs.rs/num-bigint) `BigInt`s; all modular
+exponentiations go through fast-paillier's pure-Rust Montgomery kernel, so the crate builds
+for `wasm32-unknown-unknown`.
 
-## Run test
+## Run tests
 
-1. `cargo clean`
-2. `cargo test --features __internal_doctest`
+Big integer arithmetic is slow in debug builds, run tests in release mode:
+
+```bash
+cargo test -p paillier-zk --all-features --release
+```
+
+Prove/verify timings at cggmp21 `SecurityLevel128` sizes:
+
+```bash
+cargo bench -p paillier-zk --features serde --bench proofs
+```

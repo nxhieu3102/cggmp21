@@ -1,26 +1,7 @@
-use num_bigint::BigInt;
-use num_bigint::RandBigInt;
+use num_bigint::{BigInt, BigUint, RandBigInt};
 use num_integer::Integer;
-use num_traits::Zero;
+use num_traits::{One, Zero};
 use rand_core::RngCore;
-
-/// Find principal square root in a Blum modulus quotient ring.
-///
-/// Pre-requisites:
-/// - x is a quadratic residue in Zn
-/// - `n = pq`, p and q are Blum primes
-///
-/// If these don't hold, the result is a bogus number in Zn
-pub fn blum_sqrt(x: &BigInt, p: &BigInt, q: &BigInt, n: &BigInt) -> BigInt {
-    // Exponent in pq Blum modulus to obtain the principal square root.
-    // Described in [Handbook of Applied cryptography, p. 75, Fact
-    // 2.160](https://cacr.uwaterloo.ca/hac/about/chap2.pdf)
-    let e = ((p - 1u8) * (q - 1u8) + 4) / 8;
-
-    // e guaranteed to be non-negative by the prerequisite that p and q are blum primes
-    #[allow(clippy::expect_used)]
-    x.modpow(&e, n)
-}
 
 /// Find `(y' = (-1)^a w^b y, a, b)` such that y' is a quadratic residue in Zn.
 ///
@@ -39,158 +20,114 @@ pub fn find_residue(
     q: &BigInt,
     n: &BigInt,
 ) -> Option<(bool, bool, BigInt)> {
-    let jp = (y.mod_floor(p)).jacobi(p);
-    let jq = (y.mod_floor(q)).jacobi(q);
-
-    match (jp, jq) {
-        (1, 1) => return Some((false, false, y.clone())),
-        (-1, -1) => return Some((true, false, (n - y).clone())),
+    let y = y.mod_floor(n);
+    match (jacobi(&y, p), jacobi(&y, q)) {
+        (1, 1) => return Some((false, false, y)),
+        (-1, -1) => return Some((true, false, n - y)),
         _ => (),
     }
 
     let y_times_w = (y * w).mod_floor(n);
-    let jp = (&y_times_w.mod_floor(p)).jacobi(p);
-    let jq = (&y_times_w.mod_floor(q)).jacobi(q);
-    match (jp, jq) {
+    match (jacobi(&y_times_w, p), jacobi(&y_times_w, q)) {
         (1, 1) => Some((false, true, y_times_w)),
-        (-1, -1) => Some((true, true, n - &y_times_w)),
+        (-1, -1) => Some((true, true, n - y_times_w)),
         _ => None,
     }
 }
 
 /// Finds a element in Zn that has jacobi symbol of -1
+///
+/// `n` must be odd and not a perfect square, otherwise the function never returns.
 pub fn sample_neg_jacobi<R: RngCore>(n: &BigInt, rng: &mut R) -> BigInt {
     loop {
-        // Generate a random number below n
         let w = rng.gen_bigint_range(&BigInt::zero(), n);
-
-        // Calculate Jacobi symbol
-        if w.jacobi(n) == -1 {
+        if jacobi(&w, n) == -1 {
             break w;
         }
     }
 }
 
-use num_traits::{One, Signed};
-
-/// Compute the Jacobi symbol (a/n)
+/// Computes the Jacobi symbol `(a/n)`
+///
+/// Returns 0 if `n` is not a positive odd integer (the symbol is undefined).
 pub fn jacobi(a: &BigInt, n: &BigInt) -> i8 {
-    if n.is_zero() || n.is_even() || n.is_negative() {
-        panic!("Jacobi symbol is undefined for non-positive or even denominator n");
+    if !n.is_odd() || n.sign() == num_bigint::Sign::Minus {
+        return 0;
     }
+    let low_bits = |x: &BigUint| x.iter_u32_digits().next().unwrap_or(0);
 
-    let mut a = a.mod_floor(n); // a mod n
-    let mut n = n.clone();
+    let mut n = n.magnitude().clone();
+    let mut a = a.mod_floor(&BigInt::from(n.clone())).into_parts().1;
     let mut result = 1;
 
     while !a.is_zero() {
-        // Remove factors of 2
-        while a.is_even() {
-            a >>= 1;
-            let r = &n % 8;
-            if r == 3.into() || r == 5.into() {
-                result = -result;
-            }
-        }
-
-        // Apply reciprocity
-        std::mem::swap(&mut a, &mut n);
-        if &a % 4 == 3.into() && &n % 4 == 3.into() {
+        // Remove factors of 2: (2/n) = -1 iff n = 3, 5 (mod 8)
+        let twos = a.trailing_zeros().unwrap_or(0);
+        a >>= twos;
+        if twos % 2 == 1 && matches!(low_bits(&n) % 8, 3 | 5) {
             result = -result;
         }
 
-        a = a.mod_floor(&n);
+        // Quadratic reciprocity
+        std::mem::swap(&mut a, &mut n);
+        if low_bits(&a) % 4 == 3 && low_bits(&n) % 4 == 3 {
+            result = -result;
+        }
+        a %= &n;
     }
 
-    if n == One::one() {
+    if n.is_one() {
         result
     } else {
         0
     }
 }
 
-// Add trait extension
-pub trait BigIntJacobi {
-    fn jacobi(&self, n: &BigInt) -> i8;
-}
-
-impl BigIntJacobi for BigInt {
-    fn jacobi(&self, n: &BigInt) -> i8 {
-        jacobi(self, n)
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{jacobi, BigIntJacobi};
+    use super::jacobi;
     use num_bigint::BigInt;
-    use num_traits::{One, Zero};
 
-    #[test]
-    fn test_basic_jacobi() {
-        let a = BigInt::from(10);
-        let n = BigInt::from(13);
-        assert_eq!(jacobi(&a, &n), 1);
-        assert_eq!(a.jacobi(&n), 1);
-
-        let a = BigInt::from(10);
-        let n = BigInt::from(15); // gcd(10,15) = 5
-        assert_eq!(jacobi(&a, &n), 0);
-        assert_eq!(a.jacobi(&n), 0);
-
-        let a = BigInt::from(10);
-        let n = BigInt::from(17);
-        assert_eq!(jacobi(&a, &n), -1);
-        assert_eq!(a.jacobi(&n), -1);
+    /// Euler's criterion for a prime modulus
+    fn legendre_reference(a: i64, p: i64) -> i8 {
+        let r = BigInt::from(a).modpow(&BigInt::from((p - 1) / 2), &BigInt::from(p));
+        if r == BigInt::from(0) {
+            0
+        } else if r == BigInt::from(1) {
+            1
+        } else {
+            -1
+        }
     }
 
     #[test]
-    fn test_negative_a() {
-        let a = BigInt::from(-3);
-        let n = BigInt::from(11);
-        assert_eq!(jacobi(&a, &n), -1);
+    fn matches_euler_criterion_and_multiplicativity() {
+        let primes = [3i64, 5, 7, 11, 13, 17, 19, 23, 101, 103];
+        for &p in &primes {
+            for a in -30i64..60 {
+                let expected = legendre_reference(a.rem_euclid(p), p);
+                assert_eq!(
+                    jacobi(&BigInt::from(a), &BigInt::from(p)),
+                    expected,
+                    "({a}/{p})"
+                );
+            }
+        }
+        // composite moduli: (a/pq) = (a/p)(a/q)
+        for &p in &primes {
+            for &q in &primes {
+                for a in 0i64..50 {
+                    let expected = legendre_reference(a % p, p) * legendre_reference(a % q, q);
+                    assert_eq!(jacobi(&BigInt::from(a), &BigInt::from(p * q)), expected);
+                }
+            }
+        }
     }
 
     #[test]
-    fn test_multiplicativity() {
-        let a = BigInt::from(3);
-        let b = BigInt::from(5);
-        let n = BigInt::from(7);
-
-        let ab = &a * &b;
-        let lhs = jacobi(&ab, &n);
-        let rhs = jacobi(&a, &n) * jacobi(&b, &n);
-        assert_eq!(lhs, rhs);
-    }
-
-    #[test]
-    fn test_even_denominator_panics() {
-        let a = BigInt::from(5);
-        let n = BigInt::from(8);
-        let result = std::panic::catch_unwind(|| jacobi(&a, &n));
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_zero_a() {
-        let a = BigInt::zero();
-        let n = BigInt::from(17);
-        assert_eq!(jacobi(&a, &n), 0);
-    }
-
-    #[test]
-    fn test_one_a() {
-        let a = BigInt::one();
-        let n = BigInt::from(19);
-        assert_eq!(jacobi(&a, &n), 1);
-    }
-
-    #[test]
-    fn test_large_numbers() {
-        let a = BigInt::parse_bytes(b"12345678901234567890", 10).unwrap();
-        let n = BigInt::parse_bytes(b"9876543219876543211", 10).unwrap();
-
-        let symbol = jacobi(&a, &n);
-        assert!(symbol == 1 || symbol == -1 || symbol == 0);
+    fn undefined_modulus() {
+        assert_eq!(jacobi(&BigInt::from(5), &BigInt::from(8)), 0);
+        assert_eq!(jacobi(&BigInt::from(5), &BigInt::from(0)), 0);
+        assert_eq!(jacobi(&BigInt::from(5), &BigInt::from(-7)), 0);
     }
 }

@@ -13,7 +13,7 @@
 //! ## Example
 //!
 //! ```rust
-//! use rug::{Integer, Complete};
+//! use num_bigint::BigInt;
 //! use paillier_zk::no_small_factor::non_interactive as p;
 //! # mod pregenerated {
 //! #     use super::*;
@@ -34,15 +34,15 @@
 //! let security = p::SecurityParams {
 //!     l: 4,
 //!     epsilon: 128,
-//!     q: (Integer::ONE << 128_u32),
+//!     q: BigInt::from(1) << 128_u32,
 //! };
 //!
 //! // 1. Prover prepares the data to obtain proof about
 //!
 //! let p = fast_paillier::utils::generate_safe_prime(&mut rng, 256);
 //! let q = fast_paillier::utils::generate_safe_prime(&mut rng, 256);
-//! let n = (&p * &q);
-//! let n_root = n.sqrt_ref();
+//! let n = &p * &q;
+//! let n_root = n.sqrt();
 //! let data = p::Data {
 //!     n: &n,
 //!     n_root: &n_root,
@@ -61,14 +61,14 @@
 //!
 //! // 4. Prover sends this data to verifier
 //!
-//! # fn send(_: &Integer, _: &p::Proof) {  }
+//! # fn send(_: &BigInt, _: &p::Proof) {  }
 //! send(data.n, &proof);
 //!
 //! // 5. Verifier receives the data and the proof and verifies it
 //!
 //! # let recv = || (data.n, proof);
 //! let (n, proof) = recv();
-//! let n_root = n.sqrt_ref();;
+//! let n_root = n.sqrt();
 //! let data = p::Data {
 //!     n: &n,
 //!     n_root: &n_root,
@@ -79,7 +79,8 @@
 //!
 //! If the verification succeeded, verifier can continue communication with prover
 
-use fast_paillier::utils::serde_wrapper::{serializable_bigint, serializable_vec_bigint};
+#[cfg(feature = "serde")]
+use fast_paillier::utils::serde_wrapper::serializable_bigint;
 use num_bigint::BigInt;
 
 #[cfg(feature = "serde")]
@@ -193,8 +194,9 @@ pub struct Proof {
 
 /// Interactive version of the proof
 pub mod interactive {
-    use rand_core::RngCore;
     use num_bigint::BigInt;
+    use rand_core::RngCore;
+
     use crate::common::BigIntExt;
     use crate::{
         common::{fail_if, fail_if_ne, InvalidProofReason},
@@ -214,12 +216,13 @@ pub mod interactive {
         security: &SecurityParams,
         mut rng: R,
     ) -> Result<(Commitment, PrivateCommitment), Error> {
-        let two_to_l = (BigInt::from(1) << security.l);
-        let two_to_l_plus_e = (BigInt::from(1) << (security.l + security.epsilon));
-        let n_root_modulo = (&two_to_l_plus_e * data.n_root);
-        let l_n_circ_modulo = (&two_to_l * &aux.rsa_modulo);
-        let l_e_n_circ_modulo = (&two_to_l_plus_e * &aux.rsa_modulo);
-        let n_n_circ = (&aux.rsa_modulo * data.n);
+        // Sizes of masks as in CGGMP21, Fig. 28
+        let two_to_l = BigInt::from(1) << security.l;
+        let two_to_l_plus_e = BigInt::from(1) << (security.l + security.epsilon);
+        let n_root_modulo = &two_to_l_plus_e * data.n_root;
+        let l_n_circ_modulo = &two_to_l * &aux.rsa_modulo;
+        let l_e_n_circ_modulo = &two_to_l_plus_e * &aux.rsa_modulo;
+        let n_n_circ = &aux.rsa_modulo * data.n;
 
         let alpha = BigInt::from_rng_pm(&n_root_modulo, &mut rng);
         let beta = BigInt::from_rng_pm(&n_root_modulo, &mut rng);
@@ -234,7 +237,7 @@ pub mod interactive {
         let q = aux.combine(pdata.q, &nu)?;
         let a = aux.combine(&alpha, &x)?;
         let b = aux.combine(&beta, &y)?;
-        let t = aux.rsa_modulo.combine(&q, &alpha, &aux.t, &r)?;
+        let t = aux.multi_pow(&[(&q, &alpha), (&aux.t, &r)])?;
 
         let commitment = Commitment {
             p,
@@ -270,13 +273,13 @@ pub mod interactive {
         pcomm: &PrivateCommitment,
         challenge: &Challenge,
     ) -> Result<Proof, Error> {
-        let sigma_circ = (&comm.sigma - &pcomm.nu * pdata.p);
+        let sigma_circ = &comm.sigma - &pcomm.nu * pdata.p;
 
         Ok(Proof {
-            z1: (&pcomm.alpha + challenge * pdata.p),
-            z2: (&pcomm.beta + challenge * pdata.q),
-            w1: (&pcomm.x + challenge * &pcomm.mu),
-            w2: (&pcomm.y + challenge * &pcomm.nu),
+            z1: &pcomm.alpha + challenge * pdata.p,
+            z2: &pcomm.beta + challenge * pdata.q,
+            w1: &pcomm.x + challenge * &pcomm.mu,
+            w2: &pcomm.y + challenge * &pcomm.nu,
             v: &pcomm.r + challenge * sigma_circ,
         })
     }
@@ -290,36 +293,44 @@ pub mod interactive {
         challenge: &Challenge,
         proof: &Proof,
     ) -> Result<(), InvalidProof> {
-        // check 1
-        {
-            let lhs = aux.combine(&proof.z1, &proof.w1)?;
-            let p_to_e = aux.pow_mod(&commitment.p, challenge)?;
-            let rhs = (&commitment.a * p_to_e) % &aux.rsa_modulo;
-            fail_if_ne(InvalidProofReason::EqualityCheck(1), lhs, rhs)?;
-        }
-        // check 2
-        {
-            let lhs = aux.combine(&proof.z2, &proof.w2)?;
-            let q_to_e = aux.pow_mod(&commitment.q, challenge)?;
-            let rhs = (&commitment.b * q_to_e) % &aux.rsa_modulo;
-            fail_if_ne(InvalidProofReason::EqualityCheck(2), lhs, rhs)?;
-        }
-        // check 3
-        {
-            let r = aux.combine(data.n, &commitment.sigma)?;
-            let q_to_z1 = aux.pow_mod(&commitment.q, &proof.z1)?;
-            let t_to_v = aux.pow_mod(&aux.t, &proof.v)?;
-            let lhs = (q_to_z1 * t_to_v) % &aux.rsa_modulo;
-            let rhs = aux
-                .rsa_modulo
-                .combine(&commitment.t, &BigInt::from(1), &r, challenge)?;
-            fail_if_ne(InvalidProofReason::EqualityCheck(3), lhs, rhs)?;
-        }
+        // Range checks are cheap, do them first
         let range = (BigInt::from(1) << (security.l + security.epsilon)) * data.n_root;
         // range check for z1
         fail_if(InvalidProofReason::RangeCheck(1), proof.z1.is_in_pm(&range))?;
         // range check for z2
         fail_if(InvalidProofReason::RangeCheck(2), proof.z2.is_in_pm(&range))?;
+
+        let neg_e = -challenge;
+        // check 1: s^z1 t^w1 = A P^e
+        {
+            let lhs = aux.multi_pow(&[
+                (&aux.s, &proof.z1),
+                (&aux.t, &proof.w1),
+                (&commitment.p, &neg_e),
+            ])?;
+            fail_if_ne(InvalidProofReason::EqualityCheck(1), &lhs, &commitment.a)?;
+        }
+        // check 2: s^z2 t^w2 = B Q^e
+        {
+            let lhs = aux.multi_pow(&[
+                (&aux.s, &proof.z2),
+                (&aux.t, &proof.w2),
+                (&commitment.q, &neg_e),
+            ])?;
+            fail_if_ne(InvalidProofReason::EqualityCheck(2), &lhs, &commitment.b)?;
+        }
+        // check 3: Q^z1 t^v = T R^e, where R = s^N0 t^sigma.
+        // Evaluated as a single multiexponentiation Q^z1 t^(v - e sigma) s^(-e N0) = T
+        {
+            let t_exp = &proof.v + &neg_e * &commitment.sigma;
+            let s_exp = &neg_e * data.n;
+            let lhs = aux.multi_pow(&[
+                (&commitment.q, &proof.z1),
+                (&aux.t, &t_exp),
+                (&aux.s, &s_exp),
+            ])?;
+            fail_if_ne(InvalidProofReason::EqualityCheck(3), &lhs, &commitment.t)?;
+        }
 
         Ok(())
     }
@@ -337,8 +348,10 @@ pub mod non_interactive {
     #[derive(Debug, Clone)]
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct Proof {
-        commitment: super::Commitment,
-        proof: super::Proof,
+        /// Prover's commitment
+        pub commitment: super::Commitment,
+        /// Prover's response
+        pub proof: super::Proof,
     }
 
     /// Compute proof for the given data, producing random commitment and
@@ -405,92 +418,150 @@ mod test {
     use crate::common::InvalidProofReason;
     use num_bigint::BigInt;
 
-    // If q > 2^epsilon, the proof will never pass. We can make l however small
-    // we wish though, provided the statement we want to prove holds
+    type D = sha2::Sha256;
+
+    struct Setup {
+        n: BigInt,
+        n_root: BigInt,
+        p: BigInt,
+        q: BigInt,
+        aux: super::Aux,
+        security: super::SecurityParams,
+    }
+
+    impl Setup {
+        fn new(p_bits: u32, q_bits: u32, l: usize) -> Self {
+            let mut rng = rand_dev::DevRng::new();
+            let p = generate_blum_prime(&mut rng, p_bits);
+            let q = generate_blum_prime(&mut rng, q_bits);
+            let n = &p * &q;
+            // If q > 2^epsilon, the proof will never pass. We can make l however small
+            // we wish though, provided the statement we want to prove holds
+            let security = super::SecurityParams {
+                l,
+                epsilon: 128,
+                q: BigInt::from(1) << 128_u32,
+            };
+            Self {
+                n_root: n.sqrt(),
+                n,
+                p,
+                q,
+                aux: crate::common::test::aux(&mut rng),
+                security,
+            }
+        }
+        fn data(&self) -> super::Data<'_> {
+            super::Data {
+                n: &self.n,
+                n_root: &self.n_root,
+            }
+        }
+        fn prove(&self) -> super::non_interactive::Proof {
+            let mut rng = rand_dev::DevRng::new();
+            super::non_interactive::prove::<D>(
+                &"shared state",
+                &self.aux,
+                self.data(),
+                super::PrivateData {
+                    p: &self.p,
+                    q: &self.q,
+                },
+                &self.security,
+                &mut rng,
+            )
+            .unwrap()
+        }
+        fn verify(
+            &self,
+            aux: &super::Aux,
+            proof: &super::non_interactive::Proof,
+        ) -> Result<(), InvalidProofReason> {
+            super::non_interactive::verify::<D>(
+                &"shared state",
+                aux,
+                self.data(),
+                &self.security,
+                proof,
+            )
+            .map_err(|e| e.reason())
+        }
+    }
 
     #[test]
     fn passing() {
-        type D = sha2::Sha256;
-
-        let mut rng = rand_dev::DevRng::new();
-        let p = generate_blum_prime(&mut rng, 256);
-        let q = generate_blum_prime(&mut rng, 256);
-        let n = (&p * &q);
-        let n_root = n.sqrt();
-        let data = super::Data {
-            n: &n,
-            n_root: &n_root,
-        };
-        let security = super::SecurityParams {
-            l: 64,
-            epsilon: 128,
-            q: (BigInt::from(1) << 128_u32),
-        };
-        let aux = crate::common::test::aux(&mut rng);
-        let shared_state = "shared state";
-        let proof = super::non_interactive::prove::<D>(
-            &shared_state,
-            &aux,
-            data,
-            super::PrivateData { p: &p, q: &q },
-            &security,
-            &mut rng,
-        )
-        .unwrap();
-        let r = super::non_interactive::verify::<D>(&shared_state, &aux, data, &security, &proof);
-        match r {
-            Ok(()) => (),
-            Err(e) => panic!("Proof should not fail with {e:?}"),
-        }
+        let setup = Setup::new(256, 256, 64);
+        let proof = setup.prove();
+        setup.verify(&setup.aux, &proof).unwrap();
+        // Verifier that knows factorization of its ring-Pedersen modulus
+        let fast_aux = crate::common::test::with_optimizations(&setup.aux);
+        setup.verify(&fast_aux, &proof).unwrap();
     }
 
     #[test]
     fn failing() {
-        type D = sha2::Sha256;
+        let setup = Setup::new(128, 384, 4);
+        let proof = setup.prove();
+        assert_eq!(
+            setup.verify(&setup.aux, &proof),
+            Err(InvalidProofReason::RangeCheck(2))
+        );
+    }
 
-        let mut rng = rand_dev::DevRng::new();
-        let p = generate_blum_prime(&mut rng, 128);
-        let q = generate_blum_prime(&mut rng, 384);
-        let n = (&p * &q);
-        let n_root = n.sqrt();
+    #[test]
+    fn fiat_shamir_binds_statement_and_commitment() {
+        let setup = Setup::new(256, 256, 64);
+        let proof = setup.prove();
+
+        // Another statement
+        let other_n = &setup.n + 2;
         let data = super::Data {
-            n: &n,
-            n_root: &n_root,
+            n: &other_n,
+            n_root: &setup.n_root,
         };
-        let security = super::SecurityParams {
-            l: 4,
-            epsilon: 128,
-            q: (BigInt::from(1) << 128_u32),
-        };
-        let aux = crate::common::test::aux(&mut rng);
-        let shared_state = "shared state";
-        let proof = super::non_interactive::prove::<D>(
-            &shared_state,
-            &aux,
+        assert!(super::non_interactive::verify::<D>(
+            &"shared state",
+            &setup.aux,
             data,
-            super::PrivateData { p: &p, q: &q },
-            &security,
-            &mut rng,
+            &setup.security,
+            &proof
         )
-        .unwrap();
-        let r = super::non_interactive::verify::<D>(&shared_state, &aux, data, &security, &proof)
-            .expect_err("proof should not pass");
-        match r.reason() {
-            InvalidProofReason::RangeCheck(2) => (),
-            e => panic!("Proof should not fail with {e:?}"),
+        .is_err());
+
+        // Tampered commitment and responses
+        let tampers: [fn(&mut super::non_interactive::Proof); 8] = [
+            |p| p.commitment.p += 1,
+            |p| p.commitment.a += 1,
+            |p| p.commitment.t += 1,
+            |p| p.commitment.sigma += 1,
+            |p| p.proof.z1 += 1,
+            |p| p.proof.w2 += 1,
+            |p| p.proof.v += 1,
+            |p| p.commitment.q = BigInt::from(0),
+        ];
+        for tamper in tampers {
+            let mut bad = proof.clone();
+            tamper(&mut bad);
+            assert!(setup.verify(&setup.aux, &bad).is_err());
         }
     }
 
     #[test]
-    fn test_sqrt() {
-        assert_eq!(BigInt::from(1).sqrt(), BigInt::from(1));
-        assert_eq!(BigInt::from(2).sqrt(), BigInt::from(1));
-        assert_eq!(BigInt::from(3).sqrt(), BigInt::from(1));
-        assert_eq!(BigInt::from(4).sqrt(), BigInt::from(2));
-        assert_eq!(BigInt::from(5).sqrt(), BigInt::from(2));
-        assert_eq!(BigInt::from(6).sqrt(), BigInt::from(2));
-        assert_eq!(BigInt::from(7).sqrt(), BigInt::from(2));
-        assert_eq!(BigInt::from(8).sqrt(), BigInt::from(2));
-        assert_eq!(BigInt::from(9).sqrt(), BigInt::from(3));
+    fn non_invertible_commitment_is_rejected_without_panic() {
+        let setup = Setup::new(256, 256, 64);
+        let proof = setup.prove();
+        for value in [
+            BigInt::from(0),
+            setup.aux.rsa_modulo.clone(),
+            -BigInt::from(1),
+        ] {
+            let mut bad = proof.clone();
+            bad.commitment.p = value.clone();
+            bad.commitment.q = value;
+            // Challenge sign is random, either inversion fails or equality doesn't hold
+            assert!(setup.verify(&setup.aux, &bad).is_err());
+            let fast_aux = crate::common::test::with_optimizations(&setup.aux);
+            assert!(setup.verify(&fast_aux, &bad).is_err());
+        }
     }
 }

@@ -17,43 +17,42 @@
 //! The goal is to prove in zero-knowledge that all `x_i` and `y_i` are within known bitlength bounds (`l_x`, `l_y`),
 //! without revealing their values.
 //!
-//! ## Protocol Inputs
-//!
-//! For each instance `i` in the batch, the prover uses:
-//! - Paillier public keys: `key0` for `C_i`, `D_i` and `key1` for `Y_i`
-//! - Plaintexts: `x_i`, `y_i`
-//! - Nonces used during encryption: `nonce_i`, `nonce_y_i`
-//! - Group parameters: `g`, `q` where `<g> = Zq*`
-//! - Encrypted values: `C_i`, `Y_i`, `X_i`, `D_i`
-//!
-//! The verifier only receives public data: `key0`, `key1`, all `C_i`, `D_i`, `X_i`, and `Y_i`.
-//!
 //! ## Batched Proof
 //!
-//! Unlike the original protocol which handles a single affine statement, this implementation supports
-//! proving and verifying multiple such statements in one batch. This greatly improves efficiency when
-//! dealing with many encrypted computations.
+//! Every element of the batch gets its own commitment (`s_i`, `e_i`, `t_i`, `b_x_i`) and its own,
+//! independently sampled, challenge `e_i`. The equations that involve `y_i` are aggregated:
+//! `z2 = β + Σ e_i y_i`, `w = r + Σ e_i ρ_i`, `w_y = r_y + Σ e_i ρ_y_i`, `z4 = δ + Σ e_i μ_i`.
+//! Since the challenges are independent, rewinding a single `e_j` extracts `x_j` and `y_j`
+//! individually, so the proof implies a range bound for every element, not just for their sum.
 //!
 //! ## Proves
 //!
 //! For each i-th element in the batch:
-//! - `|x_i| < 2^l_x`
-//! - `|y_i| < 2^l_y`
+//! - `|x_i| < 2^(l_x + ε + t)`
+//! - `|y_i| < 2^(l_y + ε + t)`
 //!
-//! ## Example
+//! given that the prover knows `|x_i| < 2^l_x`, `|y_i| < 2^l_y`. The challenges are sampled from
+//! `[-q; q]`, the security parameters must satisfy `q <= 2^t`.
 //!
-//! See full example in the documentation below, where both prover and verifier perform the setup,
-//! generate commitments and proofs, and finally verify the batched zero-knowledge proof.
+//! ## Zero-knowledge
+//!
+//! Every mask hides a term `e_i * secret` with `|e_i| <= 2^t`: a mask uniform in
+//! `[-2^(k + t + ε); 2^(k + t + ε)]` hides a value of at most `k + t` bits with statistical
+//! distance `2^-ε`, aggregated responses with `n` terms have distance at most `n * 2^-ε`:
+//! - `α_i ← ±2^(l_x+ε+t)` for `z1_i = α_i + e_i x_i`, `γ_i ← ±2^(l_x+ε+t)·N̂` for `z3_i = γ_i + e_i m_i` (`m_i ← ±2^l_x·N̂`)
+//! - `β ← ±2^(l_y+ε+t)` for `z2`, `δ ← ±2^(l_y+ε+t)·N̂` for `z4` (`μ_i ← ±2^l_y·N̂`)
+//! - `r ← ±2^(b0+t+ε)` for `w`, where `b0` is the size of the largest nonce used with `key0`
+//!   (at least `key0.nounce_size()`); `r_y` likewise for `key1`. The forked Paillier encrypts as
+//!   `(1+N)^x · (h^N)^ρ mod N²`, so nonce responses are computed over the integers.
+#[cfg(feature = "serde")]
+use fast_paillier::utils::serde_wrapper::{serializable_bigint, serializable_vec_bigint};
 use fast_paillier::{AnyEncryptionKey, Ciphertext, Nonce};
 use generic_ec::{Curve, Point};
 use num_bigint::BigInt;
-use num_integer::Integer;
-use fast_paillier::{
-    utils::serde_wrapper::{serializable_bigint, serializable_vec_bigint},
- };
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+use crate::common::encoding;
 pub use crate::common::{Aux, InvalidProof};
 
 /// Security parameters for proof. Choosing the values is a tradeoff between
@@ -67,68 +66,57 @@ pub struct SecurityParams {
     pub l_y: usize,
     /// Epsilon in paper, slackness parameter
     pub epsilon: usize,
-    /// q in paper. Security parameter for challenge
-    #[udigest(as = crate::common::encoding::BigInt)]
+    /// q in paper. Security parameter for challenge, challenges are sampled from `[-q; q]`
+    #[udigest(as = encoding::BigInt)]
     #[cfg_attr(feature = "serde", serde(with = "serializable_bigint"))]
     pub q: BigInt,
-    /// size of challenge
+    /// Size of challenge in bits, `q <= 2^t`
     pub t: usize,
 }
 
-#[derive(Debug, Clone)]
+/// Public statement of a single element in the batch
+#[derive(Debug, Clone, udigest::Digestable)]
+#[udigest(bound = "")]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(bound = ""))]
 pub struct PublicElement<C: Curve> {
+    /// `C_i`, ciphertext under `key0`
+    #[udigest(as = encoding::BigInt)]
     #[cfg_attr(feature = "serde", serde(with = "serializable_bigint"))]
     pub c: Ciphertext,
+    /// `X_i = g^x_i`
     pub x: Point<C>,
+    /// `D_i = C_i^x_i · Enc_key0(y_i)`
+    #[udigest(as = encoding::BigInt)]
     #[cfg_attr(feature = "serde", serde(with = "serializable_bigint"))]
     pub d: Ciphertext,
+    /// `Y_i = Enc_key1(y_i)`
+    #[udigest(as = encoding::BigInt)]
     #[cfg_attr(feature = "serde", serde(with = "serializable_bigint"))]
     pub y: Ciphertext,
 }
 
-impl<C: Curve> PublicElement<C> {
-    /// Returns a stripped version of `PublicData` that contains only public data which can be digested
-    /// via [`udigest::Digestable`]
-    pub fn digest_public_data(&self) -> impl udigest::Digestable {
-        udigest::inline_struct!("paillier_zk.public_element" {
-            // c: udigest::Bytes(self.c.to_digits::<u8>(order)),
-            // x: udigest::Bytes(self.x.to_bytes(true)),
-            // d: udigest::Bytes(self.d.to_digits::<u8>(order)),
-            // y: udigest::Bytes(self.y.to_digits::<u8>(order)),
-        })
-    }
-}
-
 /// Public data that both parties know
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, udigest::Digestable)]
+#[udigest(bound = "")]
 pub struct PublicData<'a, C: Curve> {
     /// N0 in paper, public key that C was encrypted on
-    // #[udigest(as = crate::common::encoding::AnyEncryptionKey)]
+    #[udigest(as = encoding::AnyEncryptionKey)]
     pub key0: &'a dyn AnyEncryptionKey,
     /// N1 in paper, public key that y -> Y was encrypted on
-    // #[udigest(as = crate::common::encoding::AnyEncryptionKey)]
+    #[udigest(as = encoding::AnyEncryptionKey)]
     pub key1: &'a dyn AnyEncryptionKey,
+    /// Statements, batch size is `batch.len()`
     pub batch: Vec<PublicElement<C>>,
 }
 
-impl<'a, C: Curve> PublicData<'a, C> {
-    /// Returns a stripped version of `PublicData` that contains only public data which can be digested
-    /// via [`udigest::Digestable`]
-    pub fn digest_public_data(&self) -> impl udigest::Digestable {
-        udigest::inline_struct!("paillier_zk.public_data" {
-            // key0: udigest::Bytes(self.key0.n().to_digits::<u8>(order)),
-            // key1: udigest::Bytes(self.key1.n().to_digits::<u8>(order)),
-            // batch: self.batch.iter().map(|e| e.digest_public_data()).collect::<Vec<_>>(),
-        })
-    }
-}
-
+/// Secret witness of a single element in the batch
 #[derive(Debug, Clone)]
 pub struct PrivateElement<'a> {
     pub x: &'a BigInt,
     pub y: &'a BigInt,
+    /// Nonce of `Enc_key0(y)`
     pub nonce: &'a Nonce,
+    /// Nonce of `Enc_key1(y)`
     pub nonce_y: &'a Nonce,
 }
 
@@ -139,38 +127,36 @@ pub struct PrivateData<'a> {
 }
 
 /// Prover's first message, obtained by [`interactive::commit`]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, udigest::Digestable)]
+#[udigest(bound = "")]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize), serde(bound = ""))]
 pub struct Commitment<C: Curve> {
+    /// `A = Enc_key0(β, r) · Π C_i^α_i`
+    #[udigest(as = encoding::BigInt)]
     #[cfg_attr(feature = "serde", serde(with = "serializable_bigint"))]
     pub a: Ciphertext,
+    /// `S_i = s^x_i t^m_i`
+    #[udigest(as = Vec<encoding::BigInt>)]
     #[cfg_attr(feature = "serde", serde(with = "serializable_vec_bigint"))]
     pub s: Vec<BigInt>,
+    /// `E_i = s^α_i t^γ_i`
+    #[udigest(as = Vec<encoding::BigInt>)]
     #[cfg_attr(feature = "serde", serde(with = "serializable_vec_bigint"))]
     pub e: Vec<BigInt>,
+    /// `F = s^β t^δ`
+    #[udigest(as = encoding::BigInt)]
     #[cfg_attr(feature = "serde", serde(with = "serializable_bigint"))]
     pub f: BigInt,
+    /// `T_i = s^y_i t^μ_i`
+    #[udigest(as = Vec<encoding::BigInt>)]
     #[cfg_attr(feature = "serde", serde(with = "serializable_vec_bigint"))]
     pub t: Vec<BigInt>,
+    /// `B_x_i = g^α_i`
     pub b_x: Vec<Point<C>>,
+    /// `B_y = Enc_key1(β, r_y)`
+    #[udigest(as = encoding::BigInt)]
     #[cfg_attr(feature = "serde", serde(with = "serializable_bigint"))]
     pub b_y: BigInt,
-}
-
-impl<C: Curve> Commitment<C> {
-    /// Returns a stripped version of `Commitment` that contains only public data which can be digested
-    /// via [`udigest::Digestable`]
-    pub fn digest_public_data(&self) -> impl udigest::Digestable {
-        udigest::inline_struct!("paillier_zk.commitment" {
-            // a: udigest::Bytes(self.a.to_digits::<u8>(order)),
-            // s: self.s.iter().map(|s| udigest::Bytes(s.to_digits::<u8>(order))).collect::<Vec<_>>(),
-            // e: self.e.iter().map(|e| udigest::Bytes(e.to_digits::<u8>(order))).collect::<Vec<_>>(),
-            // f: udigest::Bytes(self.f.to_digits::<u8>(order)),
-            // t: self.t.iter().map(|t| udigest::Bytes(t.to_digits::<u8>(order))).collect::<Vec<_>>(),
-            // b_x: self.b_x.iter().map(|b_x| udigest::Bytes(b_x.to_bytes(true))).collect::<Vec<_>>(),
-            // b_y: udigest::Bytes(self.b_y.to_digits::<u8>(order)),
-        })
-    }
 }
 
 /// Prover's data accompanying the commitment. Kept as state between rounds in
@@ -187,8 +173,8 @@ pub struct PrivateCommitment {
     pub r_y: BigInt,
 }
 
-/// Verifier's challenge to prover. Can be obtained deterministically by
-/// [`non_interactive::challenge`] or randomly by [`interactive::challenge`]
+/// Verifier's challenge to prover: one independent challenge per batch element. Can be obtained
+/// deterministically by [`non_interactive::challenge`] or randomly by [`interactive::challenge`]
 pub type Challenge = Vec<BigInt>;
 
 /// The ZK proof. Computed by [`interactive::prove`] or
@@ -216,11 +202,12 @@ pub struct Proof {
 pub mod interactive {
     use generic_ec::{Curve, Point};
     use num_bigint::BigInt;
+    use num_traits::One;
     use rand_core::RngCore;
 
     use super::*;
     use crate::common::{fail_if, fail_if_ne, BigIntExt, InvalidProof, InvalidProofReason};
-    use crate::Error;
+    use crate::{Error, ErrorReason};
 
     /// Create random commitment
     pub fn commit<C: Curve, R: RngCore>(
@@ -228,65 +215,91 @@ pub mod interactive {
         data: PublicData<C>,
         pdata: PrivateData,
         security: &SecurityParams,
-        batch_size: usize,
         mut rng: R,
     ) -> Result<(Commitment<C>, PrivateCommitment), Error> {
-        let two_to_l = BigInt::from(1) << security.l_x;
-        let two_to_l_y = BigInt::from(1) << security.l_y;
-        let two_to_l_e_t = BigInt::from(1) << (security.l_x + security.epsilon + security.t);
-        let two_to_l_prime_e_t = BigInt::from(1) << (security.l_y + security.epsilon + security.t);
-        let hat_n_at_two_to_l = &aux.rsa_modulo * &two_to_l;
-        let hat_n_at_two_to_l_y = &aux.rsa_modulo * &two_to_l_y;
-        let hat_n_at_two_to_l_e_t = &aux.rsa_modulo * &two_to_l_e_t;
-        let hat_n_at_two_to_l_prime_e_t = &aux.rsa_modulo * &two_to_l_prime_e_t;
+        commit_ref(aux, &data, &pdata, security, &mut rng)
+    }
 
-        let m = vec![BigInt::from_rng_pm(&hat_n_at_two_to_l, &mut rng); batch_size];
-        let mu = vec![BigInt::from_rng_pm(&hat_n_at_two_to_l_y, &mut rng); batch_size];
-        let alpha = vec![BigInt::from_rng_pm(&two_to_l_e_t, &mut rng); batch_size];
-        let gamma = vec![BigInt::from_rng_pm(&hat_n_at_two_to_l_e_t, &mut rng); batch_size];
-        let beta = BigInt::from_rng_pm(&two_to_l_prime_e_t, &mut rng);
-        let delta = BigInt::from_rng_pm(&hat_n_at_two_to_l_prime_e_t, &mut rng);
-        let r = BigInt::gen_invertible(data.key0.n(), &mut rng);
-        let r_y = BigInt::gen_invertible(data.key1.n(), &mut rng);
+    /// Bit size of the mask for the aggregated nonce response, see module docs
+    fn nonce_mask_bits<'a>(
+        key: &dyn AnyEncryptionKey,
+        nonces: impl Iterator<Item = &'a BigInt>,
+        security: &SecurityParams,
+    ) -> u64 {
+        let nonce_bits = nonces
+            .map(BigInt::bits)
+            .fold(u64::from(key.nounce_size()), u64::max);
+        nonce_bits + (security.t + security.epsilon) as u64
+    }
 
-        let beta_enc_key0 = data.key0.encrypt_with(&beta, &r)?;
-        // ∏(c_i^alpha_i) * enc_n0(beta, r)
-        let a = data
-            .batch
-            .iter()
-            .zip(alpha.iter())
-            .fold(beta_enc_key0, |acc, (element, a)| {
-                let c_at_a = data.key0.omul(&a, &element.c).unwrap();
-                data.key0.oadd(&acc, &c_at_a).unwrap()
-            });
+    pub(super) fn commit_ref<C: Curve>(
+        aux: &Aux,
+        data: &PublicData<C>,
+        pdata: &PrivateData,
+        security: &SecurityParams,
+        rng: &mut impl RngCore,
+    ) -> Result<(Commitment<C>, PrivateCommitment), Error> {
+        let n = data.batch.len();
+        if n == 0 || pdata.batch.len() != n {
+            return Err(ErrorReason::Length.into());
+        }
+        let pow2 = |bits: usize| BigInt::one() << bits;
+        let two_to_l_x = pow2(security.l_x);
+        let two_to_l_y = pow2(security.l_y);
+        let two_to_l_x_e_t = pow2(security.l_x + security.epsilon + security.t);
+        let two_to_l_y_e_t = pow2(security.l_y + security.epsilon + security.t);
+        let hat_n = &aux.rsa_modulo;
+        let hat_n_at_two_to_l_x = hat_n * &two_to_l_x;
+        let hat_n_at_two_to_l_y = hat_n * &two_to_l_y;
+        let hat_n_at_two_to_l_x_e_t = hat_n * &two_to_l_x_e_t;
+        let hat_n_at_two_to_l_y_e_t = hat_n * &two_to_l_y_e_t;
+
+        // Fresh masks for every element
+        let mut sample = |range: &BigInt| -> Vec<BigInt> {
+            (0..n).map(|_| BigInt::from_rng_pm(range, rng)).collect()
+        };
+        let m = sample(&hat_n_at_two_to_l_x);
+        let mu = sample(&hat_n_at_two_to_l_y);
+        let alpha = sample(&two_to_l_x_e_t);
+        let gamma = sample(&hat_n_at_two_to_l_x_e_t);
+        let beta = BigInt::from_rng_pm(&two_to_l_y_e_t, rng);
+        let delta = BigInt::from_rng_pm(&hat_n_at_two_to_l_y_e_t, rng);
+        let r_bits = nonce_mask_bits(data.key0, pdata.batch.iter().map(|e| e.nonce), security);
+        let r = BigInt::from_rng_pm(&pow2(r_bits as usize), rng);
+        let r_y_bits = nonce_mask_bits(data.key1, pdata.batch.iter().map(|e| e.nonce_y), security);
+        let r_y = BigInt::from_rng_pm(&pow2(r_y_bits as usize), rng);
+
+        // A = Enc_key0(β, r) · Π C_i^α_i
+        let a = data.batch.iter().zip(&alpha).try_fold(
+            data.key0.encrypt_with(&beta, &r)?,
+            |acc, (element, alpha_i)| {
+                let c_at_a = data.key0.omul(alpha_i, &element.c)?;
+                data.key0.oadd(&acc, &c_at_a)
+            },
+        )?;
 
         let s = pdata
             .batch
             .iter()
-            .zip(m.iter())
-            .map(|(element, m_i)| aux.combine(&element.x, &m_i).unwrap())
-            .collect();
-
+            .zip(&m)
+            .map(|(element, m_i)| aux.combine(element.x, m_i))
+            .collect::<Result<_, _>>()?;
         let e = alpha
             .iter()
-            .zip(gamma.iter())
-            .map(|(alpha_i, gamma_i)| aux.combine(&alpha_i, &gamma_i).unwrap())
-            .collect();
-
-        let f = aux.combine(&beta, &delta).unwrap();
-
+            .zip(&gamma)
+            .map(|(alpha_i, gamma_i)| aux.combine(alpha_i, gamma_i))
+            .collect::<Result<_, _>>()?;
+        let f = aux.combine(&beta, &delta)?;
         let t = pdata
             .batch
             .iter()
-            .zip(mu.iter())
-            .map(|(element, mu_i)| aux.combine(&element.y, &mu_i).unwrap())
-            .collect();
-
+            .zip(&mu)
+            .map(|(element, mu_i)| aux.combine(element.y, mu_i))
+            .collect::<Result<_, _>>()?;
         let b_x = alpha
             .iter()
             .map(|alpha_i| Point::<C>::generator() * alpha_i.to_scalar())
             .collect();
-
         let b_y = data.key1.encrypt_with(&beta, &r_y)?;
 
         let commitment = Commitment {
@@ -299,14 +312,14 @@ pub mod interactive {
             b_y,
         };
         let private_commitment = PrivateCommitment {
+            m,
+            mu,
             alpha,
+            gamma,
             beta,
             r,
-            r_y,
-            gamma,
-            m,
             delta,
-            mu,
+            r_y,
         };
         Ok((commitment, private_commitment))
     }
@@ -318,53 +331,56 @@ pub mod interactive {
         pcomm: &PrivateCommitment,
         challenge: &Challenge,
     ) -> Result<Proof, Error> {
+        prove_ref(&pdata, pcomm, challenge)
+    }
+
+    pub(super) fn prove_ref(
+        pdata: &PrivateData,
+        pcomm: &PrivateCommitment,
+        challenge: &Challenge,
+    ) -> Result<Proof, Error> {
+        let n = pdata.batch.len();
+        if [
+            challenge.len(),
+            pcomm.m.len(),
+            pcomm.mu.len(),
+            pcomm.alpha.len(),
+            pcomm.gamma.len(),
+        ]
+        .iter()
+        .any(|len| *len != n)
+        {
+            return Err(ErrorReason::Length.into());
+        }
+        let elements = || pdata.batch.iter().zip(challenge);
+
         let z1 = pcomm
             .alpha
             .iter()
-            .zip(challenge.iter())
-            .zip(pdata.batch.iter())
-            .map(|((alpha_i, challenge_i), element)| alpha_i + challenge_i * element.x)
+            .zip(elements())
+            .map(|(alpha_i, (element, e_i))| alpha_i + e_i * element.x)
             .collect();
-
-        let z2 = pdata
-            .batch
-            .iter()
-            .zip(challenge.iter())
-            .fold(pcomm.beta.clone(), |acc, (element, challenge_i)| {
-                acc + challenge_i * element.y
-            });
-
+        let z2 = elements().fold(pcomm.beta.clone(), |acc, (element, e_i)| {
+            acc + e_i * element.y
+        });
         let z3 = pcomm
             .gamma
             .iter()
-            .zip(challenge.iter())
-            .zip(pcomm.m.iter())
-            .map(|((gamma_i, challenge_i), m_i)| gamma_i + challenge_i * m_i)
+            .zip(challenge)
+            .zip(&pcomm.m)
+            .map(|((gamma_i, e_i), m_i)| gamma_i + e_i * m_i)
             .collect();
-
         let z4 = pcomm
             .mu
             .iter()
-            .zip(challenge.iter())
-            .fold(pcomm.delta.clone(), |acc, (mu_i, challenge_i)| {
-                acc + challenge_i * mu_i
-            });
-
-        let w = pdata
-            .batch
-            .iter()
-            .zip(challenge.iter())
-            .fold(pcomm.r.clone(), |acc, (element, challenge_i)| {
-                acc + element.nonce * challenge_i
-            });
-
-        let w_y = pdata
-            .batch
-            .iter()
-            .zip(challenge.iter())
-            .fold(pcomm.r_y.clone(), |acc, (element, challenge_i)| {
-                acc + element.nonce_y * challenge_i
-            });
+            .zip(challenge)
+            .fold(pcomm.delta.clone(), |acc, (mu_i, e_i)| acc + e_i * mu_i);
+        let w = elements().fold(pcomm.r.clone(), |acc, (element, e_i)| {
+            acc + e_i * element.nonce
+        });
+        let w_y = elements().fold(pcomm.r_y.clone(), |acc, (element, e_i)| {
+            acc + e_i * element.nonce_y
+        });
 
         Ok(Proof {
             z1,
@@ -385,130 +401,138 @@ pub mod interactive {
         challenge: &Challenge,
         proof: &Proof,
     ) -> Result<(), InvalidProof> {
-        // Five equality checks and two range checks
+        verify_ref(aux, &data, commitment, security, challenge, proof)
+    }
 
+    pub(super) fn verify_ref<C: Curve>(
+        aux: &Aux,
+        data: &PublicData<C>,
+        commitment: &Commitment<C>,
+        security: &SecurityParams,
+        challenge: &Challenge,
+        proof: &Proof,
+    ) -> Result<(), InvalidProof> {
+        let n = data.batch.len();
+        fail_if(
+            InvalidProofReason::Length,
+            n > 0
+                && [
+                    challenge.len(),
+                    commitment.s.len(),
+                    commitment.e.len(),
+                    commitment.t.len(),
+                    commitment.b_x.len(),
+                    proof.z1.len(),
+                    proof.z3.len(),
+                ]
+                .iter()
+                .all(|len| *len == n),
+        )?;
+
+        // Range checks are cheap, do them first
+        let z1_bound = BigInt::one() << (security.l_x + security.epsilon + security.t);
+        fail_if(
+            InvalidProofReason::RangeCheck(6),
+            proof.z1.iter().all(|z1_i| z1_i.is_in_pm(&z1_bound)),
+        )?;
+        let z2_bound = BigInt::one() << (security.l_y + security.epsilon + security.t);
+        fail_if(
+            InvalidProofReason::RangeCheck(7),
+            proof.z2.is_in_pm(&z2_bound),
+        )?;
+
+        // g^z1_i = B_x_i · X_i^e_i
+        for (((z1_i, b_x_i), element), e_i) in proof
+            .z1
+            .iter()
+            .zip(&commitment.b_x)
+            .zip(&data.batch)
+            .zip(challenge)
         {
-            let lhs = proof.z1.iter().zip(data.batch.iter()).fold(
-                data.key0.encrypt_with(&proof.z2, &proof.w).unwrap(),
+            let lhs = Point::<C>::generator() * z1_i.to_scalar();
+            let rhs = b_x_i + element.x * e_i.to_scalar();
+            fail_if_ne(InvalidProofReason::EqualityCheck(2), lhs, rhs)?;
+        }
+
+        // Enc_key0(z2, w) · Π C_i^z1_i = A · Π D_i^e_i
+        {
+            let key0 = data.key0;
+            let lhs = proof.z1.iter().zip(&data.batch).try_fold(
+                key0.encrypt_with(&proof.z2, &proof.w)
+                    .map_err(|_| InvalidProofReason::PaillierEnc)?,
                 |acc, (z1_i, element)| {
-                    let z1_i_at_c = data.key0.omul(&z1_i, &element.c).unwrap();
-                    data.key0.oadd(&acc, &z1_i_at_c).unwrap()
+                    let c_at_z1 = key0.omul(z1_i, &element.c)?;
+                    key0.oadd(&acc, &c_at_z1)
                 },
             );
-            let rhs = data.batch.iter().zip(challenge.iter()).fold(
+            let rhs = data.batch.iter().zip(challenge).try_fold(
                 commitment.a.clone(),
-                |acc, (element, challenge_i)| {
-                    let e_at_d = data.key0.omul(&challenge_i, &element.d).unwrap();
-                    data.key0.oadd(&acc, &e_at_d).unwrap()
+                |acc, (element, e_i)| {
+                    let d_at_e = key0.omul(e_i, &element.d)?;
+                    key0.oadd(&acc, &d_at_e)
                 },
             );
-
-            println!("lhs: {lhs:?}");
-            println!("rhs: {rhs:?}");
-
+            let (lhs, rhs) = (
+                lhs.map_err(|_| InvalidProofReason::PaillierOp)?,
+                rhs.map_err(|_| InvalidProofReason::PaillierOp)?,
+            );
             fail_if_ne(InvalidProofReason::EqualityCheck(1), lhs, rhs)?;
         }
 
+        // Enc_key1(z2, w_y) = B_y · Π Y_i^e_i
         {
-            let lhs: Vec<Point<C>> = proof
-                .z1
-                .iter()
-                .map(|z1_i| Point::<C>::generator() * z1_i.to_scalar())
-                .collect();
-            let rhs: Vec<Point<C>> = commitment
-                .b_x
-                .iter()
-                .zip(data.batch.iter())
-                .zip(challenge.iter())
-                .map(|((b_x_i, element), challenge_i)| b_x_i + element.x * challenge_i.to_scalar())
-                .collect();
-
-            for (lhs_i, rhs_i) in lhs.iter().zip(rhs.iter()) {
-                fail_if_ne(InvalidProofReason::EqualityCheck(2), lhs_i, rhs_i)?;
-            }
-        }
-
-        {
-            let lhs: Vec<BigInt> = proof
-                .z1
-                .iter()
-                .zip(proof.z3.iter())
-                .map(|(z1_i, z3_i)| aux.combine(&z1_i, &z3_i).unwrap())
-                .collect();
-            let rhs: Vec<BigInt> = commitment
-                .s
-                .iter()
-                .zip(commitment.e.iter())
-                .zip(challenge.iter())
-                .map(|((s_i, e_i), challenge_i)| {
-                    (e_i * s_i
-                        .clone()
-                        .modpow_ext(&challenge_i, &aux.rsa_modulo)
-                        .unwrap())
-                    .mod_floor(&aux.rsa_modulo)
-                })
-                .collect();
-
-            for (lhs_i, rhs_i) in lhs.iter().zip(rhs.iter()) {
-                fail_if_ne(InvalidProofReason::EqualityCheck(4), lhs_i, rhs_i)?;
-            }
-        }
-
-        {
-            let lhs = data
-                .key1
+            let key1 = data.key1;
+            let lhs = key1
                 .encrypt_with(&proof.z2, &proof.w_y)
                 .map_err(|_| InvalidProofReason::PaillierEnc)?;
-
-            let rhs = data.batch.iter().zip(challenge.iter()).fold(
-                commitment.b_y.clone(),
-                |acc, (element, challenge_i)| {
-                    let e_at_y = data.key1.omul(&challenge_i, &element.y).unwrap();
-                    data.key1.oadd(&acc, &e_at_y).unwrap()
-                },
-            );
-
+            let rhs = data
+                .batch
+                .iter()
+                .zip(challenge)
+                .try_fold(commitment.b_y.clone(), |acc, (element, e_i)| {
+                    let y_at_e = key1.omul(e_i, &element.y)?;
+                    key1.oadd(&acc, &y_at_e)
+                })
+                .map_err(|_| InvalidProofReason::PaillierOp)?;
             fail_if_ne(InvalidProofReason::EqualityCheck(3), lhs, rhs)?;
         }
 
+        // s^z1_i t^z3_i = E_i · S_i^e_i, evaluated as s^z1_i t^z3_i S_i^-e_i = E_i
+        for ((((z1_i, z3_i), s_i), e_commit_i), e_i) in proof
+            .z1
+            .iter()
+            .zip(&proof.z3)
+            .zip(&commitment.s)
+            .zip(&commitment.e)
+            .zip(challenge)
         {
-            let lhs = aux.combine(&proof.z2, &proof.z4)?;
-            let rhs = commitment.t.iter().zip(challenge.iter()).fold(
-                commitment.f.clone(),
-                |acc, (t_i, challenge_i)| {
-                    (acc * t_i
-                        .clone()
-                        .modpow_ext(&challenge_i, &aux.rsa_modulo)
-                        .unwrap())
-                    .mod_floor(&aux.rsa_modulo)
-                },
-            );
-
-            fail_if_ne(InvalidProofReason::EqualityCheck(5), lhs, rhs)?;
+            let neg_e_i = -e_i;
+            let lhs = aux.multi_pow(&[(&aux.s, z1_i), (&aux.t, z3_i), (s_i, &neg_e_i)])?;
+            fail_if_ne(InvalidProofReason::EqualityCheck(4), &lhs, e_commit_i)?;
         }
 
-        fail_if(
-            InvalidProofReason::RangeCheck(6),
-            proof.z1.iter().any(|z1_i| {
-                z1_i.is_in_pm(&(BigInt::from(1) << (security.l_x + security.epsilon + security.t)))
-            }),
-        )?;
-        fail_if(
-            InvalidProofReason::RangeCheck(7),
-            proof
-                .z2
-                .is_in_pm(&(BigInt::from(1) << (security.l_y + security.epsilon + security.t))),
-        )?;
+        // s^z2 t^z4 = F · Π T_i^e_i, evaluated as s^z2 t^z4 Π T_i^-e_i = F
+        {
+            let neg_e: Vec<BigInt> = challenge.iter().map(|e_i| -e_i).collect();
+            let mut pairs = Vec::with_capacity(n + 2);
+            pairs.push((&aux.s, &proof.z2));
+            pairs.push((&aux.t, &proof.z4));
+            pairs.extend(commitment.t.iter().zip(&neg_e));
+            let lhs = aux.multi_pow(&pairs)?;
+            fail_if_ne(InvalidProofReason::EqualityCheck(5), &lhs, &commitment.f)?;
+        }
 
         Ok(())
     }
 
-    /// Generate random challenge
-    pub fn challenge<R>(security: &SecurityParams, rng: &mut R, batch_size: usize) -> Vec<BigInt>
+    /// Generate random challenge: `batch_size` independent integers from `[-q; q]`
+    pub fn challenge<R>(security: &SecurityParams, rng: &mut R, batch_size: usize) -> Challenge
     where
         R: RngCore,
     {
-        vec![BigInt::from_rng_pm(&security.q, rng); batch_size]
+        (0..batch_size)
+            .map(|_| BigInt::from_rng_pm(&security.q, rng))
+            .collect()
     }
 }
 
@@ -533,19 +557,10 @@ pub mod non_interactive {
         pdata: PrivateData,
         security: &SecurityParams,
         rng: &mut impl rand_core::RngCore,
-        batch_size: usize,
     ) -> Result<(Commitment<C>, Proof), Error> {
-        let (comm, pcomm) = super::interactive::commit(
-            aux,
-            data.clone(),
-            pdata.clone(),
-            security,
-            batch_size,
-            rng,
-        )?;
-        let challenge =
-            challenge::<C, D>(shared_state, aux, data.clone(), &comm, security, batch_size);
-        let proof = super::interactive::prove(data.clone(), pdata.clone(), &pcomm, &challenge)?;
+        let (comm, pcomm) = super::interactive::commit_ref(aux, &data, &pdata, security, rng)?;
+        let challenge = challenge_ref::<C, D>(shared_state, aux, &data, &comm, security);
+        let proof = super::interactive::prove_ref(&pdata, &pcomm, &challenge)?;
         Ok((comm, proof))
     }
 
@@ -557,226 +572,478 @@ pub mod non_interactive {
         commitment: &Commitment<C>,
         security: &SecurityParams,
         proof: &Proof,
-        batch_size: usize,
     ) -> Result<(), InvalidProof> {
-        let challenge = challenge::<C, D>(
-            shared_state,
-            aux,
-            data.clone(),
-            commitment,
-            security,
-            batch_size,
-        );
-        super::interactive::verify(aux, data, commitment, security, &challenge, proof)
+        let challenge = challenge_ref::<C, D>(shared_state, aux, &data, commitment, security);
+        super::interactive::verify_ref(aux, &data, commitment, security, &challenge, proof)
     }
 
     /// Deterministically compute challenge based on prior known values in protocol
+    ///
+    /// The challenge has one element per element of `data.batch`
     pub fn challenge<C: Curve, D: Digest>(
         shared_state: &impl udigest::Digestable,
         aux: &Aux,
         data: PublicData<C>,
         commitment: &Commitment<C>,
         security: &SecurityParams,
-        batch_size: usize,
+    ) -> Challenge {
+        challenge_ref::<C, D>(shared_state, aux, &data, commitment, security)
+    }
+
+    fn challenge_ref<C: Curve, D: Digest>(
+        shared_state: &impl udigest::Digestable,
+        aux: &Aux,
+        data: &PublicData<C>,
+        commitment: &Commitment<C>,
+        security: &SecurityParams,
     ) -> Challenge {
         let tag = "paillier_zk.batch_paillier_affine_operation_in_range.ni_challenge";
-        let aux = aux.digest_public_data();
-        let data = data.digest_public_data();
-        let commitment = commitment.digest_public_data();
-
         let seed = udigest::inline_struct!(tag {
             shared_state,
-            aux,
+            aux: aux.digest_public_data(),
             security,
             data,
             commitment,
         });
         let mut rng = rand_hash::HashRng::<D, _>::from_seed(seed);
-        super::interactive::challenge(security, &mut rng, batch_size)
+        super::interactive::challenge(security, &mut rng, data.batch.len())
     }
 }
 
 #[cfg(test)]
 mod test {
-    use fast_paillier::AnyEncryptionKey;
     use generic_ec::{Curve, Point};
     use num_bigint::BigInt;
-    use sha2::Digest;
 
     use crate::common::test::{sample_key, sample_other_key};
     use crate::common::{BigIntExt, InvalidProofReason};
 
-    fn run<R: rand_core::RngCore + rand_core::CryptoRng, C: Curve, D: Digest>(
-        rng: &mut R,
-        security: super::SecurityParams,
-        x: BigInt,
-        y: BigInt,
-    ) -> Result<(), crate::common::InvalidProof> {
-        let batch_size = 2;
-        let dk0 = sample_key();
-        let dk1 = sample_other_key();
-        let _ek0 = dk0.encryption_key().clone();
-        let ek1 = dk1.encryption_key().clone();
+    type D = sha2::Sha256;
 
-        let (c, _) = {
-            let plaintext = BigInt::from_rng_pm(dk0.half_n(), rng);
-            dk0.encrypt_with_random(rng, &plaintext).unwrap()
-        };
+    /// cggmp21 `SecurityLevel128`
+    fn security() -> super::SecurityParams {
+        super::SecurityParams {
+            l_x: 256,
+            l_y: 848,
+            epsilon: 230,
+            q: BigInt::from(1) << 128_u32,
+            t: 128,
+        }
+    }
 
-        let (y_enc_ek1, rho_y) = ek1.encrypt_with_random(rng, &y).unwrap();
+    /// Batch of 2 elements in cggmp21 MtA setting: `key0` is the verifier's key and both
+    /// elements share the same `C`
+    struct Setup {
+        aux: super::Aux,
+        key0: fast_paillier::EncryptionKey,
+        key1: fast_paillier::DecryptionKey,
+        xs: Vec<BigInt>,
+        ys: Vec<BigInt>,
+        nonces: Vec<BigInt>,
+        nonces_y: Vec<BigInt>,
+        batch: Vec<super::PublicElement<generic_ec::curves::Secp256r1>>,
+    }
 
-        let (rho, d) = {
-            let x_at_c = dk0.omul(&x, &c).unwrap();
-            let (y_enc_ek0, rho) = dk0.encrypt_with_random(rng, &y).unwrap();
-            (rho, dk0.oadd(&x_at_c, &y_enc_ek0).unwrap())
-        };
+    type E = generic_ec::curves::Secp256r1;
 
-        let (c2, _) = {
-            let plaintext = BigInt::from_rng_pm(dk0.half_n(), rng);
-            dk0.encrypt_with_random(rng, &plaintext).unwrap()
-        };
+    impl Setup {
+        /// `x_offsets`/`y_offsets` are added to the plaintexts used in `D_i`/`Y_i`, but not to the
+        /// prover's witness
+        fn new(xs: Vec<BigInt>, ys: Vec<BigInt>, x_offsets: [i64; 2], y_offsets: [i64; 2]) -> Self {
+            let mut rng = rand_dev::DevRng::new();
+            let key0 = sample_other_key();
+            let key1 = sample_key();
+            let k = BigInt::from_rng_pm(key0.half_n(), &mut rng);
+            let (c, _) = key0.encrypt_with_random(&mut rng, &k).unwrap();
+            let mut nonces = vec![];
+            let mut nonces_y = vec![];
+            let mut batch = vec![];
+            for i in 0..2 {
+                let x = &xs[i] + x_offsets[i];
+                let y = &ys[i] + y_offsets[i];
+                let (y_enc0, rho) = key0.encrypt_with_random(&mut rng, &ys[i]).unwrap();
+                let d = key0.oadd(&key0.omul(&x, &c).unwrap(), &y_enc0).unwrap();
+                let (y_enc1, rho_y) = key1.encrypt_with_random(&mut rng, &y).unwrap();
+                nonces.push(rho);
+                nonces_y.push(rho_y);
+                batch.push(super::PublicElement {
+                    c: c.clone(),
+                    x: Point::generator() * xs[i].to_scalar::<E>(),
+                    d,
+                    y: y_enc1,
+                });
+            }
+            Self {
+                aux: crate::common::test::aux(&mut rng),
+                key0,
+                key1,
+                xs,
+                ys,
+                nonces,
+                nonces_y,
+                batch,
+            }
+        }
+        fn honest() -> Self {
+            let mut rng = rand_dev::DevRng::new();
+            let s = security();
+            let xs = (0..2)
+                .map(|_| BigInt::from_rng_pm(&(BigInt::from(1) << s.l_x), &mut rng))
+                .collect();
+            let ys = (0..2)
+                .map(|_| BigInt::from_rng_pm(&(BigInt::from(1) << s.l_y), &mut rng))
+                .collect();
+            Self::new(xs, ys, [0; 2], [0; 2])
+        }
+        fn data(&self) -> super::PublicData<'_, E> {
+            super::PublicData {
+                key0: &self.key0,
+                key1: &self.key1,
+                batch: self.batch.clone(),
+            }
+        }
+        fn prove(&self) -> (super::Commitment<E>, super::Proof) {
+            let mut rng = rand_dev::DevRng::new();
+            let pdata = super::PrivateData {
+                batch: (0..2)
+                    .map(|i| super::PrivateElement {
+                        x: &self.xs[i],
+                        y: &self.ys[i],
+                        nonce: &self.nonces[i],
+                        nonce_y: &self.nonces_y[i],
+                    })
+                    .collect(),
+            };
+            super::non_interactive::prove::<E, D>(
+                &"shared state",
+                &self.aux,
+                self.data(),
+                pdata,
+                &security(),
+                &mut rng,
+            )
+            .unwrap()
+        }
+        fn verify_with(
+            &self,
+            data: super::PublicData<E>,
+            commitment: &super::Commitment<E>,
+            proof: &super::Proof,
+        ) -> Result<(), InvalidProofReason> {
+            super::non_interactive::verify::<E, D>(
+                &"shared state",
+                &self.aux,
+                data,
+                commitment,
+                &security(),
+                proof,
+            )
+            .map_err(|e| e.reason())
+        }
+        fn verify(
+            &self,
+            commitment: &super::Commitment<E>,
+            proof: &super::Proof,
+        ) -> Result<(), InvalidProofReason> {
+            self.verify_with(self.data(), commitment, proof)
+        }
+    }
 
-        let (y_enc_ek1_2, rho_y_2) = ek1.encrypt_with_random(rng, &y).unwrap();
+    #[test]
+    fn passing() {
+        let setup = Setup::honest();
+        let (commitment, proof) = setup.prove();
+        setup.verify(&commitment, &proof).unwrap();
 
-        let (rho_2, d2) = {
-            let x_at_c2 = dk0.omul(&x, &c2).unwrap();
-            let (y_enc_ek0_2, rho_2) = dk0.encrypt_with_random(rng, &y).unwrap();
-            (rho_2, dk0.oadd(&x_at_c2, &y_enc_ek0_2).unwrap())
-        };
-
-        let data = super::PublicData {
-            key0: &dk0,
-            key1: &ek1,
-            batch: vec![
-                super::PublicElement {
-                    c: c,
-                    d: d,
-                    y: y_enc_ek1,
-                    x: x.to_scalar::<C>() * Point::generator(),
-                },
-                super::PublicElement {
-                    c: c2,
-                    d: d2,
-                    y: y_enc_ek1_2,
-                    x: x.to_scalar::<C>() * Point::generator(),
-                },
-            ],
-        };
-        let pdata = super::PrivateData {
-            batch: vec![
-                super::PrivateElement {
-                    x: &x,
-                    y: &y,
-                    nonce: &rho,
-                    nonce_y: &rho_y,
-                },
-                super::PrivateElement {
-                    x: &x,
-                    y: &y,
-                    nonce: &rho_2,
-                    nonce_y: &rho_y_2,
-                },
-            ],
-        };
-
-        let aux = crate::common::test::aux(rng);
-
-        let shared_state = "shared state";
-
-        let (commitment, proof) = super::non_interactive::prove::<C, D>(
-            &shared_state,
-            &aux,
-            data.clone(),
-            pdata.clone(),
-            &security,
-            rng,
-            batch_size,
+        // Verifier with CRT and multiexp tables
+        let fast_aux = crate::common::test::with_optimizations(&setup.aux);
+        super::non_interactive::verify::<E, D>(
+            &"shared state",
+            &fast_aux,
+            setup.data(),
+            &commitment,
+            &security(),
+            &proof,
         )
         .unwrap();
-        super::non_interactive::verify::<C, D>(
-            &shared_state,
-            &aux,
+    }
+
+    #[test]
+    fn passing_on_other_curve() {
+        passing_generic::<crate::curve::C>()
+    }
+
+    fn passing_generic<C: Curve>() {
+        let mut rng = rand_dev::DevRng::new();
+        let key0 = sample_other_key();
+        let key1 = sample_key();
+        let s = security();
+        let x = BigInt::from_rng_pm(&(BigInt::from(1) << s.l_x), &mut rng);
+        let y = BigInt::from_rng_pm(&(BigInt::from(1) << s.l_y), &mut rng);
+        let (c, _) = key0
+            .encrypt_with_random(&mut rng, &BigInt::from(7))
+            .unwrap();
+        let (y_enc0, rho) = key0.encrypt_with_random(&mut rng, &y).unwrap();
+        let d = key0.oadd(&key0.omul(&x, &c).unwrap(), &y_enc0).unwrap();
+        let (y_enc1, rho_y) = key1.encrypt_with_random(&mut rng, &y).unwrap();
+        let element = super::PublicElement::<C> {
+            c,
+            x: Point::generator() * x.to_scalar::<C>(),
+            d,
+            y: y_enc1,
+        };
+        let data = super::PublicData {
+            key0: &key0,
+            key1: &key1,
+            batch: vec![element],
+        };
+        let pdata = super::PrivateData {
+            batch: vec![super::PrivateElement {
+                x: &x,
+                y: &y,
+                nonce: &rho,
+                nonce_y: &rho_y,
+            }],
+        };
+        let aux = crate::common::test::aux(&mut rng);
+        let (commitment, proof) =
+            super::non_interactive::prove::<C, D>(&"s", &aux, data.clone(), pdata, &s, &mut rng)
+                .unwrap();
+        super::non_interactive::verify::<C, D>(&"s", &aux, data, &commitment, &s, &proof).unwrap();
+    }
+
+    #[test]
+    fn failing_on_additive() {
+        let mut rng = rand_dev::DevRng::new();
+        let s = security();
+        let xs = (0..2)
+            .map(|_| BigInt::from_rng_pm(&(BigInt::from(1) << s.l_x), &mut rng))
+            .collect();
+        let y: BigInt = (BigInt::from(1) << (s.l_y + s.epsilon + s.t + 5)) + 1;
+        let setup = Setup::new(xs, vec![y.clone(), y], [0; 2], [0; 2]);
+        let (commitment, proof) = setup.prove();
+        assert_eq!(
+            setup.verify(&commitment, &proof),
+            Err(InvalidProofReason::RangeCheck(7))
+        );
+    }
+
+    #[test]
+    fn failing_on_multiplicative() {
+        let mut rng = rand_dev::DevRng::new();
+        let s = security();
+        // Large enough that `e * x` is out of range for any non-zero challenge
+        let x: BigInt = (BigInt::from(1) << (s.l_x + s.epsilon + s.t + 5)) + 1;
+        let ys = (0..2)
+            .map(|_| BigInt::from_rng_pm(&(BigInt::from(1) << s.l_y), &mut rng))
+            .collect();
+        let setup = Setup::new(vec![x.clone(), x], ys, [0; 2], [0; 2]);
+        let (commitment, proof) = setup.prove();
+        assert_eq!(
+            setup.verify(&commitment, &proof),
+            Err(InvalidProofReason::RangeCheck(6))
+        );
+    }
+
+    /// Only one `x_i` is out of range: every `z1_i` must be range-checked
+    #[test]
+    fn failing_when_one_element_out_of_range() {
+        let mut rng = rand_dev::DevRng::new();
+        let s = security();
+        let x_ok = BigInt::from_rng_pm(&(BigInt::from(1) << s.l_x), &mut rng);
+        let x_bad: BigInt = BigInt::from(1) << (s.l_x + s.epsilon + s.t + 10);
+        let ys: Vec<BigInt> = (0..2)
+            .map(|_| BigInt::from_rng_pm(&(BigInt::from(1) << s.l_y), &mut rng))
+            .collect();
+        for xs in [vec![x_ok.clone(), x_bad.clone()], vec![x_bad, x_ok]] {
+            let setup = Setup::new(xs, ys.clone(), [0; 2], [0; 2]);
+            let (commitment, proof) = setup.prove();
+            assert_eq!(
+                setup.verify(&commitment, &proof),
+                Err(InvalidProofReason::RangeCheck(6))
+            );
+        }
+    }
+
+    /// `D_1` and `D_2` (resp. `Y_1`, `Y_2`) are shifted against each other: their product is
+    /// consistent with the witness, but each of them isn't. Would pass with a shared challenge.
+    #[test]
+    fn failing_on_shifted_statements() {
+        let mut rng = rand_dev::DevRng::new();
+        let s = security();
+        let xs: Vec<BigInt> = (0..2)
+            .map(|_| BigInt::from_rng_pm(&(BigInt::from(1) << s.l_x), &mut rng))
+            .collect();
+        let ys: Vec<BigInt> = (0..2)
+            .map(|_| BigInt::from_rng_pm(&(BigInt::from(1) << s.l_y), &mut rng))
+            .collect();
+
+        let setup = Setup::new(xs.clone(), ys.clone(), [1000, -1000], [0; 2]);
+        let (commitment, proof) = setup.prove();
+        assert_eq!(
+            setup.verify(&commitment, &proof),
+            Err(InvalidProofReason::EqualityCheck(1))
+        );
+
+        let setup = Setup::new(xs, ys, [0; 2], [1000, -1000]);
+        let (commitment, proof) = setup.prove();
+        assert_eq!(
+            setup.verify(&commitment, &proof),
+            Err(InvalidProofReason::EqualityCheck(3))
+        );
+    }
+
+    #[test]
+    fn fiat_shamir_binds_statement_and_commitment() {
+        let setup = Setup::honest();
+        let (commitment, proof) = setup.prove();
+
+        // Tampered statement
+        for i in 0..5 {
+            let mut data = setup.data();
+            match i {
+                0 => data.batch[0].c += 1,
+                1 => data.batch[1].d += 1,
+                2 => data.batch[0].y += 1,
+                3 => data.batch[1].x += Point::generator(),
+                _ => data.batch.swap(0, 1),
+            }
+            assert!(
+                setup.verify_with(data, &commitment, &proof).is_err(),
+                "statement tamper {i}"
+            );
+        }
+        let other = sample_other_key();
+        let data = super::PublicData {
+            key1: &other,
+            ..setup.data()
+        };
+        assert!(setup.verify_with(data, &commitment, &proof).is_err());
+
+        // Tampered commitment
+        for i in 0..7 {
+            let mut bad = commitment.clone();
+            match i {
+                0 => bad.a += 1,
+                1 => bad.s[1] += 1,
+                2 => bad.e[0] += 1,
+                3 => bad.f += 1,
+                4 => bad.t[1] += 1,
+                5 => bad.b_x[0] += Point::generator(),
+                _ => bad.b_y += 1,
+            }
+            assert!(setup.verify(&bad, &proof).is_err(), "commitment tamper {i}");
+        }
+
+        // Tampered proof
+        for i in 0..6 {
+            let mut bad = proof.clone();
+            match i {
+                0 => bad.z1[1] += 1,
+                1 => bad.z2 += 1,
+                2 => bad.z3[0] += 1,
+                3 => bad.z4 += 1,
+                4 => bad.w += 1,
+                _ => bad.w_y += 1,
+            }
+            assert!(setup.verify(&commitment, &bad).is_err(), "proof tamper {i}");
+        }
+    }
+
+    #[test]
+    fn wrong_lengths_are_rejected_without_panic() {
+        let setup = Setup::honest();
+        let (commitment, proof) = setup.prove();
+
+        let commitment_tampers: [fn(&mut super::Commitment<E>); 8] = [
+            |c| c.s.truncate(1),
+            |c| c.e.push(c.e[0].clone()),
+            |c| c.t.clear(),
+            |c| c.b_x.truncate(1),
+            |c| c.s.clear(),
+            |c| c.e.clear(),
+            |c| c.b_x.push(c.b_x[0]),
+            |c| c.t.push(BigInt::from(1)),
+        ];
+        for tamper in commitment_tampers {
+            let mut bad = commitment.clone();
+            tamper(&mut bad);
+            assert_eq!(setup.verify(&bad, &proof), Err(InvalidProofReason::Length));
+        }
+        let proof_tampers: [fn(&mut super::Proof); 4] = [
+            |p| p.z1.truncate(1),
+            |p| p.z1.push(BigInt::from(0)),
+            |p| p.z3.clear(),
+            |p| p.z3.push(BigInt::from(0)),
+        ];
+        for tamper in proof_tampers {
+            let mut bad = proof.clone();
+            tamper(&mut bad);
+            assert_eq!(
+                setup.verify(&commitment, &bad),
+                Err(InvalidProofReason::Length)
+            );
+        }
+
+        // Statement of other size
+        let mut data = setup.data();
+        data.batch.push(data.batch[0].clone());
+        assert_eq!(
+            setup.verify_with(data, &commitment, &proof),
+            Err(InvalidProofReason::Length)
+        );
+        let mut data = setup.data();
+        data.batch.clear();
+        assert_eq!(
+            setup.verify_with(data, &commitment, &proof),
+            Err(InvalidProofReason::Length)
+        );
+
+        // Interactive verifier with a short challenge
+        let data = setup.data();
+        let challenge = vec![BigInt::from(1)];
+        assert!(super::interactive::verify(
+            &setup.aux,
             data,
             &commitment,
-            &security,
-            &proof,
-            batch_size,
+            &security(),
+            &challenge,
+            &proof
         )
+        .is_err());
     }
 
-    fn passing_test<C: Curve, D: Digest>() {
-        let mut rng = rand_dev::DevRng::new();
-        let security = super::SecurityParams {
-            l_x: 1024,
-            l_y: 1024,
-            epsilon: 300,
-            q: (BigInt::from(1) << 128_u32) - 1,
-            t: 128,
-        };
-        let x = BigInt::from_rng_pm(&(BigInt::from(1) << security.l_x), &mut rng);
-        let y = BigInt::from_rng_pm(&(BigInt::from(1) << security.l_y), &mut rng);
-        run::<_, C, D>(&mut rng, security, x, y).expect("proof failed");
-    }
+    #[test]
+    fn malformed_values_are_rejected_without_panic() {
+        let setup = Setup::honest();
+        let (commitment, proof) = setup.prove();
+        let n0 = setup.key0.n().clone();
 
-    fn failing_on_additive<C: Curve, D: Digest>() {
-        let mut rng = rand_dev::DevRng::new();
-        let security = super::SecurityParams {
-            l_x: 1024,
-            l_y: 1024,
-            epsilon: 300,
-            q: (BigInt::from(1) << 128_u32),
-            t: 128,
-        };
-        let x = BigInt::from_rng_pm(&(BigInt::from(1) << security.l_x), &mut rng);
-        let y = (BigInt::from(1) << (security.l_y + security.epsilon + 5)) + 1;
-        let r = run::<_, C, D>(&mut rng, security, x, y).expect_err("proof should not pass");
-        match r.reason() {
-            InvalidProofReason::RangeCheck(7) => (),
-            e => panic!("proof should not fail with: {e:?}"),
+        for value in [
+            BigInt::from(0),
+            BigInt::from(-1),
+            setup.aux.rsa_modulo.clone(),
+        ] {
+            let mut bad = commitment.clone();
+            bad.s = vec![value.clone(), value.clone()];
+            bad.t = vec![value.clone(), value.clone()];
+            assert!(setup.verify(&bad, &proof).is_err());
         }
-    }
+        for value in [BigInt::from(0), BigInt::from(-1), n0.clone(), &n0 * &n0 * 2] {
+            let mut bad = commitment.clone();
+            bad.a = value.clone();
+            bad.b_y = value.clone();
+            assert!(setup.verify(&bad, &proof).is_err());
 
-    fn failing_on_multiplicative<C: Curve, D: Digest>() {
-        let mut rng = rand_dev::DevRng::new();
-        let security = super::SecurityParams {
-            l_x: 1024,
-            l_y: 1024,
-            epsilon: 300,
-            q: (BigInt::from(1) << 128_u32),
-            t: 128,
-        };
-        let x: BigInt = (BigInt::from(1) << (security.l_x + security.epsilon + 5)) + 1;
-        let y = BigInt::from_rng_pm(&(BigInt::from(1) << security.l_y), &mut rng);
-        let r = run::<_, C, D>(&mut rng, security, x, y).expect_err("proof should not pass");
-        match r.reason() {
-            InvalidProofReason::RangeCheck(6) => (),
-            e => panic!("proof should not fail with: {e:?}"),
+            let mut data = setup.data();
+            data.batch[0].c = value.clone();
+            data.batch[1].d = value.clone();
+            assert!(setup.verify_with(data, &commitment, &proof).is_err());
         }
-    }
-
-    #[test]
-    fn passing_p256() {
-        passing_test::<generic_ec::curves::Secp256r1, sha2::Sha256>()
-    }
-    #[test]
-    fn failing_p256_add() {
-        failing_on_additive::<generic_ec::curves::Secp256r1, sha2::Sha256>()
-    }
-    #[test]
-    fn failing_p256_mul() {
-        failing_on_multiplicative::<generic_ec::curves::Secp256r1, sha2::Sha256>()
-    }
-
-    #[test]
-    fn passing_million() {
-        passing_test::<crate::curve::C, sha2::Sha256>()
-    }
-    #[test]
-    fn failing_million_add() {
-        failing_on_additive::<crate::curve::C, sha2::Sha256>()
-    }
-    #[test]
-    fn failing_million_mul() {
-        failing_on_multiplicative::<crate::curve::C, sha2::Sha256>()
+        // Responses outside of the plaintext space
+        let mut bad = proof.clone();
+        bad.w = -bad.w.clone();
+        bad.w_y = BigInt::from(0);
+        assert!(setup.verify(&commitment, &bad).is_err());
     }
 }

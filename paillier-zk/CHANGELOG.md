@@ -1,3 +1,19 @@
+## Unreleased
+* Replace rug/GMP with num-bigint; all modular exponentiation goes through
+  `fast_paillier::mont` (multi-exponentiation for ring-Pedersen commitments, CRT when the
+  factorization is known). Builds for `wasm32-unknown-unknown`.
+* security fix: batch proofs (`batch_paillier_affine_operation_in_range`,
+  `batch_paillier_encryption_in_range_with_el_gamal`) bind statement and commitment in the
+  Fiat-Shamir challenge, use an independent challenge and fresh masks per element, range-check
+  every `z1_i`, check all vector lengths and never panic on malformed proofs. Breaking: the
+  `batch_size` argument is removed, batch size is `data.batch.len()`.
+* security fix: nonce masks are sized from the actual nonce size (`nonce_bits + t + ε`).
+* Fiat-Shamir transcripts encode integers sign-aware and canonically (`encoding::BigInt`, now
+  public); encryption keys are digested as `(N, h)`.
+* Πmod prover uses CRT and a single fourth-root exponent (~5x faster).
+* `MultiexpTable::build` is linear in the table size; `size_in_bytes` fixed.
+* Removed unused single-statement aff-g / group-element proofs.
+
 ## v0.4.2
 * Update links in the crate settings, update readme [#53]
 
