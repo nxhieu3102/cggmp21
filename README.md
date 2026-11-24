@@ -35,8 +35,14 @@ This crate implements:
 * (3+1)-round general threshold and non-threshold signing
 * Auxiliary info generation protocol
 * Key refresh for non-threshold keys
+* Hierarchical threshold key generation and signing (HTSS, via Birkhoff interpolation): each
+  signer has a rank, and only signer sets satisfying the hierarchical access structure can sign
 * HD-wallets support based on [slip10] standard (compatible with [bip32]) \
-  Requires `hd-wallets` feature
+  Requires `hd-wallet` feature
+
+Big integers are pure Rust (`num-bigint` plus an in-house Montgomery kernel in
+`fast_paillier::mont`); there is no GMP dependency and the crate builds for
+`wasm32-unknown-unknown`.
 
 A self-contained description of the protocols we implemented is available [here][the spec].
 
@@ -122,20 +128,20 @@ for each of the signers) that will be used during the signing protocols. This pr
 run as follows:
 
 ```rust
-// Prime generation can take a while
-let pregenerated_primes = cggmp21::PregeneratedPrimes::generate(&mut OsRng);
+// Paillier key generation takes well under a second on a modern CPU
+let pregenerated_paillier_key = cggmp21::PregeneratedPaillierKey::generate(&mut OsRng)?;
 
 let eid = cggmp21::ExecutionId::new(b"execution id, unique per protocol execution");
 let i = /* signer index, same as at keygen */;
 let n = /* number of signers */;
 
-let aux_info = cggmp21::aux_info_gen(eid, i, n, pregenerated_primes)
+let aux_info = cggmp21::aux_info_gen(eid, i, n, pregenerated_paillier_key)
     .start(&mut OsRng, party)
     .await?;
 ```
 
-The auxiliary-data generation protocol is computationally heavy as it requires the generation
-of safe primes and involves several zero-knowledge (ZK) proofs.
+The auxiliary-data generation protocol is computationally heavy as it involves several
+zero-knowledge (ZK) proofs about the Paillier modulus.
 
 #### On reusability of the auxiliary data
 The CGGMP21 paper assumes that new auxiliary data is generated for each secret key that is shared.
@@ -256,8 +262,9 @@ they are all documented in [the spec].
 ## Timing attacks
 Timing attacks are type of side-channel attacks that leak sensitive information through duration of
 execution. We consider timing attacks out of scope as they are nearly impossible to perform for such
-complicated protocol as CGGMP21 and impossible to do in our specific deployment. Thus, we intentionally
-don't do constant-time operations which gives us a significant performance boost.
+complicated protocol as CGGMP21. Modular exponentiations with secret exponents use a fixed-window,
+constant-time table lookup (`fast_paillier::mont::Montgomery::pow`), but the rest of the big-integer
+arithmetic is not constant-time.
 
 ## Join us in Discord!
 Feel free to reach out to us [in Discord]!

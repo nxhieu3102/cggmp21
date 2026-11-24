@@ -17,7 +17,7 @@ use crate::birkhoff_matrix::BirkhoffMatrix;
 ///
 /// `xs`: the x-coordinates of the shares, by default it's `j + 1` for `j`-th party.
 ///
-/// `ranks`: the ranks of the shares, for all 0 <= `i` < t: ranks[i] < t
+/// `ranks`: the ranks of the shares, for all `0 <= i < t`: `ranks[i] < t`
 ///
 /// ## Returns
 /// Returns `Err(BirkhoffError)` if the ranks and xs have different lengths OR if the matrix

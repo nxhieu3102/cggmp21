@@ -17,14 +17,14 @@
 //! ## Timing
 //! The Montgomery multiplication and squaring kernels contain no branches or memory accesses that
 //! depend on the operands.
-//! * [`Montgomery::pow`] and [`Montgomery::multi_pow`] use a fixed window. They read every table
+//! * `Montgomery::pow` and `Montgomery::multi_pow` use a fixed window. They read every table
 //!   entry on each lookup. The sequence of operations depends only on the bit length of the
 //!   exponent(s) and on the size of the modulus. Use them for secret exponents.
-//! * [`Montgomery::pow_vartime`] uses a sliding window. Its timing depends on the exponent but not
+//! * `Montgomery::pow_vartime` uses a sliding window. Its timing depends on the exponent but not
 //!   on the base. Use it only for public exponents.
 //!
-//! Converting between [`BigUint`] and limbs reveals the operands' limb counts, as any [`BigUint`]
-//! arithmetic does. A base with more limbs than the modulus is first reduced with [`BigUint`]
+//! Converting between `BigUint` and limbs reveals the operands' limb counts, as any `BigUint`
+//! arithmetic does. A base with more limbs than the modulus is first reduced with `BigUint`
 //! division.
 
 use core::{fmt, mem};
@@ -75,7 +75,7 @@ impl Montgomery {
         self.0.pow_vartime(base, exp)
     }
 
-    /// prod_i bases[i]^exps[i] mod m (Straus/interleaved). Regular w.r.t. exponents.
+    /// `prod_i bases[i]^exps[i] mod m` (Straus/interleaved). Regular w.r.t. exponents.
     ///
     /// All the exponentiations share one chain of squarings. An empty `pairs` gives `1`.
     pub fn multi_pow(&self, pairs: &[(&BigUint, &BigUint)]) -> BigUint {

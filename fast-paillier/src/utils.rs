@@ -79,7 +79,7 @@ fn sample_uint_with_size(rng: &mut impl RngCore, bits: u64) -> BigUint {
 /// The result is always in `[0, m)`.
 ///
 /// This is the single signed modular exponentiation used across the stack. It runs on top of
-/// [`mont`](crate::mont): odd moduli take the regular (constant-time table selection) Montgomery
+/// [`crate::mont`]: odd moduli take the regular (constant-time table selection) Montgomery
 /// ladder, which makes it suitable for secret exponents.
 pub fn pow_mod_signed(base: &BigInt, exp: &BigInt, m: &BigInt) -> Option<BigInt> {
     if m.sign() != Sign::Plus {

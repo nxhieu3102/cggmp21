@@ -1,4 +1,4 @@
-//! Serde adapters for [`BigInt`](num_bigint::BigInt), to be used with `#[serde(with = "...")]`
+//! Serde adapters for `num_bigint::BigInt`, to be used with `#[serde(with = "...")]`
 //!
 //! The wire format is compatible with `rug::Integer`'s serde format: every integer is an object
 //! `{"radix": <u32>, "value": "<digits>"}`. Integers are written in radix 16; any radix in

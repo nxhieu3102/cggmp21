@@ -128,7 +128,7 @@ where
 {
     /// Build key refresh operation. Start it with [`start`](Self::start).
     ///
-    /// PregeneratedPrimes can be obtained with [`PregeneratedPrimes::generate`]
+    /// [`PregeneratedPaillierKey`] can be obtained with [`PregeneratedPaillierKey::generate`]
     pub fn new(
         eid: ExecutionId<'a>,
         key_share: &'a impl AnyKeyShare<E>,
@@ -197,7 +197,7 @@ where
 {
     /// Build key aux info generation operation. Start it with [`start`](Self::start).
     ///
-    /// PregeneratedPrimes can be obtained with [`PregeneratedPrimes::generate`]
+    /// [`PregeneratedPaillierKey`] can be obtained with [`PregeneratedPaillierKey::generate`]
     pub fn new_aux_gen(
         eid: ExecutionId<'a>,
         i: u16,
