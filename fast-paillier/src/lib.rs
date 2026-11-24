@@ -7,6 +7,8 @@ pub mod common;
 pub mod decryption_key;
 /// Module for encryption key functionality
 pub mod encryption_key;
+/// Pure-Rust Montgomery modular exponentiation used for all modpows
+pub mod mont;
 /// Module for precomputed table optimization
 pub mod precomputed_table;
 /// Utility functions for the Paillier cryptosystem
@@ -27,7 +29,10 @@ pub type Plaintext = BigInt;
 /// Paillier nonce
 pub type Nonce = BigInt;
 
-pub use self::{decryption_key::DecryptionKey, encryption_key::EncryptionKey};
+pub use self::{
+    decryption_key::{DecryptionKey, KeygenProgress},
+    encryption_key::EncryptionKey,
+};
 
 /// Error type used in the library
 #[derive(Debug, thiserror::Error)]
@@ -38,26 +43,19 @@ pub struct Error(#[from] Reason);
 enum Reason {
     #[error("encryption error")]
     Encrypt,
+    #[error("decryption error: not a valid ciphertext under this key")]
+    Decrypt,
     #[error("homomorphic operation failed: invalid inputs")]
     Ops,
-    #[error("bug occurred")]
-    Bug(#[source] Bug),
-    #[error("invalid pow mod")]
-    InvalidPowMod,
-}
-
-#[derive(Debug, thiserror::Error)]
-enum Bug {
-    #[error("pow mod undefined")]
-    PowModUndef,
-    #[error("invert undefined")]
-    InvertUndef,
-}
-
-impl From<Bug> for Error {
-    fn from(err: Bug) -> Self {
-        Error(Reason::Bug(err))
-    }
+    #[error("invalid key")]
+    InvalidKey,
+    #[error("invalid key generation parameters")]
+    KeyGen,
+    #[error("invalid precompute table or parameters")]
+    PrecomputeTable,
+    #[cfg(feature = "serde")]
+    #[error("serialization error")]
+    Serde,
 }
 
 mod sealed {
@@ -76,14 +74,14 @@ mod sealed {
 /// and benefit from faster encryption if decryption key is provided.
 ///
 /// ```rust
-/// use fast_paillier::{AnyEncryptionKey, Error};
-/// use rug::Integer;
+/// use fast_paillier::{AnyEncryptionKey, Ciphertext, Error};
+/// use num_bigint::BigInt;
 ///
 /// // This function accepts both encryption and decryption key. If decryption key is provided,
 /// // it'll be more efficient
-/// fn some_function(ek: &dyn AnyEncryptionKey) -> Result<Integer, Error> {
+/// fn some_function(ek: &dyn AnyEncryptionKey) -> Result<Ciphertext, Error> {
 ///     // ...
-/// # let x = Integer::from(123); let r = Integer::from(321);
+/// # let x = BigInt::from(123); let r = BigInt::from(321);
 ///     let ciphertext = ek.encrypt_with(&x, &r)?;
 ///     Ok(ciphertext)
 /// }
@@ -298,32 +296,5 @@ impl fmt::Debug for dyn AnyEncryptionKey + '_ {
         f.debug_struct("PaillierEncKey")
             .field("N", self.n())
             .finish_non_exhaustive()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{decryption_key::DecryptionKey, utils};
-    use num_bigint::BigInt;
-    #[test]
-    fn test_enc_dec() {
-        let mut rng = rand::thread_rng();
-
-        let dk = DecryptionKey::sample_128();
-        let ek = dk.encryption_key();
-
-        let plaintext = BigInt::from(10);
-        let (ciphertext, nonce) = ek.encrypt_with_random(&mut rng, &plaintext).unwrap();
-        match dk.decrypt(&ciphertext) {
-            Ok(decrypted) => {
-                assert_eq!(decrypted, plaintext);
-                assert!(ek.in_signed_group(&decrypted));
-                assert!(utils::in_mult_group(&decrypted, ek.nn()));
-                assert_eq!(ek.nounce_size() as u64, nonce.bits());
-            }
-            Err(_) => {
-                panic!("Decryption failed");
-            }
-        }
     }
 }

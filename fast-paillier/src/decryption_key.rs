@@ -1,12 +1,21 @@
-use crate::common::BigIntExt;
-use crate::{utils, AnyEncryptionKey, Bug, Ciphertext, EncryptionKey, Nonce, Plaintext};
-use crate::{Error, Reason};
-use num_bigint::BigInt;
+use std::fmt;
+
+use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
-use num_traits::Num;
+use num_traits::{One, Zero};
 use rand_core::{CryptoRng, RngCore};
+
+use crate::mont::Montgomery;
+use crate::utils::{self, reduce};
+use crate::{Ciphertext, EncryptionKey, Error, Nonce, Plaintext, Reason};
+
 /// Paillier decryption key
-#[derive(Clone, Debug)]
+///
+/// Holds the factorization `n = p·q` and `alpha`, plus constants derived from them (Montgomery
+/// contexts for `p²`, `q²` and CRT coefficients) that are rebuilt on construction and never
+/// serialized. Decryption, [`encrypt_with`](Self::encrypt_with) and [`omul`](Self::omul) work
+/// modulo `p²` and `q²` and recombine with the CRT.
+#[derive(Clone)]
 pub struct DecryptionKey {
     /// encryption key
     ek: EncryptionKey,
@@ -18,6 +27,115 @@ pub struct DecryptionKey {
 
     /// (p-1)(q-1)/4 mod alpha = 0
     alpha: BigInt,
+
+    crt: Crt,
+}
+
+/// Constants derived from `p`, `q`, `alpha`, `h_pow_n`
+#[derive(Clone)]
+struct Crt {
+    p: BigUint,
+    q: BigUint,
+    /// Montgomery context for `p²`
+    pp: Montgomery,
+    /// Montgomery context for `q²`
+    qq: Montgomery,
+    /// `phi(p²) = p(p - 1)`
+    phi_pp: BigUint,
+    /// `phi(q²) = q(q - 1)`
+    phi_qq: BigUint,
+    /// `2·alpha`
+    two_alpha: BigInt,
+    /// `(2·alpha·q)^-1 mod p`
+    dec_p: BigUint,
+    /// `(2·alpha·p)^-1 mod q`
+    dec_q: BigUint,
+    /// `p^-1 mod q`
+    p_inv_q: BigUint,
+    /// `(p²)^-1 mod q²`
+    pp_inv_qq: BigUint,
+}
+
+/// `h_pow_n mod p²`, `h_pow_n mod q²`
+#[derive(Clone)]
+struct HPowN {
+    pp: BigUint,
+    qq: BigUint,
+}
+
+impl Crt {
+    fn new(p: &BigInt, q: &BigInt, alpha: &BigInt) -> Option<Self> {
+        if p.sign() != Sign::Plus || q.sign() != Sign::Plus || alpha.sign() != Sign::Plus {
+            return None;
+        }
+        let (p, q) = (p.magnitude(), q.magnitude());
+        let pp = Montgomery::new(&(p * p))?;
+        let qq = Montgomery::new(&(q * q))?;
+        let two_alpha: BigUint = alpha.magnitude() << 1u8;
+        let dec_p = ((&two_alpha * q) % p).modinv(p)?;
+        let dec_q = ((&two_alpha * p) % q).modinv(q)?;
+        let p_inv_q = (p % q).modinv(q)?;
+        let pp_inv_qq = (pp.modulus() % qq.modulus()).modinv(qq.modulus())?;
+        Some(Self {
+            phi_pp: pp.modulus() - p,
+            phi_qq: qq.modulus() - q,
+            p: p.clone(),
+            q: q.clone(),
+            pp,
+            qq,
+            two_alpha: BigInt::from(two_alpha),
+            dec_p,
+            dec_q,
+            p_inv_q,
+            pp_inv_qq,
+        })
+    }
+
+    /// Given `x mod p²` and `x mod q²`, returns `x mod n²`
+    fn combine_nn(&self, x_pp: BigUint, x_qq: BigUint) -> BigInt {
+        let (pp, qq) = (self.pp.modulus(), self.qq.modulus());
+        // t = (x_qq - x_pp) · pp^-1 mod qq
+        let diff = (x_qq + qq - (&x_pp % qq)) % qq;
+        let t = (diff * &self.pp_inv_qq) % qq;
+        BigInt::from(t * pp + x_pp)
+    }
+
+    /// `base^exp mod m` for a unit `base` modulo the prime square `m = ctx.modulus()` with
+    /// `phi(m) = phi`. Large or negative exponents are reduced modulo `phi`; small negative ones
+    /// invert the base instead.
+    fn pow_unit(ctx: &Montgomery, phi: &BigUint, base: &BigInt, exp: &BigInt) -> Option<BigUint> {
+        if exp.bits() > phi.bits() {
+            let exp = reduce(exp, phi);
+            Some(ctx.pow(&reduce(base, ctx.modulus()), &exp))
+        } else {
+            utils::pow_signed_mont(ctx, base, exp)
+        }
+    }
+}
+
+/// Progress of [`DecryptionKey::generate_with_progress`]. Carries no secret values.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum KeygenProgress {
+    /// The small safe-prime factor of `p - 1` (`which = 0`) or `q - 1` (`which = 1`) was found
+    DivisorPrimeFound {
+        /// `0` for `p`, `1` for `q`
+        which: u8,
+    },
+    /// Emitted every 64 candidates while searching `p` (`which = 0`) or `q` (`which = 1`)
+    CandidateTested {
+        /// `0` for `p`, `1` for `q`
+        which: u8,
+        /// Candidates tested so far for this prime
+        attempts: u64,
+    },
+    /// `p` (`which = 0`) or `q` (`which = 1`) was found
+    PrimeFound {
+        /// `0` for `p`, `1` for `q`
+        which: u8,
+        /// Number of candidates tested for this prime
+        attempts: u64,
+    },
 }
 
 impl DecryptionKey {
@@ -69,227 +187,151 @@ impl DecryptionKey {
     /// h is a generator of G -> h^(2.alpha) = 1 mod N
     /// We can chose: h = -y^(2*beta) mod N, where y is a random element of Z*_N
     ///
-    /// Requirements:
-    /// div_p | (p -1)
-    /// div_q | (q -1)
-    /// p = q = 3 (mod 4)
-    /// gcd(p - 1, q - 1) = 2
-    /// gcd(div_p.div_q, (p - 1)(q - 1)/4) = 1
+    /// Construction:
+    /// * `div_p`, `div_q`: distinct random safe primes of `a_size / 2` bits
+    /// * `p = 2·div_p·other_div_p + 1`, `q = 2·div_q·other_div_q + 1` primes, where
+    ///   `other_div_p`, `other_div_q` are odd integers of exactly `(n_size - a_size)/2 - 1` bits
+    /// * `div_p`, `div_q`, `other_div_p`, `other_div_q` pairwise coprime
     ///
-    /// Then:
-    /// alpha = div_p * div_q
-    /// beta = (p - 1)(q - 1)/(4.alpha)
-    /// n = p * q
-    /// h = - y^(2*beta) mod n
+    /// Hence `p = q = 3 (mod 4)`, `gcd(p - 1, q - 1) = 2`, `gcd(alpha, beta) = 1` with
+    /// `alpha = div_p·div_q`, `beta = other_div_p·other_div_q = (p - 1)(q - 1)/(4·alpha)`,
+    /// and `n = p·q`, `h = -(y^(2·beta) mod n)`.
+    ///
+    /// `p` and `q` are searched independently: the cofactor is resampled until `p` is prime
+    /// (trial division, then Miller–Rabin), then the same for `q`.
+    ///
+    /// Returns an error if `a_size / 2 < 8` or `(n_size - a_size)/2 - 1 < 16`: smaller
+    /// parameters leave too few candidates for the search to be guaranteed to terminate.
     pub fn generate(
         rng: &mut (impl RngCore + CryptoRng),
         n_size: u32,
         a_size: u32,
     ) -> Result<Self, Error> {
-        let (p, q, alpha, n) = 'outer: loop {
-            // Step 1: generate div_p, div_q, other_div_p, other_div_q
-            // let div_p, div_q are (a_size/2)-bit odd PRIMES
-            // let other_div_p, other_div_q are ((n_size - a_size)/2 - 1)-bit odd INTEGERS
-
-            let div_p = utils::generate_safe_prime(rng, a_size / 2);
-            let div_q = utils::generate_safe_prime(rng, a_size / 2);
-            assert_eq!(div_p.bits(), a_size as u64 / 2);
-            assert_eq!(div_q.bits(), a_size as u64 / 2);
-            assert!(utils::is_prime(&div_p));
-            assert!(utils::is_prime(&div_q));
-
-            // TODO: do we need to check if alpha size is exactly a_size?
-            // let temp_alpha = div_p.clone() * &div_q;
-            // if temp_alpha.bits() != a_size {
-            //     // can not construct alpha of the right size
-            //     println!("div_p * div_q size is not equal to a_size");
-            //     continue 'outer;
-            // }
-
-            let mut max_loop = 100;
-            'inner: loop {
-                max_loop -= 1;
-                if max_loop == 0 {
-                    // Max loop reached
-                    break 'inner;
-                }
-
-                let other_bit_length = (n_size - a_size) / 2 - 1;
-
-                let other_div_p = utils::sample_odd_with_size(rng, other_bit_length);
-                let other_div_q = utils::sample_odd_with_size(rng, other_bit_length);
-                assert!(other_div_p.is_odd());
-                assert!(other_div_q.is_odd());
-                assert!(other_div_p.bits() == other_bit_length as u64);
-                assert!(other_div_q.bits() == other_bit_length as u64);
-
-                // Step 2: calculate p, q
-                // p = 2 * div_p * other_div_p + 1
-                // q = 2 * div_q * other_div_q + 1
-                let p: BigInt = BigInt::from(2) * &div_p * &other_div_p + 1;
-                let q: BigInt = BigInt::from(2) * &div_q * &other_div_q + 1;
-
-                // Step 3: validate
-
-                // TODO: do we need to check if n size is exactly n_size?
-                // // validate p, q can construct n of the right size
-                // let temp_n = p.clone() * &q;
-                // if temp_n.bits() != n_size {
-                //     // can not construct n of the right size
-                //     println!("p * q size is not equal to n_size");
-                //     continue 'outer;
-                // }
-
-                // validate div_p, div_q, other_div_p, other_div_q are COPRIME
-                if !utils::check_coprime(&[&div_p, &div_q, &other_div_p, &other_div_q]) {
-                    // println!("div_p, div_q, other_div_p, other_div_q are not coprime");
-                    continue 'inner;
-                }
-
-                // p, q are PRIMES
-                if !(utils::is_prime(&p)) || !(utils::is_prime(&q)) {
-                    // println!("p or q are not prime");
-                    continue 'inner;
-                }
-
-                // Step 4: calculate alpha = div_p * div_q
-                // n = p * q
-                let alpha = div_p * div_q;
-                let n = p.clone() * &q;
-
-                break 'outer (p, q, alpha, n);
-            }
-        };
-
-        // h = -y^(2*beta) mod n
-        // where beta = (p - 1)(q - 1)/(4.alpha)
-        // y is a random element of Z*_N
-
-        let beta: BigInt = (p.clone() - 1) * (q.clone() - 1) / (BigInt::from(4) * &alpha);
-        let y = utils::sample_in_mult_group(rng, &n);
-        let h = -y
-            .modpow_ext(&(BigInt::from(2) * &beta), &n)
-            .ok_or(Bug::PowModUndef)?;
-
-        let ek = EncryptionKey::new(n_size, a_size, h, n)?;
-
-        Ok(Self { ek, p, q, alpha })
+        Self::generate_with_progress(rng, n_size, a_size, &mut |_| {})
     }
 
-    /// Tries to generate a paillier key with a single attempt (no loops)
-    /// Returns None if generation fails, Some(key) if successful
-    /// The caller should handle looping if multiple attempts are needed
-    pub fn try_generate(
+    /// Same as [`generate`](Self::generate), reporting progress through `progress`
+    pub fn generate_with_progress(
         rng: &mut (impl RngCore + CryptoRng),
         n_size: u32,
         a_size: u32,
-    ) -> Option<Self> {
-        // Step 1: generate div_p, div_q, other_div_p, other_div_q
-        // let div_p, div_q are (a_size/2)-bit odd PRIMES
-        // let other_div_p, other_div_q are ((n_size - a_size)/2 - 1)-bit odd INTEGERS
-
-        let div_p = utils::generate_safe_prime(rng, a_size / 2);
-        let div_q = utils::generate_safe_prime(rng, a_size / 2);
-
-        // Basic assertions for generated primes
-        if div_p.bits() != a_size as u64 / 2 || div_q.bits() != a_size as u64 / 2 {
-            return None;
+        progress: &mut dyn FnMut(KeygenProgress),
+    ) -> Result<Self, Error> {
+        let div_bits = a_size / 2;
+        let other_bits = (n_size.checked_sub(a_size).ok_or(Reason::KeyGen)? / 2)
+            .checked_sub(1)
+            .ok_or(Reason::KeyGen)?;
+        if div_bits < 8 || other_bits < 16 {
+            return Err(Reason::KeyGen.into());
         }
-        if !utils::is_prime(&div_p) || !utils::is_prime(&div_q) {
-            return None;
-        }
+        let other_bits = u64::from(other_bits);
 
-        let other_bit_length = (n_size - a_size) / 2 - 1;
+        let div_p = utils::generate_safe_prime(rng, div_bits).into_parts().1;
+        progress(KeygenProgress::DivisorPrimeFound { which: 0 });
+        let div_q = loop {
+            let div_q = utils::generate_safe_prime(rng, div_bits).into_parts().1;
+            if div_q != div_p {
+                break div_q;
+            }
+        };
+        progress(KeygenProgress::DivisorPrimeFound { which: 1 });
 
-        let other_div_p = utils::sample_odd_with_size(rng, other_bit_length);
-        let other_div_q = utils::sample_odd_with_size(rng, other_bit_length);
+        let coprime_with_divs = |k: &BigUint| !(k % &div_p).is_zero() && !(k % &div_q).is_zero();
 
-        // Check basic properties
-        if !other_div_p.is_odd() || !other_div_q.is_odd() {
-            return None;
-        }
-        if other_div_p.bits() != other_bit_length as u64
-            || other_div_q.bits() != other_bit_length as u64
-        {
-            return None;
-        }
+        let mut attempts = 0;
+        let (p, other_p) =
+            utils::search_prime_with_cofactor(rng, &div_p, other_bits, coprime_with_divs, |a| {
+                attempts = a;
+                if a % 64 == 0 {
+                    progress(KeygenProgress::CandidateTested {
+                        which: 0,
+                        attempts: a,
+                    });
+                }
+            });
+        progress(KeygenProgress::PrimeFound { which: 0, attempts });
 
-        // Step 2: calculate p, q
-        // p = 2 * div_p * other_div_p + 1
-        // q = 2 * div_q * other_div_q + 1
-        let p: BigInt = BigInt::from(2) * &div_p * &other_div_p + 1;
-        let q: BigInt = BigInt::from(2) * &div_q * &other_div_q + 1;
+        let mut attempts = 0;
+        let (q, other_q) = utils::search_prime_with_cofactor(
+            rng,
+            &div_q,
+            other_bits,
+            |k| coprime_with_divs(k) && k.gcd(&other_p).is_one(),
+            |a| {
+                attempts = a;
+                if a % 64 == 0 {
+                    progress(KeygenProgress::CandidateTested {
+                        which: 1,
+                        attempts: a,
+                    });
+                }
+            },
+        );
+        progress(KeygenProgress::PrimeFound { which: 1, attempts });
 
-        // Step 3: validate
+        let alpha = BigInt::from(&div_p * &div_q);
+        let n = BigInt::from(&p * &q);
+        let p = BigInt::from(p);
+        let q = BigInt::from(q);
+        let crt = Crt::new(&p, &q, &alpha).ok_or(Reason::KeyGen)?;
 
-        // validate div_p, div_q, other_div_p, other_div_q are COPRIME
-        if !utils::check_coprime(&[&div_p, &div_q, &other_div_p, &other_div_q]) {
-            return None;
-        }
-
-        // p, q are PRIMES
-        if !utils::is_prime(&p) || !utils::is_prime(&q) {
-            return None;
-        }
-
-        // Step 4: calculate alpha = div_p * div_q
-        // n = p * q
-        let alpha = div_p * div_q;
-        let n = p.clone() * &q;
-
-        // h = -y^(2*beta) mod n
-        // where beta = (p - 1)(q - 1)/(4.alpha)
-        // y is a random element of Z*_N
-
-        let beta: BigInt = (p.clone() - 1) * (q.clone() - 1) / (BigInt::from(4) * &alpha);
+        // h = -(y^(2·beta) mod n), beta = other_p·other_q, y random in Z*_n
+        let two_beta = BigInt::from((other_p * other_q) << 1u8);
         let y = utils::sample_in_mult_group(rng, &n);
-        let h = -y.modpow_ext(&(BigInt::from(2) * &beta), &n)?;
+        let h = -utils::pow_mod_signed(&y, &two_beta, &n).ok_or(Reason::KeyGen)?;
 
-        let ek = EncryptionKey::new(n_size, a_size, h, n).ok()?;
-
-        Some(Self { ek, p, q, alpha })
+        // h_pow_n = h^n mod n² via CRT
+        let h_pow_n = crt.combine_nn(
+            crt.pp
+                .pow(&reduce(&h, crt.pp.modulus()), &reduce(&n, &crt.phi_pp)),
+            crt.qq
+                .pow(&reduce(&h, crt.qq.modulus()), &reduce(&n, &crt.phi_qq)),
+        );
+        let ek = EncryptionKey::from_parts(n_size, a_size, h, n, h_pow_n)?;
+        Self::from_crt(ek, p, q, alpha, crt)
     }
 
     /// Return a decryption key from the encryption key, p, q, alpha
+    ///
+    /// Checks that `p·q = n`, that `alpha > 0` and `2·alpha` is invertible modulo `n`, and that
+    /// `h_pow_n^(2·alpha) = 1 (mod n²)` (i.e. that the nonce space has order dividing `2·alpha`,
+    /// which decryption relies on). Primality of `p`, `q` is not checked.
     pub fn new(ek: EncryptionKey, p: BigInt, q: BigInt, alpha: BigInt) -> Result<Self, Error> {
-        // TODO: validate ek, p, q, alpha are valid
-
-        Ok(Self { ek, p, q, alpha })
-    }
-
-    /// Return a fix decryptoion key for testing
-    /// n size = 2048
-    /// alpha size = 448
-    pub fn sample_112() -> Self {
-        Self {
-            ek: EncryptionKey::sample_112(),
-            p: BigInt::from_str_radix("352b408f842f95ff7b042028afbd2a9312066e4e41d105e8ca2e162686c05908199e14805579c1a180aba9b20ec3e6d86e77be0cf0cc92212932606089bce6366a978b45e139d2b4abfa86e4fc198f3710d571988b39a050f0d0d857caabb74347d069c7f30d8a93db788abc1814caf5fd755df47391a8f350f85b1c522c7d5b", 16).unwrap(),
-            q: BigInt::from_str_radix("ae553897573c0513948d2430f88e41120d9bfe9dacfcb0213bdb51c2880e388f5966d272cb97dd88666d2a921748ead1f787067f1c758f334a5ecefafb6afdbf3c0ffd2632d49d0448ef314d95c0b92711ebe1bc40b031e300f7cb2a78520e130446f7f4bc014253b47627dee93094c8907c67fe0681bc24ebfd57e5b241d95f", 16).unwrap(),
-            alpha: BigInt::from_str_radix("7ffeabae28c7c128fab071c9f379387da9b8d4ce576c6f5af837d676a89109b7461ea3376a52b5a38ffcd40eb55dab3478b5fe94579512e9", 16).unwrap() ,
+        if &p * &q != *ek.n() {
+            return Err(Reason::InvalidKey.into());
         }
+        let crt = Crt::new(&p, &q, &alpha).ok_or(Reason::InvalidKey)?;
+        Self::from_crt(ek, p, q, alpha, crt)
     }
 
-    /// Return a fix decryptoion key for testing
-    /// n size = 3072
-    /// alpha size = 512
-    pub fn sample_128() -> Self {
-        Self {
-            ek: EncryptionKey::sample_128(),
-            p: BigInt::from_str_radix("839604457153382033720003326654997544118596113373609234678587338149161354994347914267636071525512710050467656632783964681190975719416301416318441172804941007905632800346097169656312745185266337930499545855863665404948257291631593104963187840014286605100283580915042595051907308234079655979670315278879818661888922549182364361303144823692211219484740422088705064262682566575832813433144012908049224984636749169319450779863173356117467976440703403995243646456725591", 10).unwrap(),
-            q: BigInt::from_str_radix("743801265514881103483768821893245925378134035335216611973520259829027656422723219709692160610663116273054702837694488638022069484892336461456218827736375462047842812789380167552340656549341374717474433671272564983828365484016261471809658880542451263854116138619518659990303082479785471490469802954931219698744200396168471293146272351181923597139787506343883140313058926610440737746588145351090170254693560055414792516210777763575309516717116560514389624057706987", 10).unwrap(),
-            alpha: BigInt::from_str_radix("4741906189692490942881550526551134583945588334769176626212802369003989678803877719143415897043820272564409651596590439168843375671085094013575119097115737", 10).unwrap(),
+    fn from_crt(
+        ek: EncryptionKey,
+        p: BigInt,
+        q: BigInt,
+        alpha: BigInt,
+        crt: Crt,
+    ) -> Result<Self, Error> {
+        let h = HPowN {
+            pp: reduce(ek.h_pow_n(), crt.pp.modulus()),
+            qq: reduce(ek.h_pow_n(), crt.qq.modulus()),
+        };
+        let two_alpha = crt.two_alpha.magnitude();
+        if !crt.pp.pow(&h.pp, two_alpha).is_one() || !crt.qq.pow(&h.qq, two_alpha).is_one() {
+            return Err(Reason::InvalidKey.into());
         }
+        Ok(Self {
+            ek,
+            p,
+            q,
+            alpha,
+            crt,
+        })
     }
 
-    /// Return another fix decryptoion key for testing
-    /// n size = 3072
-    /// alpha size = 512
-    pub fn sample_other_128() -> Self {
-        Self {
-            ek: EncryptionKey::sample_other_128(),
-            p: BigInt::from_str_radix("7f5ce3b876921640163238046012d27fb609e104ce9a22d7f24aeab51c0ec2d0c161749dc16313cdae28d162af06b53543564daf9dde07cb5a0c485d6e9bfd1dddfc0641c5659f0fef49211c80ab737b8a2b0ae82b12ce6ee5a37276f9a92ee36f5b904fed4665124db9da94bb0bf04837e3e18cfd91712781619a04b2c04a98afffb49c9ed9c597e69244ca1f5706af4db9db5b7a2956c7047c41f1376f4ccd3ead9189402d8931d17446a58399281450979c1ffe05f9daced1ad8dcd0217b7", 16).unwrap(),
-            q: BigInt::from_str_radix("5ef86beb18f471ab0b9ec6af26cbfd7559af912b7e7c8ce49bdd95e86fc714499d783ff6489f5be113b9ec898e89900fcd2280e1167735cfb425fc5a8b2ff02ada3bc109e6549fa211adb9418747027210e7c4056645063fff039a5be2f90b4572ad767486e53ca34cdd8136bc04327f11f644ad23bee9bd4225c2dce5765ec3be2604321a079150442adb2ac84ecd0812374b8e45e153e7564df8073894a0ba6db5301edc7e8abd80559a3437bf991bcc0e1adba8e3c55423a5a6ac70c0574b", 16).unwrap(),
-            alpha: BigInt::from_str_radix("6bc94d0c3d9d7ef71268794410a5089be5e357c791cf38e979c76a9934aa94d7336964cfd869a54a448e825b18e9ed1a33454f112948893778bce98816c3e631", 16).unwrap(),
+    fn h_pow_n_residues(&self) -> HPowN {
+        HPowN {
+            pp: reduce(self.ek.h_pow_n(), self.crt.pp.modulus()),
+            qq: reduce(self.ek.h_pow_n(), self.crt.qq.modulus()),
         }
     }
 }
@@ -298,45 +340,63 @@ impl DecryptionKey {
     /// Decrypts the ciphertext, returns plaintext in `{-N/2, .., N_2}`
     ///
     /// plaintext = L(c^(2*alpha) mod N^2, N) * (2*alpha)^{-1} mod N
-    /// where: L(u, N) = (u - 1) / N (mod)
+    /// where: L(u, N) = (u - 1) / N
+    ///
+    /// computed modulo `p²` and `q²`: `m = L_p(c^(2α) mod p²)·(2α·q)^-1 mod p` (same for `q`),
+    /// then CRT. Returns an error if `c^(2α) ≠ 1 (mod n)`, i.e. if `c` is not an encryption
+    /// under this key (this includes `c` not coprime with `n`).
     pub fn decrypt(&self, c: &Ciphertext) -> Result<Plaintext, Error> {
-        let two_alpha = BigInt::from(2) * &self.alpha;
-
-        // L(c^(2*alpha) mod N^2, N)
-        let u = c
-            .clone()
-            .modpow_ext(&two_alpha, self.nn())
-            .ok_or(Bug::PowModUndef)?;
-        // TODO: do we need to check u % N^2 == 1?
-        // assert_eq!(u.clone() % self.nn(), Integer::from(1);
-
-        let l = (u - 1) / self.n();
-
-        // (2 * alpha)^{-1} mod N
-        let two_alpha_inv = two_alpha.modinv(self.n()).ok_or(Bug::InvertUndef)?;
-
-        // plaintext = L(c^(2*alpha) mod N^2, N) * (2*alpha)^{-1} mod N
-        let plaintext = ((&l * &two_alpha_inv) as BigInt).mod_floor(self.n());
-
-        // make sure plaintext is positive
-        if plaintext > *self.half_n() {
-            Ok(plaintext - self.n())
+        let crt = &self.crt;
+        let m_p = Self::decrypt_factor(&crt.pp, &crt.p, &crt.dec_p, &crt.two_alpha, c)?;
+        let m_q = Self::decrypt_factor(&crt.qq, &crt.q, &crt.dec_q, &crt.two_alpha, c)?;
+        // m = m_p + p·((m_q - m_p)·p^-1 mod q)
+        let diff = (m_q + &crt.q - (&m_p % &crt.q)) % &crt.q;
+        let m = BigInt::from((diff * &crt.p_inv_q) % &crt.q * &crt.p + m_p);
+        if m > *self.ek.half_n() {
+            Ok(m - self.ek.n())
         } else {
-            Ok(plaintext)
+            Ok(m)
         }
     }
 
-    /// Encrypts a plaintext `x` in `{-N/2, .., N/2}` with `nonce` from `Z*_n`
-    ///
-    /// It uses the fact that factorization of `N` is known to speed up encryption.
-    ///
-    /// Returns error if inputs are not in specified range
-    pub fn encrypt_with(&self, x: &Plaintext, nonce: &Nonce) -> Result<Ciphertext, Error> {
-        // TODO: encrypt using Chinese Remainder Theorem
+    /// `L_p(c^(2α) mod p²)·(2α·q)^-1 mod p`
+    fn decrypt_factor(
+        pp: &Montgomery,
+        p: &BigUint,
+        dec_p: &BigUint,
+        two_alpha: &BigInt,
+        c: &BigInt,
+    ) -> Result<BigUint, Error> {
+        let u = pp.pow(&reduce(c, pp.modulus()), two_alpha.magnitude());
+        if u.is_zero() {
+            return Err(Reason::Decrypt.into());
+        }
+        let (l, rem) = (u - 1u8).div_rem(p);
+        if !rem.is_zero() {
+            return Err(Reason::Decrypt.into());
+        }
+        Ok((l * dec_p) % p)
+    }
 
-        self.ek
-            .encrypt_with(x, nonce)
-            .map_err(|_| Error(Reason::Bug(Bug::PowModUndef)))
+    /// Encrypts a plaintext `x` in `{-N/2, .., N/2}` with `nonce` (any integer, negative allowed)
+    ///
+    /// It uses the factorization of `N`: the nonce is reduced modulo `2·alpha` (the order of
+    /// `h_pow_n` divides it) and the exponentiation runs modulo `p²` and `q²`. The result is
+    /// identical to [`EncryptionKey::encrypt_with`].
+    ///
+    /// Returns error if `x` is not in the specified range
+    pub fn encrypt_with(&self, x: &Plaintext, nonce: &Nonce) -> Result<Ciphertext, Error> {
+        if !self.ek.in_signed_group(x) {
+            return Err(Reason::Encrypt.into());
+        }
+        let crt = &self.crt;
+        let e = reduce(nonce, crt.two_alpha.magnitude());
+        let h = self.h_pow_n_residues();
+        let g = BigInt::one() + x * self.ek.n();
+        let (pp, qq) = (crt.pp.modulus(), crt.qq.modulus());
+        let c_pp = (reduce(&g, pp) * crt.pp.pow(&h.pp, &e)) % pp;
+        let c_qq = (reduce(&g, qq) * crt.qq.pow(&h.qq, &e)) % qq;
+        Ok(crt.combine_nn(c_pp, c_qq))
     }
 
     /// Encrypts the plaintext `x` in `{-N/2, .., N_2}`
@@ -351,45 +411,36 @@ impl DecryptionKey {
         rng: &mut (impl RngCore + CryptoRng),
         x: &Plaintext,
     ) -> Result<(Ciphertext, Nonce), Error> {
-        // TODO: encrypt using Chinese Remainder Theorem
-
-        self.ek
-            .encrypt_with_random(rng, x)
-            .map_err(|_| Error(Reason::Bug(Bug::PowModUndef)))
+        let nonce = utils::sample_with_size(rng, self.ek.nounce_size());
+        let ciphertext = self.encrypt_with(x, &nonce)?;
+        Ok((ciphertext, nonce))
     }
 
     /// Homomorphic multiplication of scalar at ciphertext
     ///
-    /// It uses the fact that factorization of `N` is known to speed up an operation.
+    /// It uses the fact that factorization of `N` is known to speed up an operation. Accepts and
+    /// rejects exactly the same inputs as [`EncryptionKey::omul`] and returns the same result.
     ///
     /// ```text
     /// omul(a, Enc(c)) = Enc(a * c)
     /// ```
     pub fn omul(&self, scalar: &BigInt, ciphertext: &Ciphertext) -> Result<Ciphertext, Error> {
-        // TODO: omul using Chinese Remainder Theorem
-
-        self.ek.omul(scalar, ciphertext)
+        let crt = &self.crt;
+        let is_unit = |x: &BigInt| !reduce(x, &crt.p).is_zero() && !reduce(x, &crt.q).is_zero();
+        if !is_unit(scalar) || ciphertext.sign() == Sign::Minus || !is_unit(ciphertext) {
+            return Err(Reason::Ops.into());
+        }
+        let c_pp = Crt::pow_unit(&crt.pp, &crt.phi_pp, ciphertext, scalar).ok_or(Reason::Ops)?;
+        let c_qq = Crt::pow_unit(&crt.qq, &crt.phi_qq, ciphertext, scalar).ok_or(Reason::Ops)?;
+        Ok(crt.combine_nn(c_pp, c_qq))
     }
 }
 
-#[cfg(test)]
-mod tests {
-
-    use crate::decryption_key::DecryptionKey;
-    use num_bigint::BigInt;
-    #[test]
-    fn test_sample_decryption_key_112() {
-        let dk = DecryptionKey::sample_112();
-
-        assert_eq!(dk.p().clone() % 4, BigInt::from(3));
-        assert_eq!(dk.q().clone() % 4, BigInt::from(3));
-    }
-
-    #[test]
-    fn test_sample_decryption_key_128() {
-        let dk = DecryptionKey::sample_128();
-
-        assert_eq!(dk.p().clone() % 4, BigInt::from(3));
-        assert_eq!(dk.q().clone() % 4, BigInt::from(3));
+impl fmt::Debug for DecryptionKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // never print the factorization
+        f.debug_struct("DecryptionKey")
+            .field("ek", &self.ek)
+            .finish_non_exhaustive()
     }
 }

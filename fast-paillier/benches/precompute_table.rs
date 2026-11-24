@@ -1,41 +1,21 @@
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use fast_paillier::{precomputed_table::PrecomputeTable, AnyEncryptionKey, EncryptionKey};
-use std::time::Duration;
+use fast_paillier::DecryptionKey;
+use rand_dev::DevRng;
 
-fn calculate_precompute_table(c: &mut Criterion) {
-    let ek = EncryptionKey::sample_128();
-    let pow_size = 512;
+fn build_precompute_table(c: &mut Criterion) {
+    let mut rng = DevRng::new();
+    let dk = DecryptionKey::generate(&mut rng, 3072, 512).unwrap();
+    let ek = dk.encryption_key();
 
     let mut group = c.benchmark_group("precompute_table");
-
-    group
-        .sample_size(10)
-        .measurement_time(Duration::from_secs(336));
-
-    group.bench_function(
-        BenchmarkId::new("caculate_precompute_table_17_512", "sample_128"),
-        |b| {
-            b.iter(|| {
-                let base = ek.h_pow_n().clone();
-                let modulo = ek.nn().clone();
-                let _ = PrecomputeTable::new_dp(base, 17, pow_size, modulo);
-            })
-        },
-    );
-
-    group.bench_function(
-        BenchmarkId::new("caculate_precompute_table_15_512", "sample_128"),
-        |b| {
-            b.iter(|| {
-                let base = ek.h_pow_n().clone();
-                let modulo = ek.nn().clone();
-                let _ = PrecomputeTable::new_dp(base, 15, pow_size, modulo);
-            })
-        },
-    );
-
+    group.sample_size(10);
+    for block_size in [4, 6, 8] {
+        group.bench_function(BenchmarkId::new("build", block_size), |b| {
+            b.iter(|| ek.precompute_table(block_size).unwrap())
+        });
+    }
     group.finish();
 }
 
-criterion_group!(benches, calculate_precompute_table);
+criterion_group!(benches, build_precompute_table);
 criterion_main!(benches);
