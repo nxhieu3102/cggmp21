@@ -1,0 +1,77 @@
+name: Rust
+
+on:
+  pull_request:
+    branches: [ "*" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_NET_GIT_FETCH_WITH_CLI: true
+
+jobs:
+  check-serde:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: "true"
+    - name: Check with serde support
+      run: cargo check --features serde
+  check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: "true"
+    - name: Check
+      run: cargo check
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: "true"
+    - name: Run tests
+      run: cargo test --release --lib
+  doc-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: "true"
+    - name: Run doc tests
+      run: cargo test --release --doc --features __internal_doctest
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: "true"
+    - name: Run clippy
+      run: cargo clippy --lib -- -D clippy::all
+  clippy-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: "true"
+    - name: Run clippy
+      run: cargo clippy --tests -- -D clippy::all
+  check-changelog:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Check changelogs
+      run: ./.github/changelog.sh
