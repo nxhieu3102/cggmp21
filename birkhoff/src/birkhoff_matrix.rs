@@ -1,4 +1,5 @@
 use crate::birkhoff_error::{BirkhoffError, BirkhoffResult};
+use alloc::{vec, vec::Vec};
 use generic_ec::{Curve, NonZero, Scalar};
 
 #[derive(Clone, Debug, PartialEq, Eq)]

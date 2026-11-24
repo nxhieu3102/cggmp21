@@ -74,10 +74,10 @@ fn precompute_paillier_keys() -> Result<()> {
 }
 
 fn precompute_shares_for_curve<E: Curve, R: RngCore + CryptoRng + Send>(
-    rng: &mut R,
+    _rng: &mut R,
     cache: &mut PrecomputedKeyShares,
 ) -> Result<()> {
-    let mut results: Vec<_> = [2, 3, 5, 7, 10]
+    let results: Vec<_> = [2, 3, 5, 7, 10]
         .into_par_iter() // parallel iterator
         .flat_map(|n| {
             let threshold_values = [None, Some(2), Some(3), Some(5), Some(7)];

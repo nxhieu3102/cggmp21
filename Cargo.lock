@@ -180,12 +180,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
-name = "az"
-version = "1.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b7e4c2464d97fe331d41de9d5db0def0a96f4d823b8b32a2efd503578988973"
-
-[[package]]
 name = "backtrace"
 version = "0.3.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -243,7 +237,7 @@ dependencies = [
 name = "birkhoff"
 version = "0.1.0"
 dependencies = [
- "generic-ec 0.4.5 (git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21)",
+ "generic-ec",
  "generic-ec-zkp",
  "pretty_assertions",
  "rand_core",
@@ -307,26 +301,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7575182f7272186991736b70173b0ea045398f984bf5ebbb3804736ce1330c9d"
 
 [[package]]
-name = "bytemuck"
-version = "1.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9134a6ef01ce4b366b50689c94f82c14bc72bc5d0386829828a2e2752ef7958c"
-dependencies = [
- "bytemuck_derive",
-]
-
-[[package]]
-name = "bytemuck_derive"
-version = "1.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ecc273b49b3205b83d648f0690daa588925572cc5063745bfe547fe7ec8e1a1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.101",
-]
-
-[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -363,18 +337,19 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "cggmp21"
 version = "0.6.0"
 dependencies = [
- "anyhow",
  "birkhoff",
  "cggmp21-keygen",
  "digest",
  "futures",
- "futures-channel",
- "generic-ec 0.4.5 (git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21)",
+ "generic-ec",
  "generic-ec-zkp",
  "generic-tests",
  "hd-wallet",
  "hex",
  "key-share",
+ "num-bigint 0.4.6",
+ "num-integer",
+ "num-traits",
  "paillier-zk",
  "rand",
  "rand_core",
@@ -385,7 +360,6 @@ dependencies = [
  "serde_with 2.3.3",
  "sha2",
  "thiserror 1.0.69",
- "tokio",
  "udigest",
 ]
 
@@ -397,7 +371,7 @@ dependencies = [
  "digest",
  "displaydoc",
  "futures-util",
- "generic-ec 0.4.5 (git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21)",
+ "generic-ec",
  "generic-ec-zkp",
  "hd-wallet",
  "hex",
@@ -419,9 +393,8 @@ dependencies = [
  "bpaf",
  "cggmp21",
  "ciborium",
- "criterion",
  "futures",
- "generic-ec 0.4.5 (git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21)",
+ "generic-ec",
  "hex",
  "include_dir",
  "lazy_static",
@@ -440,6 +413,26 @@ dependencies = [
  "starknet-providers",
  "starknet-signers",
  "url",
+]
+
+[[package]]
+name = "cggmp21-wasm"
+version = "0.1.0"
+dependencies = [
+ "cggmp21",
+ "ciborium",
+ "getrandom",
+ "js-sys",
+ "k256",
+ "rand_core",
+ "round-based",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_bytes",
+ "serde_json",
+ "sha2",
+ "thiserror 1.0.69",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -782,6 +775,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292"
 dependencies = [
  "block-buffer",
+ "const-oid",
  "crypto-common",
  "subtle",
 ]
@@ -795,6 +789,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.101",
+]
+
+[[package]]
+name = "ecdsa"
+version = "0.16.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee27f32b5c5292967d2d4a9d7f1e0b0aed2c15daded5a60300e4abb9d8020bca"
+dependencies = [
+ "der",
+ "digest",
+ "elliptic-curve",
+ "rfc6979",
+ "signature",
 ]
 
 [[package]]
@@ -913,11 +920,14 @@ dependencies = [
 [[package]]
 name = "fast-paillier"
 version = "0.1.0"
-source = "git+https://github.com/nxhieu3102/fast-paillier#7178bea7eaa313b4caafa1bc8a155b4fbfa1bcb8"
 dependencies = [
- "bytemuck",
+ "criterion",
+ "num-bigint 0.4.6",
+ "num-integer",
+ "num-traits",
+ "rand",
  "rand_core",
- "rug",
+ "rand_dev",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
@@ -1106,23 +1116,10 @@ version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8de1099ac0b4d87261d67ff5d4ed400af617a1da40b58908d759b9cf5fd8ed27"
 dependencies = [
- "generic-ec-core 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "generic-ec-curves 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "phantom-type 0.4.2",
- "rand_core",
- "subtle",
- "zeroize",
-]
-
-[[package]]
-name = "generic-ec"
-version = "0.4.5"
-source = "git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21#b85f6874005f09db75259d3bb35943c5ffae610e"
-dependencies = [
  "curve25519-dalek",
  "digest",
- "generic-ec-core 0.2.3 (git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21)",
- "generic-ec-curves 0.2.4 (git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21)",
+ "generic-ec-core",
+ "generic-ec-curves",
  "hex",
  "phantom-type 0.4.2",
  "rand_core",
@@ -1142,17 +1139,6 @@ checksum = "dcba5fdf70cc3ce5805c487f8523b4ceeb32e8ec5237c71ffd93c1ca47a97fee"
 dependencies = [
  "generic-array",
  "rand_core",
- "subtle",
- "zeroize",
-]
-
-[[package]]
-name = "generic-ec-core"
-version = "0.2.3"
-source = "git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21#b85f6874005f09db75259d3bb35943c5ffae610e"
-dependencies = [
- "generic-array",
- "rand_core",
  "serde",
  "subtle",
  "zeroize",
@@ -1164,25 +1150,9 @@ version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c7c6d23001a5eb60eec2b785a63d2ca965fdfbaf3314b3b46df047398369e28"
 dependencies = [
- "elliptic-curve",
- "generic-ec-core 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "k256",
- "p256",
- "rand_core",
- "sha2",
- "stark-curve",
- "subtle",
- "zeroize",
-]
-
-[[package]]
-name = "generic-ec-curves"
-version = "0.2.4"
-source = "git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21#b85f6874005f09db75259d3bb35943c5ffae610e"
-dependencies = [
  "curve25519-dalek",
  "elliptic-curve",
- "generic-ec-core 0.2.3 (git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21)",
+ "generic-ec-core",
  "group",
  "k256",
  "p256",
@@ -1196,11 +1166,12 @@ dependencies = [
 [[package]]
 name = "generic-ec-zkp"
 version = "0.4.4"
-source = "git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21#b85f6874005f09db75259d3bb35943c5ffae610e"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd3945c585fdddba3f86bda4e4cfba22d5e255001b3e145c9db305ad096c6d88"
 dependencies = [
  "digest",
  "generic-array",
- "generic-ec 0.4.5 (git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21)",
+ "generic-ec",
  "rand_core",
  "serde",
  "subtle",
@@ -1236,16 +1207,6 @@ name = "gimli"
 version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "07e28edb80900c19c28f1072f2e8aeca7fa06b23cd4169cefe1af5aa3260783f"
-
-[[package]]
-name = "gmp-mpfr-sys"
-version = "1.6.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c66d61197a68f6323b9afa616cf83d55d69191e1bf364d4eb7d35ae18defe776"
-dependencies = [
- "libc",
- "windows-sys 0.59.0",
-]
 
 [[package]]
 name = "group"
@@ -1306,7 +1267,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6522551bb35937363845f39a6d4c49e60bdb35a8f7154ebdd078cab50be97992"
 dependencies = [
  "generic-array",
- "generic-ec 0.4.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "generic-ec",
  "hmac",
  "sha2",
  "subtle",
@@ -1719,7 +1680,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f6e3919bbaa2945715f0bb6d3934a173d1e9a59ac23767fbaaef277265a7411b"
 dependencies = [
  "cfg-if",
+ "ecdsa",
  "elliptic-curve",
+ "sha2",
 ]
 
 [[package]]
@@ -1737,7 +1700,7 @@ version = "0.6.0"
 dependencies = [
  "birkhoff",
  "displaydoc",
- "generic-ec 0.4.5 (git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21)",
+ "generic-ec",
  "generic-ec-zkp",
  "hd-wallet",
  "hex",
@@ -1759,12 +1722,6 @@ name = "libc"
 version = "0.2.172"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d750af042f7ef4f724306de029d18836c26c1765a54a6a3f094cbd23a7267ffa"
-
-[[package]]
-name = "libm"
-version = "0.2.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
 
 [[package]]
 name = "litemap"
@@ -1839,6 +1796,8 @@ checksum = "a5e44f723f1133c9deac646763579fdb3ac745e418f2a7af9cd0c431da1f20b9"
 dependencies = [
  "num-integer",
  "num-traits",
+ "rand",
+ "serde",
 ]
 
 [[package]]
@@ -1905,7 +1864,7 @@ dependencies = [
  "cggmp21",
  "futures",
  "futures-channel",
- "generic-ec 0.4.5 (git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21)",
+ "generic-ec",
  "rand",
  "round-based",
  "serde",
@@ -1917,18 +1876,25 @@ dependencies = [
 [[package]]
 name = "paillier-zk"
 version = "0.4.2"
-source = "git+https://github.com/nxhieu3102/paillier-zk#34037b29015b1787b41135dd73e70f2fa7e7a454"
 dependencies = [
+ "anyhow",
  "digest",
  "fast-paillier",
- "generic-ec 0.4.5 (git+https://github.com/nxhieu3102/generic-ec.git?branch=feat%2Fintegrate-cggmp21)",
+ "generic-ec",
+ "num-bigint 0.4.6",
+ "num-integer",
+ "num-traits",
  "rand_core",
+ "rand_dev",
  "rand_hash",
- "rug",
  "serde",
+ "serde_json",
  "serde_with 3.12.0",
+ "sha2",
+ "subtle",
  "thiserror 1.0.69",
  "udigest",
+ "zeroize",
 ]
 
 [[package]]
@@ -2371,19 +2337,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rug"
-version = "1.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4207e8d668e5b8eb574bda8322088ccd0d7782d3d03c7e8d562e82ed82bdcbc3"
-dependencies = [
- "az",
- "gmp-mpfr-sys",
- "libc",
- "libm",
- "serde",
-]
-
-[[package]]
 name = "rustc-demangle"
 version = "0.1.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2533,22 +2486,53 @@ checksum = "56e6fa9c48d24d85fb3de5ad847117517440f6beceb7798af16b4a87d616b8d0"
 
 [[package]]
 name = "serde"
-version = "1.0.219"
+version = "1.0.229"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f0e2c6ed6606019b4e29e69dbaba95b11854410e5347d525002456dbbb786b6"
+checksum = "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba"
+dependencies = [
+ "serde_core",
+ "serde_derive",
+]
+
+[[package]]
+name = "serde-wasm-bindgen"
+version = "0.6.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8302e169f0eddcc139c70f139d19d6467353af16f9fce27e8c30158036a1e16b"
+dependencies = [
+ "js-sys",
+ "serde",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "serde_bytes"
+version = "0.11.19"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5d440709e79d88e51ac01c4b72fc6cb7314017bb7da9eeff678aa94c10e3ea8"
+dependencies = [
+ "serde",
+ "serde_core",
+]
+
+[[package]]
+name = "serde_core"
+version = "1.0.229"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.219"
+version = "1.0.229"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
+checksum = "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.101",
+ "syn 3.0.10",
 ]
 
 [[package]]
@@ -2684,6 +2668,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9203b8055f63a2a00e2f593bb0510367fe707d7ff1e5c872de2f537b339e5410"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "signature"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77549399552de45a898a580c1b41d445bf730df867cc44e6c0233bbc4b8329de"
+dependencies = [
+ "digest",
+ "rand_core",
 ]
 
 [[package]]
@@ -2886,6 +2880,17 @@ name = "syn"
 version = "2.0.101"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ce2b7fc941b3a24138a0a7cf8e858bfc6a992e7978a068a5c760deb0ed43caf"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
+
+[[package]]
+name = "syn"
+version = "3.0.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ae9ccbea3a7b0b09443036490c8f34a8b1b760fd345e5c0dae0aac718faea79"
 dependencies = [
  "proc-macro2",
  "quote",

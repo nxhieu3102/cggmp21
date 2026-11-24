@@ -1,5 +1,8 @@
-// cargo run --bin measure_perf > logs/measure-perf/yymmdd_hhhmm.txt
-// example: cargo run --bin measure_perf > logs/measure-perf/250418_14h10.txt
+// Bigint code is ~50x slower in debug builds; always measure in release:
+// cargo run --release --bin measure_perf > logs/measure-perf/yymmdd_hhhmm.txt
+
+// Key share validation errors carry the rejected shares; size is irrelevant for a benchmark tool
+#![allow(clippy::result_large_err)]
 
 use anyhow::Context;
 use cggmp21::{
@@ -468,5 +471,5 @@ cggmp21::define_security_level!(CustomSecLevel {
     m = 128,
     n_size = 3072,
     a_size = 512,
-    q = cggmp21::rug::Integer::ONE.clone() << 128,
+    q = cggmp21::num_bigint::BigInt::from(1) << 128,
 });

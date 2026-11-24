@@ -39,7 +39,7 @@ async fn display_node_info<M>(node: &Node<M>) {
     }
 
     println!("Connected peers:");
-    for (addr, _) in node.peers.read().await.iter() {
+    for addr in node.peers.read().await.keys() {
         println!("  Peer address: {}", addr);
     }
     println!("=========================");
@@ -56,7 +56,7 @@ async fn main() -> Result<()> {
 
     // Load the node configuration
     let config =
-        load_config(&args[1]).context(format!("Failed to load config from {}", &args[1]))?;
+        load_config(&args[1]).context(format!("Failed to load config from {}", args[1]))?;
 
     // Set up the P2P network
     println!("Initializing P2P network node...");

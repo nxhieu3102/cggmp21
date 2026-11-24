@@ -1,5 +1,6 @@
 use generic_ec::{Curve, Scalar};
-use paillier_zk::rug::{self, Integer};
+use num_bigint::{BigInt, Sign};
+use num_traits::{One, Signed};
 use paillier_zk::{
     batch_paillier_affine_operation_in_range as pi_aff_batch,
     batch_paillier_encryption_in_range_with_el_gamal as pi_enc_el_gamal_batch,
@@ -9,11 +10,9 @@ use round_based::{MsgId, PartyIndex};
 
 use crate::security_level::SecurityLevel;
 
-pub use paillier_zk::fast_paillier::utils::external_rand;
-
-/// Converts `&Scalar<E>` into Integer
-pub fn scalar_to_bignumber<E: Curve>(scalar: impl AsRef<Scalar<E>>) -> Integer {
-    Integer::from_digits(&scalar.as_ref().to_be_bytes(), rug::integer::Order::Msf)
+/// Converts `&Scalar<E>` into BigInt
+pub fn scalar_to_bignumber<E: Curve>(scalar: impl AsRef<Scalar<E>>) -> BigInt {
+    BigInt::from_bytes_be(Sign::Plus, &scalar.as_ref().to_be_bytes())
 }
 
 pub struct SecurityParams {
@@ -29,13 +28,13 @@ impl SecurityParams {
                 l_y: L::ELL_PRIME,
                 epsilon: L::EPSILON,
                 q: L::q(),
-                t: 128,
+                t: crate::security_level::BATCH_T,
             },
             pi_enc_el_gamal_batch: pi_enc_el_gamal_batch::SecurityParams {
                 l: L::ELL,
                 epsilon: L::EPSILON,
                 q: L::q(),
-                t: 128,
+                t: crate::security_level::BATCH_T,
             },
         }
     }
@@ -156,13 +155,12 @@ pub fn but_nth<T, I: IntoIterator<Item = T>>(n: u16, iter: I) -> impl Iterator<I
         .map(|(_, x)| x)
 }
 
-/// Binary search for rounded down square root. For non-positive numbers returns
-/// one
-pub fn sqrt(x: &Integer) -> Integer {
-    if x.cmp0().is_le() {
-        Integer::ONE.clone()
+/// Rounded down square root. For non-positive numbers returns one
+pub fn sqrt(x: &BigInt) -> BigInt {
+    if x.is_positive() {
+        x.sqrt()
     } else {
-        x.sqrt_ref().into()
+        BigInt::one()
     }
 }
 
@@ -192,6 +190,26 @@ pub fn subset<T: Clone, I: Into<usize> + Copy>(indexes: &[I], list: &[T]) -> Opt
         .collect()
 }
 
+/// [`serde_with`] adapter serializing [`BigInt`] in the canonical
+/// [`serializable_bigint`](paillier_zk::fast_paillier::utils::serde_wrapper::serializable_bigint) format
+pub struct SerdeBigInt;
+
+impl serde_with::SerializeAs<BigInt> for SerdeBigInt {
+    fn serialize_as<S: serde::Serializer>(x: &BigInt, serializer: S) -> Result<S::Ok, S::Error> {
+        paillier_zk::fast_paillier::utils::serde_wrapper::serializable_bigint::serialize(
+            x, serializer,
+        )
+    }
+}
+
+impl<'de> serde_with::DeserializeAs<'de, BigInt> for SerdeBigInt {
+    fn deserialize_as<D: serde::Deserializer<'de>>(deserializer: D) -> Result<BigInt, D::Error> {
+        paillier_zk::fast_paillier::utils::serde_wrapper::serializable_bigint::deserialize(
+            deserializer,
+        )
+    }
+}
+
 /// Generates **unsafe** blum primes
 ///
 /// Blum primes are faster to generate than safe primes, and they don't break correctness of CGGMP protocol.
@@ -199,13 +217,11 @@ pub fn subset<T: Clone, I: Into<usize> + Copy>(indexes: &[I], list: &[T]) -> Opt
 ///
 /// Only supposed to be used in the tests.
 #[cfg(test)]
-pub fn generate_blum_prime(rng: &mut impl rand_core::RngCore, bits_size: u32) -> Integer {
+pub fn generate_blum_prime(rng: &mut impl rand_core::RngCore, bits_size: u32) -> BigInt {
     loop {
-        let mut n: Integer = Integer::random_bits(bits_size, &mut external_rand(rng)).into();
-        n.set_bit(bits_size - 1, true);
-        n.next_prime_mut();
-
-        if n.mod_u(4) == 3 {
+        let mut n = paillier_zk::fast_paillier::utils::sample_odd_with_size(rng, bits_size);
+        n.set_bit(1, true);
+        if paillier_zk::fast_paillier::utils::is_prime(&n) {
             break n;
         }
     }
@@ -213,29 +229,18 @@ pub fn generate_blum_prime(rng: &mut impl rand_core::RngCore, bits_size: u32) ->
 
 /// Unambiguous encoding for different types for which it was not defined
 pub mod encoding {
-    use paillier_zk::fast_paillier::AnyEncryptionKey;
-    use paillier_zk::rug;
+    use udigest::DigestAs;
 
-    pub struct Integer;
-    impl udigest::DigestAs<rug::Integer> for Integer {
-        fn digest_as<B: udigest::Buffer>(
-            x: &rug::Integer,
-            encoder: udigest::encoding::EncodeValue<B>,
-        ) {
-            encoder.encode_leaf_value(x.to_digits(rug::integer::Order::Msf))
-        }
-    }
+    /// Sign-aware canonical integer encoding shared with `paillier-zk` transcripts
+    pub use paillier_zk::encoding::BigInt as Integer;
 
     pub struct EncryptionKey;
-    impl udigest::DigestAs<paillier_zk::fast_paillier::EncryptionKey> for EncryptionKey {
+    impl DigestAs<paillier_zk::fast_paillier::EncryptionKey> for EncryptionKey {
         fn digest_as<B: udigest::Buffer>(
             x: &paillier_zk::fast_paillier::EncryptionKey,
             encoder: udigest::encoding::EncodeValue<B>,
         ) {
-            // Encode as a structured sequence of fields
             let mut encoder = encoder.encode_struct();
-
-            // Encode unsigned integer fields
             encoder
                 .add_field("n_size")
                 .encode_leaf_value(x.n_size().to_be_bytes());
@@ -245,27 +250,10 @@ pub mod encoding {
             encoder
                 .add_field("nounce_size")
                 .encode_leaf_value(x.nounce_size().to_be_bytes());
-
-            // Encode rug::Integer fields using most-significant-first byte order
-            encoder
-                .add_field("h")
-                .encode_leaf_value(x.h().to_digits(rug::integer::Order::Msf));
-            encoder
-                .add_field("n")
-                .encode_leaf_value(x.n().to_digits(rug::integer::Order::Msf));
-            encoder
-                .add_field("nn")
-                .encode_leaf_value(x.nn().to_digits(rug::integer::Order::Msf));
-            encoder
-                .add_field("h_pow_n")
-                .encode_leaf_value(x.h_pow_n().to_digits(rug::integer::Order::Msf));
-            encoder
-                .add_field("half_n")
-                .encode_leaf_value(x.half_n().to_digits(rug::integer::Order::Msf));
-            encoder
-                .add_field("neg_half_n")
-                .encode_leaf_value(x.neg_half_n().to_digits(rug::integer::Order::Msf));
-
+            // Remaining fields (`nn`, `half_n`, ...) are derived from `n` and `h`
+            Integer::digest_as(x.h(), encoder.add_field("h"));
+            Integer::digest_as(x.n(), encoder.add_field("n"));
+            Integer::digest_as(x.h_pow_n(), encoder.add_field("h_pow_n"));
             encoder.finish()
         }
     }
@@ -273,33 +261,35 @@ pub mod encoding {
 
 #[cfg(test)]
 mod test {
-    use paillier_zk::rug::Complete;
+    use num_bigint::BigInt;
+    use num_traits::One;
 
     #[test]
     fn test_sqrt() {
-        use super::{sqrt, Integer};
-        assert_eq!(sqrt(&Integer::from(-5)), Integer::from(1));
-        assert_eq!(sqrt(&Integer::from(1)), Integer::from(1));
-        assert_eq!(sqrt(&Integer::from(2)), Integer::from(1));
-        assert_eq!(sqrt(&Integer::from(3)), Integer::from(1));
-        assert_eq!(sqrt(&Integer::from(4)), Integer::from(2));
-        assert_eq!(sqrt(&Integer::from(5)), Integer::from(2));
-        assert_eq!(sqrt(&Integer::from(6)), Integer::from(2));
-        assert_eq!(sqrt(&Integer::from(7)), Integer::from(2));
-        assert_eq!(sqrt(&Integer::from(8)), Integer::from(2));
-        assert_eq!(sqrt(&Integer::from(9)), Integer::from(3));
-        assert_eq!(sqrt(&(Integer::from(1) << 1024)), Integer::from(1) << 512);
+        use super::sqrt;
+        for (x, expected) in [
+            (-5, 1),
+            (0, 1),
+            (1, 1),
+            (2, 1),
+            (3, 1),
+            (4, 2),
+            (5, 2),
+            (8, 2),
+            (9, 3),
+        ] {
+            assert_eq!(sqrt(&BigInt::from(x)), BigInt::from(expected), "sqrt({x})");
+        }
+        assert_eq!(sqrt(&(BigInt::one() << 1024)), BigInt::one() << 512);
 
-        let modulo = (Integer::ONE << 1024_u32).complete();
+        let modulo = BigInt::one() << 1024;
         let mut rng = rand_dev::DevRng::new();
         for _ in 0..100 {
-            let x = modulo
-                .random_below_ref(&mut super::external_rand(&mut rng))
-                .into();
+            let x = num_bigint::RandBigInt::gen_bigint_range(&mut rng, &BigInt::from(0), &modulo);
             let root = sqrt(&x);
-            assert!(root.square_ref().complete() <= x);
+            assert!(&root * &root <= x);
             let root = root + 1u8;
-            assert!(root.square_ref().complete() > x);
+            assert!(&root * &root > x);
         }
     }
 }

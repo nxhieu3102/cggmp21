@@ -265,3 +265,36 @@ Feel free to reach out to us [in Discord]!
 [in Discord]: https://discordapp.com/channels/905194001349627914/1285268686147424388
 
 <!-- cargo-rdme end -->
+
+## Pure-Rust bigint backend and WebAssembly
+
+This fork has no GMP dependency: big integers are `num-bigint`, and every modular exponentiation
+goes through the in-house Montgomery kernel `fast_paillier::mont` (`u64` limbs natively, `u32`
+limbs + `simd128` on wasm32). `fast-paillier/` and `paillier-zk/` are vendored workspace crates.
+The whole stack builds for `wasm32-unknown-unknown`.
+
+Measurements (release builds, n = 3, Apple M1 Pro):
+
+| | rug/GMP (branch `m`) | pure Rust |
+|---|---|---|
+| Aux info, native | 6.82 s | 4.71 s |
+| Signing, native | 724 ms | 475 ms |
+| Paillier key generation (3072/512), native | not measured (old num-bigint port: > 56 min, aborted) | 0.38 s |
+| Aux info, browser, one Web Worker per party | — | 8.6–10.9 s |
+| Signing, browser | — | 0.43–0.57 s |
+
+Always benchmark with `--release`: bigint code is roughly 50× slower in debug builds.
+
+### Browser demo
+
+`cggmp21-wasm/` drives the original protocols through `round_based::state_machine`; `demo/` runs
+each party in its own Web Worker and routes messages on the main thread.
+
+```bash
+cargo install wasm-pack
+./cggmp21-wasm/build.sh                  # builds demo/pkg
+python3 -m http.server -d demo 8080      # open http://localhost:8080
+```
+
+All parties run in one tab for demonstration only. Real deployments need authenticated, encrypted
+channels and a reliable broadcast between parties.

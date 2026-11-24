@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![no_std]
+// Matrix algorithms read clearer with explicit row/column indices
+#![allow(clippy::needless_range_loop)]
+
+extern crate alloc;
+
 pub mod birkhoff_coefficient;
 pub mod birkhoff_error;
 pub mod birkhoff_matrix;

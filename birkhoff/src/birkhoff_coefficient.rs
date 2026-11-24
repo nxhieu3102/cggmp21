@@ -1,3 +1,4 @@
+use alloc::{vec, vec::Vec};
 use generic_ec::{Curve, NonZero, Scalar};
 
 use crate::birkhoff_error::{BirkhoffError, BirkhoffResult};

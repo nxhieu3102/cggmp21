@@ -2,12 +2,10 @@ use digest::Digest;
 use futures::SinkExt;
 use generic_ec::{Curve, NonZero, Point, Scalar, SecretScalar};
 use generic_ec_zkp::schnorr_pok;
+use num_bigint::BigInt;
 use paillier_zk::{
-    fast_paillier,
-    no_small_factor::non_interactive as π_fac,
-    paillier_blum_modulus as π_mod,
-    rug::{Complete, Integer},
-    IntegerExt,
+    fast_paillier, no_small_factor::non_interactive as π_fac, paillier_blum_modulus as π_mod,
+    BigIntExt,
 };
 use rand_core::{CryptoRng, RngCore};
 use round_based::ProtocolMessage;
@@ -78,16 +76,19 @@ pub struct MsgRound2<E: Curve, L: SecurityLevel> {
     pub sch_commits_a: Vec<schnorr_pok::Commit<E>>,
     /// $N_i$
     #[udigest(as = utils::encoding::Integer)]
-    pub N: Integer,
+    #[serde(with = "fast_paillier::utils::serde_wrapper::serializable_bigint")]
+    pub N: BigInt,
     /// $Paillier enc$
     #[udigest(as = utils::encoding::EncryptionKey)]
     pub enc: fast_paillier::EncryptionKey,
     /// $s_i$
     #[udigest(as = utils::encoding::Integer)]
-    pub s: Integer,
+    #[serde(with = "fast_paillier::utils::serde_wrapper::serializable_bigint")]
+    pub s: BigInt,
     /// $t_i$
     #[udigest(as = utils::encoding::Integer)]
-    pub t: Integer,
+    #[serde(with = "fast_paillier::utils::serde_wrapper::serializable_bigint")]
+    pub t: BigInt,
     /// $\hat \psi_i$
     // this should be L::M instead, but no rustc support yet
     pub params_proof: π_prm::Proof<{ crate::security_level::M }>,
@@ -114,7 +115,8 @@ pub struct MsgRound3<E: Curve> {
     /// $\phi_i^j$
     pub fac_proof: π_fac::Proof,
     /// $C_i^j$
-    pub C: Integer,
+    #[serde(with = "fast_paillier::utils::serde_wrapper::serializable_bigint")]
+    pub C: BigInt,
     /// $\psi_i^k$
     ///
     /// Here in the paper you only send one proof, but later they require you to
@@ -228,8 +230,7 @@ where
     let PregeneratedPaillierKey { dec, .. } = pregenerated;
     let p = dec.p();
     let q = dec.q();
-    let N = (p * q).complete();
-    let phi_N = (p - 1u8).complete() * (q - 1u8).complete();
+    let N = p * q;
 
     // *x_i* in paper
     tracer.stage("Generate secret x_i and public X_i");
@@ -248,12 +249,7 @@ where
         .collect::<Vec<_>>();
 
     tracer.stage("Generate auxiliary params r, λ, t, s");
-    let r = Integer::gen_invertible(&N, rng);
-    let lambda = phi_N
-        .random_below_ref(&mut utils::external_rand(rng))
-        .into();
-    let t = r.square().modulo(&N);
-    let s = t.pow_mod_ref(&lambda, &N).ok_or(Bug::PowMod)?.into();
+    let π_prm::Params { s, t, lambda } = π_prm::Params::generate(rng, p, q).map_err(Bug::PiPrm)?;
 
     tracer.stage("Prove Πprm (ψˆ_i)");
     let hat_psi = π_prm::prove::<{ M }, D>(
@@ -264,7 +260,8 @@ where
             s: &s,
             t: &t,
         },
-        &phi_N,
+        p,
+        q,
         &lambda,
     )
     .map_err(Bug::PiPrm)?;
@@ -403,7 +400,15 @@ where
     // validate parameters and param_proofs
     tracer.stage("Validate П_prm (ψ_i)");
     let blame = collect_blame(&decommitments, &decommitments, |j, d, _| {
-        if !crate::security_level::validate_public_paillier_key_size::<L>(&d.N) {
+        let modulus_reused = d.N == N
+            || decommitments
+                .iter_indexed()
+                .any(|(k, _, other)| k != j && other.N == d.N);
+        if !crate::security_level::validate_public_paillier_key_size::<L>(&d.N)
+            || d.enc.n() != &d.N
+            || modulus_reused
+            || !d.enc.verify_h_pow_n()
+        {
             true
         } else {
             let data = π_prm::Data {
@@ -511,7 +516,7 @@ where
                 n: &N,
                 n_root: &n_sqrt,
             },
-            π_fac::PrivateData { p: &p, q: &q },
+            π_fac::PrivateData { p, q },
             &π_fac_security,
             &mut rng,
         )
@@ -651,7 +656,7 @@ where
 
     // note: `crt` contains private information
     let crt = if build_crt {
-        Some(paillier_zk::fast_paillier::utils::CrtExp::build_n(&p, &q).ok_or(Bug::BuildCrt)?)
+        Some(paillier_zk::fast_paillier::utils::CrtExp::build_n(p, q).ok_or(Bug::BuildCrt)?)
     } else {
         None
     };

@@ -34,6 +34,8 @@ jobs:
         - key-share
         - cggmp21-keygen
         - cggmp21
+        - fast-paillier
+        - paillier-zk
     steps:
     - uses: actions/checkout@v4
     - uses: Swatinem/rust-cache@v2
@@ -53,6 +55,17 @@ jobs:
     - name: Build on wasm32-unknown-unknown (no_std)
       run:
         (cd wasm/no_std && cargo build --target wasm32-unknown-unknown)
+  build-wasm-cggmp21:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: Swatinem/rust-cache@v2
+      with:
+        cache-on-failure: "true"
+    - name: Install wasm32-unknown-unknown toolchain
+      run: rustup target add wasm32-unknown-unknown
+    - name: Build cggmp21-wasm on wasm32-unknown-unknown
+      run: cargo build --release -p cggmp21-wasm --target wasm32-unknown-unknown
 
   # Run tests without HD wallets support
   test:

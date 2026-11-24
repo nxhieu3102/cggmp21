@@ -21,6 +21,9 @@ generic-ec-zkp = { workspace = true, features = ["serde", "udigest"] }
 round-based = { workspace = true, features = ["derive"] }
 
 paillier-zk = { workspace = true, features = ["serde"] }
+num-bigint = { workspace = true, features = ["std", "rand", "serde"] }
+num-integer = { workspace = true, features = ["std"] }
+num-traits = { workspace = true, features = ["std"] }
 udigest = { workspace = true, features = ["std", "derive"]}
 
 digest = { workspace = true }
@@ -29,16 +32,12 @@ rand_core = { workspace = true }
 rand_hash = { workspace = true }
 
 futures = { workspace = true }
-futures-channel = { workspace = true }
 
 serde = { workspace = true, features = ["derive", "rc"] }
 serde_with = { workspace = true }
 hex = { workspace = true, default-features = false, features = ["serde"] }
 
 hd-wallet = { workspace = true, optional = true }
-
-tokio = { version = "1.0", features = ["full"] }
-anyhow = { workspace = true }
 
 thiserror = { workspace = true }
 

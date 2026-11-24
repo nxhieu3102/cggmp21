@@ -25,11 +25,7 @@
 use std::{iter, marker::PhantomData};
 
 use generic_ec::{Curve, NonZero, SecretScalar};
-use paillier_zk::{
-    fast_paillier::{self},
-    rug::{Complete, Integer},
-    IntegerExt,
-};
+use paillier_zk::fast_paillier;
 use rand_core::{CryptoRng, RngCore};
 use thiserror::Error;
 
@@ -38,7 +34,7 @@ use crate::{
         AuxInfo, DirtyAuxInfo, IncompleteKeyShare, InvalidKeyShare, KeyShare, PartyAux, Validate,
     },
     security_level::SecurityLevel,
-    utils,
+    zk::ring_pedersen_parameters as π_prm,
 };
 
 /// Construct a trusted dealer builder
@@ -186,9 +182,11 @@ impl<E: Curve, L: SecurityLevel> TrustedDealerBuilder<E, L> {
         let key_shares = core_key_shares
             .into_iter()
             .zip(aux_data)
-            .map(|(core, aux)| KeyShare::from_parts((core, aux)))
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|err| Reason::InvalidKeyShare(err.into_error()))?;
+            .map(|(core, aux)| {
+                KeyShare::from_parts((core, aux))
+                    .map_err(|err| Reason::InvalidKeyShare(err.into_error()))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(key_shares)
     }
@@ -237,20 +235,11 @@ pub fn generate_aux_data_with_paillier_keys<L: SecurityLevel, R: RngCore + Crypt
     let public_aux_data = pregenerated_paillier_keys
         .iter()
         .map(|dec| {
-            let p = dec.p();
-            let q = dec.q();
-            let N = dec.n();
-
-            let φ_N = (p - 1u8).complete() * (q - 1u8).complete();
-
-            let r = Integer::gen_invertible(&N, rng);
-            let λ = φ_N.random_below_ref(&mut utils::external_rand(rng)).into();
-
-            let t = r.square().modulo(&N);
-            let s = t.pow_mod_ref(&λ, &N).ok_or(Reason::PowMod)?.into();
+            let π_prm::Params { s, t, .. } =
+                π_prm::Params::generate(rng, dec.p(), dec.q()).map_err(Reason::RingPedersen)?;
 
             let mut aux = PartyAux {
-                N: N.clone(),
+                N: dec.n().clone(),
                 enc: dec.encryption_key().clone(),
                 s,
                 t,
@@ -297,8 +286,8 @@ pub struct TrustedDealerError(#[from] Reason);
 enum Reason {
     #[error("trusted dealer failed to generate shares due to internal error")]
     InvalidKeyShare(#[source] InvalidKeyShare),
-    #[error("pow mod undefined")]
-    PowMod,
+    #[error("couldn't generate ring-pedersen parameters")]
+    RingPedersen(#[source] π_prm::ZkError),
     #[error("couldn't build a CRT")]
     BuildCrt(#[source] InvalidKeyShare),
     #[error("couldn't build multiexp tables")]

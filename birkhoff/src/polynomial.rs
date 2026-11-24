@@ -28,9 +28,9 @@
 //! assert_eq!(fourth_derivative, Scalar::<Secp256k1>::zero());
 //! ```
 
+use core::ops;
 use generic_ec::traits::Zero;
 use generic_ec_zkp::polynomial::Polynomial;
-use std::ops;
 
 /// Evaluates nth derivative of polynomial at given point: $f^{(d)}(\text{point})$
 pub trait Derivative<C> {
@@ -111,6 +111,7 @@ impl<C> Derivative<C> for Polynomial<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use alloc::vec;
     use generic_ec::{Point, Scalar, curves};
     use pretty_assertions::assert_eq;
 

@@ -299,18 +299,10 @@
 #![forbid(clippy::disallowed_methods, missing_docs, unsafe_code)]
 #![cfg_attr(not(test), forbid(unused_crate_dependencies))]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-#![allow(unused_extern_crates)]
-
-use anyhow as _;
-use futures_channel as _;
 
 #[cfg(feature = "hd-wallet")]
 pub use hd_wallet;
-pub use {
-    generic_ec, paillier_zk,
-    paillier_zk::{fast_paillier, rug},
-    round_based,
-};
+pub use {generic_ec, num_bigint, paillier_zk, paillier_zk::fast_paillier, round_based};
 
 pub use cggmp21_keygen::{keygen, progress, ExecutionId};
 

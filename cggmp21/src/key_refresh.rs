@@ -66,7 +66,7 @@ impl<L: SecurityLevel> PregeneratedPaillierKey<L> {
 
     /// Generates paillier key. Takes some time.
     pub fn generate<R: RngCore + CryptoRng>(rng: &mut R) -> Result<Self, KeyRefreshError> {
-        let dec = fast_paillier::DecryptionKey::generate(rng, L::N_SIZE as u32, L::A_SIZE as u32)
+        let dec = fast_paillier::DecryptionKey::generate(rng, L::N_SIZE, L::A_SIZE)
             .map_err(|_| KeyRefreshError(Reason::InternalError(Bug::PaillierKeyError)))?;
         Ok(Self {
             dec,
@@ -141,7 +141,7 @@ where
             tracer: None,
             enforce_reliable_broadcast: true,
             precompute_multiexp_tables: false,
-            precompute_crt: false,
+            precompute_crt: true,
             _digest: std::marker::PhantomData,
         }
     }
@@ -211,7 +211,7 @@ where
             tracer: None,
             enforce_reliable_broadcast: true,
             precompute_multiexp_tables: false,
-            precompute_crt: false,
+            precompute_crt: true,
             _digest: std::marker::PhantomData,
         }
     }
@@ -302,10 +302,10 @@ where
         self
     }
 
-    /// Precomputes CRT parameters
+    /// Precomputes CRT parameters (enabled by default)
     ///
     /// Enables optimization of modular exponentiation in Zero-Knowledge proofs validation. Precomputation
-    /// should be relatively fast. It increases size of key share in RAM and on disk, but not noticeably.
+    /// is fast. It increases size of key share in RAM and on disk, but not noticeably.
     ///
     /// Note: CRT parameters contain secret information. Leaking them exposes secret Paillier key. Keep
     /// [`AuxInfo::parties`](crate::key_share::DirtyAuxInfo::parties) secret (as well as rest of the key share).
@@ -354,8 +354,6 @@ enum Bug {
     PiMod(#[source] paillier_zk::Error),
     #[error("couldn't prove a pi fac statement")]
     PiFac(#[source] paillier_zk::Error),
-    #[error("powmod not defined")]
-    PowMod,
     #[error("couldn't prove prm statement")]
     PiPrm(#[source] crate::zk::ring_pedersen_parameters::ZkError),
     #[error("couldn't build multiexp tables")]
