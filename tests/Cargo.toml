@@ -31,8 +31,10 @@ round-based = { workspace = true, features = [
 generic-ec = { workspace = true, features = ["std", "serde", "all-curves"] }
 
 bpaf = "0.7"
-include_dir = "0.7"
-ciborium = "0.2"
+
+# only used by the `precompute_shares` bin
+ciborium = { version = "0.2", optional = true }
+rayon = { version = "1.10", optional = true }
 
 futures = "0.3"
 pin-project = "1"
@@ -46,15 +48,17 @@ secp256k1 = { version = "0.26", features = [
 ] }
 starknet-crypto = { version = "0.6" }
 starknet-core = { version = "0.6" }
-starknet-accounts = { version = "0.5" }
 starknet-providers = { version = "0.6" }
 starknet-signers = { version = "0.4" }
 url = "2.4"
 
-rayon = "1.10"
+[dev-dependencies]
+ciborium = "0.2"
+include_dir = "0.7"
+starknet-accounts = { version = "0.5" }
 
 [features]
-hd-wallet = ["cggmp21/hd-wallet", "cggmp21/hd-slip10", "cggmp21/hd-stark"]
+hd-wallet = ["cggmp21/hd-wallet", "cggmp21/hd-slip10", "cggmp21/hd-stark", "dep:ciborium", "dep:rayon"]
 run-all-tests = []
 
 [[bin]]

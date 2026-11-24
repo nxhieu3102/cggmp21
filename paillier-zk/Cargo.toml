@@ -34,6 +34,9 @@ zeroize = { version = "1.5", default-features = false }
 
 anyhow = { workspace = true }
 serde_json = { workspace = true }
+# Doctests load pregenerated data that needs `__internal_doctest`; enabling it here makes a plain
+# `cargo test` (e.g. from the workspace root) run them
+paillier-zk = { path = ".", features = ["__internal_doctest"] }
 
 [features]
 default = []

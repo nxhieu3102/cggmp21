@@ -1884,6 +1884,7 @@ dependencies = [
  "num-bigint 0.4.6",
  "num-integer",
  "num-traits",
+ "paillier-zk",
  "rand_core",
  "rand_dev",
  "rand_hash",

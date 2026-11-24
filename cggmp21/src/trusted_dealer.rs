@@ -22,7 +22,7 @@
 //! # Ok::<_, cggmp21::trusted_dealer::TrustedDealerError>(())
 //! ```
 
-use std::{iter, marker::PhantomData};
+use std::marker::PhantomData;
 
 use generic_ec::{Curve, NonZero, SecretScalar};
 use paillier_zk::fast_paillier;
@@ -204,15 +204,10 @@ pub fn generate_aux_data<L: SecurityLevel, R: RngCore + CryptoRng>(
     enable_multiexp: bool,
     enable_crt: bool,
 ) -> Result<Vec<AuxInfo<L>>, TrustedDealerError> {
-    // TODO: remove unwrap() here
-    let paillier_keys = iter::repeat_with(|| {
-        crate::key_refresh::PregeneratedPaillierKey::<L>::generate(rng)
-            .unwrap()
-            .dec()
-            .to_owned()
-    })
-    .take(n.into())
-    .collect::<Vec<_>>();
+    let paillier_keys = (0..n)
+        .map(|_| fast_paillier::DecryptionKey::generate(rng, L::N_SIZE, L::A_SIZE))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(Reason::PaillierKeygen)?;
 
     generate_aux_data_with_paillier_keys(rng, paillier_keys, enable_multiexp, enable_crt)
 }
@@ -288,6 +283,8 @@ enum Reason {
     InvalidKeyShare(#[source] InvalidKeyShare),
     #[error("couldn't generate ring-pedersen parameters")]
     RingPedersen(#[source] π_prm::ZkError),
+    #[error("couldn't generate paillier key")]
+    PaillierKeygen(#[source] fast_paillier::Error),
     #[error("couldn't build a CRT")]
     BuildCrt(#[source] InvalidKeyShare),
     #[error("couldn't build multiexp tables")]

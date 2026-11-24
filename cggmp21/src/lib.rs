@@ -70,7 +70,7 @@
 //! # let incoming = futures::stream::pending::<Result<round_based::Incoming<Msg>, std::convert::Infallible>>();
 //! # let outgoing = futures::sink::drain::<round_based::Outgoing<Msg>>();
 //! let delivery = (incoming, outgoing);
-// ! let party = round_based::MpcParty::connected(delivery);
+//! let party = round_based::MpcParty::connected(delivery);
 //! ```
 //!
 //! The concrete networking implementation to use will depend heavily on the specific application.
@@ -305,7 +305,7 @@
 )]
 #![forbid(clippy::disallowed_methods, missing_docs, unsafe_code)]
 #![cfg_attr(not(test), forbid(unused_crate_dependencies))]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 #[cfg(feature = "hd-wallet")]
 pub use hd_wallet;
