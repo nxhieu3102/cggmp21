@@ -16,7 +16,7 @@ define_security_level!(DummyLevel {
     m = 128,
     n_size = 3072,
     a_size = 512,
-    q = (cggmp21::rug::Integer::ONE.clone() << 128) - 1,
+    q = (cggmp21::num_bigint::BigInt::from(1) << 128) - 1,
 });
 
 cggmp21_tests::test_suite! {

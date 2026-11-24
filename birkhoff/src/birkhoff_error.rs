@@ -1,4 +1,4 @@
-use std::fmt;
+use core::fmt;
 
 /// Error types that can occur in the birkhoff crate
 #[derive(Debug, PartialEq, Eq)]
@@ -132,7 +132,7 @@ impl fmt::Display for BirkhoffError {
     }
 }
 
-impl std::error::Error for BirkhoffError {}
+impl core::error::Error for BirkhoffError {}
 
 /// Result type for the birkhoff crate
 pub type BirkhoffResult<T> = Result<T, BirkhoffError>;

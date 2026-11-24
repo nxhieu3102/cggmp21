@@ -13,10 +13,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Install cargo-hakari
-      uses: baptiste0928/cargo-install@v1
+    - name: Install cargo-rdme
+      uses: baptiste0928/cargo-install@v3
       with:
         crate: cargo-rdme
+    - name: Install toolchain cargo-rdme uses for intralinks
+      run: cargo rdme install-rust-toolchain-for-intralinks
     - name: Check that readme matches lib.rs
       run: |
         cp README.md README-copy.md

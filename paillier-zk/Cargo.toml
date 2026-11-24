@@ -1,0 +1,63 @@
+[package]
+name = "paillier-zk"
+version = "0.4.2"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "ZK-proofs for Paillier encryption scheme"
+repository = "https://github.com/LFDT-Lockness/paillier-zk"
+categories = ["algorithms", "cryptography"]
+keywords = ["paillier", "zk-proofs", "zero-knowledge"]
+
+[dependencies]
+generic-ec = { workspace = true, features = ["udigest"] }
+fast-paillier = { workspace = true }
+rand_core = { workspace = true }
+digest = { workspace = true }
+
+rand_hash = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true, features = ["derive"], optional = true }
+serde_with = { version = "3", default-features = false, features = ["macros"], optional = true }
+udigest = { workspace = true, features = ["inline-struct", "derive", "alloc"] }
+num-bigint = { workspace = true, features = ["std", "rand"] }
+num-integer = { workspace = true, features = ["std"] }
+num-traits = { workspace = true, features = ["std"] }
+
+[dev-dependencies]
+generic-ec = { workspace = true, features = ["udigest", "all-curves"] }
+rand_core = { workspace = true, features = ["getrandom"] }
+rand_dev = { workspace = true }
+sha2 = { workspace = true }
+
+subtle = { version = "2.4", default-features = false }
+zeroize = { version = "1.5", default-features = false }
+
+anyhow = { workspace = true }
+serde_json = { workspace = true }
+# Doctests load pregenerated data that needs `__internal_doctest`; enabling it here makes a plain
+# `cargo test` (e.g. from the workspace root) run them
+paillier-zk = { path = ".", features = ["__internal_doctest"] }
+
+[features]
+default = []
+serde = [
+    "dep:serde",
+    "dep:serde_with",
+    "generic-ec/serde",
+    "fast-paillier/serde",
+]
+
+# This features is exlusively used for `cargo test --doc`
+__internal_doctest = ["serde"]
+
+[[example]]
+name = "pregenerate"
+required-features = ["__internal_doctest"]
+
+[[bench]]
+name = "proofs"
+harness = false
+required-features = ["serde"]
+
+[package.metadata.docs.rs]
+all-features = true

@@ -1,0 +1,4 @@
+# 128-bit SIMD enables the vectorized Montgomery kernel in `fast_paillier::mont` (~2x faster
+# modular exponentiation). Supported by Chrome 91+, Firefox 89+, Safari 16.4+, Node 16.4+.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "target-feature=+simd128"]

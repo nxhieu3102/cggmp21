@@ -14,5 +14,7 @@
 - [Differences between the implementation and CGGMP21](#differences-between-the-implementation-and-cggmp21)
 - [Timing attacks](#timing-attacks)
 - [Join us in Discord!](#join-us-in-discord)
+- [Pure-Rust bigint backend and WebAssembly](#pure-rust-bigint-backend-and-webassembly)
+  * [Browser demo](#browser-demo)
 
 <!-- TOC ENDS -->

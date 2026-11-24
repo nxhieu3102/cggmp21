@@ -1,0 +1,35 @@
+[package]
+name = "cggmp21-wasm"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "WebAssembly bindings for CGGMP21 threshold ECDSA: message-driven party sessions over the original protocols"
+repository = "https://github.com/LFDT-Lockness/cggmp21"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+cggmp21 = { workspace = true, features = ["curve-secp256k1"] }
+round-based = { workspace = true, features = ["state-machine"] }
+sha2 = { workspace = true }
+rand_core = { workspace = true, features = ["getrandom"] }
+serde = { workspace = true, features = ["derive", "std"] }
+thiserror = { workspace = true }
+ciborium = "0.2.2"
+serde_bytes = "0.11"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2.100"
+js-sys = "0.3.77"
+serde-wasm-bindgen = "0.6.5"
+# OsRng on wasm32-unknown-unknown reads `crypto.getRandomValues` (browser and Web Workers)
+getrandom = { version = "0.2.16", features = ["js"] }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+k256 = { version = "0.13", default-features = false, features = ["ecdsa", "arithmetic"] }
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O3"]

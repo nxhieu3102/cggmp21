@@ -23,6 +23,8 @@
 - [Differences between the implementation and CGGMP21](#differences-between-the-implementation-and-cggmp21)
 - [Timing attacks](#timing-attacks)
 - [Join us in Discord!](#join-us-in-discord)
+- [Pure-Rust bigint backend and WebAssembly](#pure-rust-bigint-backend-and-webassembly)
+  * [Browser demo](#browser-demo)
 
 <!-- TOC ENDS -->
 
@@ -35,8 +37,14 @@ This crate implements:
 * (3+1)-round general threshold and non-threshold signing
 * Auxiliary info generation protocol
 * Key refresh for non-threshold keys
+* Hierarchical threshold key generation and signing (HTSS, via Birkhoff interpolation): each
+  signer has a rank, and only signer sets satisfying the hierarchical access structure can sign
 * HD-wallets support based on [slip10] standard (compatible with [bip32]) \
-  Requires `hd-wallets` feature
+  Requires `hd-wallet` feature
+
+Big integers are pure Rust (`num-bigint` plus an in-house Montgomery kernel in
+`fast_paillier::mont`); there is no GMP dependency and the crate builds for
+`wasm32-unknown-unknown`.
 
 A self-contained description of the protocols we implemented is available [here][the spec].
 
@@ -122,20 +130,20 @@ for each of the signers) that will be used during the signing protocols. This pr
 run as follows:
 
 ```rust
-// Prime generation can take a while
-let pregenerated_primes = cggmp21::PregeneratedPrimes::generate(&mut OsRng);
+// Paillier key generation takes well under a second on a modern CPU
+let pregenerated_paillier_key = cggmp21::PregeneratedPaillierKey::generate(&mut OsRng)?;
 
 let eid = cggmp21::ExecutionId::new(b"execution id, unique per protocol execution");
 let i = /* signer index, same as at keygen */;
 let n = /* number of signers */;
 
-let aux_info = cggmp21::aux_info_gen(eid, i, n, pregenerated_primes)
+let aux_info = cggmp21::aux_info_gen(eid, i, n, pregenerated_paillier_key)
     .start(&mut OsRng, party)
     .await?;
 ```
 
-The auxiliary-data generation protocol is computationally heavy as it requires the generation
-of safe primes and involves several zero-knowledge (ZK) proofs.
+The auxiliary-data generation protocol is computationally heavy as it involves several
+zero-knowledge (ZK) proofs about the Paillier modulus.
 
 #### On reusability of the auxiliary data
 The CGGMP21 paper assumes that new auxiliary data is generated for each secret key that is shared.
@@ -256,8 +264,9 @@ they are all documented in [the spec].
 ## Timing attacks
 Timing attacks are type of side-channel attacks that leak sensitive information through duration of
 execution. We consider timing attacks out of scope as they are nearly impossible to perform for such
-complicated protocol as CGGMP21 and impossible to do in our specific deployment. Thus, we intentionally
-don't do constant-time operations which gives us a significant performance boost.
+complicated protocol as CGGMP21. Modular exponentiations with secret exponents use a fixed-window,
+constant-time table lookup (`fast_paillier::mont::Montgomery::pow`), but the rest of the big-integer
+arithmetic is not constant-time.
 
 ## Join us in Discord!
 Feel free to reach out to us [in Discord]!
@@ -265,3 +274,36 @@ Feel free to reach out to us [in Discord]!
 [in Discord]: https://discordapp.com/channels/905194001349627914/1285268686147424388
 
 <!-- cargo-rdme end -->
+
+## Pure-Rust bigint backend and WebAssembly
+
+This fork has no GMP dependency: big integers are `num-bigint`, and every modular exponentiation
+goes through the in-house Montgomery kernel `fast_paillier::mont` (`u64` limbs natively, `u32`
+limbs + `simd128` on wasm32). `fast-paillier/` and `paillier-zk/` are vendored workspace crates.
+The whole stack builds for `wasm32-unknown-unknown`.
+
+Measurements (release builds, n = 3, Apple M1 Pro):
+
+| | rug/GMP (branch `m`) | pure Rust |
+|---|---|---|
+| Aux info, native | 6.82 s | 4.71 s |
+| Signing, native | 724 ms | 475 ms |
+| Paillier key generation (3072/512), native | not measured (old num-bigint port: > 56 min, aborted) | 0.38 s |
+| Aux info, browser, one Web Worker per party | — | 8.6–10.9 s |
+| Signing, browser | — | 0.43–0.57 s |
+
+Always benchmark with `--release`: bigint code is roughly 50× slower in debug builds.
+
+### Browser demo
+
+`cggmp21-wasm/` drives the original protocols through `round_based::state_machine`; `demo/` runs
+each party in its own Web Worker and routes messages on the main thread.
+
+```bash
+cargo install wasm-pack
+./cggmp21-wasm/build.sh                  # builds demo/pkg
+python3 -m http.server -d demo 8080      # open http://localhost:8080
+```
+
+All parties run in one tab for demonstration only. Real deployments need authenticated, encrypted
+channels and a reliable broadcast between parties.

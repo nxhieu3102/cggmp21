@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+* BREAKING: replace `rug`/GMP with pure-Rust `num-bigint` + in-house Montgomery kernel
+  (`fast_paillier::mont`); `cggmp21::rug` re-export replaced by `cggmp21::num_bigint`.
+  The whole stack now builds for `wasm32-unknown-unknown`.
+* BREAKING: `fast-paillier` and `paillier-zk` are vendored workspace crates; no git/path forks.
+* Security: aux-info generation rejects peers whose ring-Pedersen modulus doesn't match their
+  Paillier key or duplicates another party's modulus; key share validation checks the same.
+* Security: Paillier nonces are sampled with the key's `nounce_size` via the library API; no debug
+  output of protocol values.
+* Fix: `max_exponents_size` accounts for the batched proofs' challenge size, so multiexp tables
+  actually cover the exponents used by signing.
+* Fix: HD derivation of presignatures updated for the 2024 presignature layout.
+* CRT precomputation is enabled by default in aux-info generation / key refresh.
+* Remove unused `tokio`, `anyhow`, `futures-channel` dependencies.
+
 ## v0.6.0
 * Update `hd-wallet` dep to v0.6 [#120]
 

@@ -1,0 +1,44 @@
+[package]
+name = "fast-paillier"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Optimized Paillier encryption scheme"
+repository = "https://github.com/dfns/fast-paillier"
+categories = ["algorithms", "cryptography"]
+keywords = ["paillier", "public-key", "encryption"]
+
+[dependencies]
+rand_core = { workspace = true }
+thiserror = { workspace = true }
+num-bigint = { workspace = true, features = ["std", "rand"] }
+num-integer = { workspace = true, features = ["std"] }
+num-traits = { workspace = true, features = ["std"] }
+serde = { workspace = true, features = ["derive", "std"], optional = true }
+serde_json = { workspace = true, optional = true }
+
+[dev-dependencies]
+rand = { workspace = true }
+rand_dev = { workspace = true }
+criterion = { version = "0.5", features = ["html_reports"] }
+serde_json = { workspace = true }
+
+[features]
+default = []
+serde = ["dep:serde", "dep:serde_json"]
+
+[[bench]]
+name = "comparison"
+harness = false
+
+[[bench]]
+name = "keygen"
+harness = false
+
+[[bench]]
+name = "precompute_table"
+harness = false
+
+[[bench]]
+name = "modpow"
+harness = false

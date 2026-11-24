@@ -1,4 +1,5 @@
 use crate::birkhoff_error::{BirkhoffError, BirkhoffResult};
+use alloc::{vec, vec::Vec};
 use generic_ec::{Curve, NonZero, Scalar};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -63,7 +64,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
     /// This is a special case of Pseudoinverse. In particular,
     /// if the matrix is non-singular and square, then Pseudoinverse is the standard inverse matrix.
     ///
-    /// More details can be found in https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse
+    /// More details can be found in <https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse>
     ///
     /// If m^t*m is invertible. In this case, an explicitly formula is : (m^t*m)^(-1)*m^t.
     ///
@@ -146,7 +147,7 @@ impl<E: Curve> BirkhoffMatrix<E> {
 
     /// Transposes the matrix.
     /// Returns a new matrix with the rows and columns swapped.
-    /// matrix[i][j] --> matrix[j][i]
+    /// `matrix[i][j] --> matrix[j][i]`
     ///
     /// Example:
     /// matrix = [

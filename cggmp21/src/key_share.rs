@@ -4,7 +4,10 @@ use std::ops;
 use std::sync::Arc;
 
 use generic_ec::{Curve, NonZero, Point};
-use paillier_zk::rug::{Complete, Integer};
+use num_bigint::BigInt;
+use num_integer::Integer as _;
+use num_traits::One;
+use paillier_zk::fast_paillier::utils::serde_wrapper::serializable_bigint;
 use paillier_zk::{fast_paillier, paillier_encryption_in_range as π_enc};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -61,15 +64,17 @@ pub struct DirtyKeyShare<E: Curve, L: SecurityLevel = crate::default_choice::Sec
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(bound = "")]
 pub struct PartyAux {
-    // TODO: any new info for optimized Paillier key
     /// $N_i = p_i \cdot q_i$
-    pub N: Integer,
+    #[serde(with = "serializable_bigint")]
+    pub N: BigInt,
     /// Paillier public key
     pub enc: fast_paillier::EncryptionKey,
     /// Ring-Perdesten parameter $s_i$
-    pub s: Integer,
+    #[serde(with = "serializable_bigint")]
+    pub s: BigInt,
     /// Ring-Perdesten parameter $t_i$
-    pub t: Integer,
+    #[serde(with = "serializable_bigint")]
+    pub t: BigInt,
     /// Precomputed table for faster multiexponentiation
     #[serde(default)]
     pub multiexp: Option<Arc<paillier_zk::multiexp::MultiexpTable>>,
@@ -86,24 +91,23 @@ impl<L: SecurityLevel> Validate for DirtyAuxInfo<L> {
     fn is_valid(&self) -> Result<(), InvalidKeyShare> {
         // validate Pederson key
         // check gcd(s,N) = 1 and gcd(t,N) = 1
-        if self.parties.iter().any(|p| {
-            p.s.gcd_ref(&p.N).complete() != *Integer::ONE
-                || p.t.gcd_ref(&p.N).complete() != *Integer::ONE
-        }) {
+        if self
+            .parties
+            .iter()
+            .any(|p| !p.s.gcd(&p.N).is_one() || !p.t.gcd(&p.N).is_one())
+        {
             return Err(InvalidKeyShareReason::StGcdN.into());
         }
 
         // validate optimized Paillier key
         // check size of p, q
         if !crate::security_level::validate_secret_paillier_key_size::<L>(
-            &self.dec.p(),
-            &self.dec.q(),
-            &self.dec.alpha(),
+            self.dec.p(),
+            self.dec.q(),
+            self.dec.alpha(),
         ) {
             return Err(InvalidKeyShareReason::PaillierSkTooSmall.into());
         }
-        // TODO: check size of alpha
-        // TODO: check relation between alpha, q, p...
 
         // validate size of Paillier public key
         if let Some(invalid_aux) = self
@@ -112,10 +116,21 @@ impl<L: SecurityLevel> Validate for DirtyAuxInfo<L> {
             .find(|p| !crate::security_level::validate_public_paillier_key_size::<L>(&p.N))
         {
             return Err(InvalidKeyShareReason::PaillierPkTooSmall {
-                required: 8 * L::SECURITY_BITS - 1,
-                actual: invalid_aux.N.significant_bits(),
+                required: L::N_SIZE - L::EPSILON_N_SIZE,
+                actual: invalid_aux.N.bits(),
             }
             .into());
+        }
+
+        if self.parties.iter().any(|p| &p.N != p.enc.n()) {
+            return Err(InvalidKeyShareReason::ModulusMismatch.into());
+        }
+
+        // every party must have a distinct modulus
+        let mut moduli = self.parties.iter().map(|p| &p.N).collect::<Vec<_>>();
+        moduli.sort();
+        if moduli.windows(2).any(|w| w[0] == w[1]) {
+            return Err(InvalidKeyShareReason::DuplicatedModulus.into());
         }
 
         Ok(())
@@ -131,22 +146,11 @@ impl<L: SecurityLevel> DirtyAuxInfo<L> {
     /// Returns error if building a multiexp table failed. In this case, the key share stays unmodified.
     /// On success, multiexp tables are saved into the key share (old tables, if present, are overwritten).
     pub fn precompute_multiexp_tables(&mut self) -> Result<(), InvalidKeyShare> {
-        let (x_bits, y_bits) = crate::security_level::max_exponents_size::<L>();
         let tables = self
             .parties
             .iter()
-            .map(|aux_i| {
-                paillier_zk::multiexp::MultiexpTable::build(
-                    &aux_i.s,
-                    &aux_i.t,
-                    x_bits,
-                    y_bits,
-                    aux_i.N.clone(),
-                )
-                .map(Arc::new)
-            })
-            .collect::<Option<Vec<_>>>()
-            .ok_or(InvalidKeyShareReason::BuildMultiexpTable)?;
+            .map(PartyAux::build_multiexp_table::<L>)
+            .collect::<Result<Vec<_>, _>>()?;
         self.parties
             .iter_mut()
             .zip(tables)
@@ -176,7 +180,7 @@ impl<L: SecurityLevel> DirtyAuxInfo<L> {
             .parties
             .get_mut(usize::from(i))
             .ok_or(InvalidKeyShareReason::CrtINotInRange)?;
-        aux_i.precompute_crt(&self.dec.p(), &self.dec.q())
+        aux_i.precompute_crt(self.dec.p(), self.dec.q())
     }
 }
 
@@ -192,18 +196,23 @@ impl PartyAux {
     /// Note that provided security level must match the actual security level being used in the
     /// protocol. Otherwise, optimization won't work, and it actually will make the protocol slower.
     pub fn precompute_multiexp_table<L: SecurityLevel>(&mut self) -> Result<(), InvalidKeyShare> {
+        self.multiexp = Some(self.build_multiexp_table::<L>()?);
+        Ok(())
+    }
+
+    fn build_multiexp_table<L: SecurityLevel>(
+        &self,
+    ) -> Result<Arc<paillier_zk::multiexp::MultiexpTable>, InvalidKeyShare> {
         let (x_bits, y_bits) = crate::security_level::max_exponents_size::<L>();
-        let multiexp = paillier_zk::multiexp::MultiexpTable::build(
+        paillier_zk::multiexp::MultiexpTable::build(
             &self.s,
             &self.t,
-            x_bits,
-            y_bits,
+            x_bits.into(),
+            y_bits.into(),
             self.N.clone(),
         )
         .map(Arc::new)
-        .ok_or(InvalidKeyShareReason::BuildMultiexpTable)?;
-        self.multiexp = Some(multiexp);
-        Ok(())
+        .ok_or_else(|| InvalidKeyShareReason::BuildMultiexpTable.into())
     }
 
     /// Precomputes CRT parameters
@@ -219,8 +228,8 @@ impl PartyAux {
     ///
     /// Note: CRT parameters contain secret information. Leaking them exposes secret Paillier key. Keep
     /// [`AuxInfo::parties`](DirtyAuxInfo::parties) secret (as well as rest of the key share).
-    pub fn precompute_crt(&mut self, p: &Integer, q: &Integer) -> Result<(), InvalidKeyShare> {
-        if (p * q).complete() != self.N {
+    pub fn precompute_crt(&mut self, p: &BigInt, q: &BigInt) -> Result<(), InvalidKeyShare> {
+        if p * q != self.N {
             return Err(InvalidKeyShareReason::CrtInvalidPq.into());
         }
         let crt = paillier_zk::fast_paillier::utils::CrtExp::build_n(p, q)
@@ -268,7 +277,7 @@ impl<E: Curve, L: SecurityLevel> DirtyKeyShare<E, L> {
         }
 
         let N_i = &aux.parties[usize::from(core.i)].N;
-        if *N_i != (aux.dec.p() * aux.dec.q()).complete() {
+        if *N_i != aux.dec.p() * aux.dec.q() {
             return Err(InvalidKeyShareReason::PrimesMul.into());
         }
 
@@ -393,7 +402,11 @@ enum InvalidKeyShareReason {
     #[error("paillier secret key doesn't match security level (primes are too small)")]
     PaillierSkTooSmall,
     #[error("paillier public key of one of the signers doesn't match security level: required bit length = {required}, actual = {actual}")]
-    PaillierPkTooSmall { required: u32, actual: u32 },
+    PaillierPkTooSmall { required: u32, actual: u64 },
+    #[error("two signers have the same paillier modulus")]
+    DuplicatedModulus,
+    #[error("ring-pedersen modulus doesn't match paillier public key")]
+    ModulusMismatch,
     #[error("couldn't build a multiexp table")]
     BuildMultiexpTable,
     #[error("provided index `i` does not correspond to an index of the signer at key generation")]

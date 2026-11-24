@@ -4,8 +4,11 @@ members = [
     "birkhoff",
     "cggmp21",
     "cggmp21-keygen",
+    "cggmp21-wasm",
     "examples/p2p_example",
+    "fast-paillier",
     "key-share",
+    "paillier-zk",
     "tests",
 ]
 exclude = ["wasm/no_std"]
@@ -16,11 +19,15 @@ cggmp21-keygen = { version = "0.5", path = "cggmp21-keygen" }
 key-share = { version = "0.6", path = "key-share", default-features = false }
 birkhoff = { version = "0.1.0", path = "birkhoff" }
 
-generic-ec = { git = "https://github.com/nxhieu3102/generic-ec.git", branch = "feat/integrate-cggmp21", default-features = false }
-generic-ec-zkp = { git = "https://github.com/nxhieu3102/generic-ec.git", branch = "feat/integrate-cggmp21", default-features = false }
+generic-ec = { version = "0.4.5", default-features = false }
+generic-ec-zkp = { version = "0.4.4", default-features = false }
 round-based = { version = "0.4.1", default-features = false }
 
-paillier-zk = { git = "https://github.com/nxhieu3102/paillier-zk" }
+fast-paillier = { version = "0.1", path = "fast-paillier", default-features = false }
+paillier-zk = { version = "0.4", path = "paillier-zk", default-features = false }
+num-bigint = { version = "0.4.6", default-features = false }
+num-integer = { version = "0.1.46", default-features = false }
+num-traits = { version = "0.2.19", default-features = false }
 udigest = { version = "0.2.1", default-features = false }
 
 digest = { version = "0.10", default-features = false }
@@ -47,3 +54,10 @@ hex = { version = "0.4", default-features = false }
 hd-wallet = { version = "0.6", default-features = false }
 
 generic-tests = "0.1"
+
+# Fat LTO + one codegen unit let the bigint kernels inline across crates (fast-paillier →
+# paillier-zk → cggmp21); this matters both natively and on wasm32.
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1

@@ -1,7 +1,6 @@
 use anyhow::{bail, Context, Result};
 use cggmp21::{
-    fast_paillier, key_share::KeyShare, rug::Integer, security_level::SecurityLevel,
-    PregeneratedPaillierKey,
+    fast_paillier, key_share::KeyShare, security_level::SecurityLevel, PregeneratedPaillierKey,
 };
 use generic_ec::Curve;
 use rand::{CryptoRng, RngCore};
@@ -216,27 +215,6 @@ impl PregeneratedPaillierKeys {
             paillier_keys,
             n_size,
             a_size,
-        }
-    }
-}
-
-/// Generates a blum prime
-///
-/// CGGMP21 requires using safe primes, however blum primes do not break correctness of the protocol
-/// and they can be generated faster.
-///
-/// Only to be used in the tests.
-pub fn generate_blum_prime(rng: &mut impl rand::RngCore, bits_size: u32) -> Integer {
-    loop {
-        let mut n: Integer = Integer::random_bits(
-            bits_size,
-            &mut cggmp21::fast_paillier::utils::external_rand(rng),
-        )
-        .into();
-        n.set_bit(bits_size - 1, true);
-        n.next_prime_mut();
-        if n.mod_u(4) == 3 {
-            break n;
         }
     }
 }
